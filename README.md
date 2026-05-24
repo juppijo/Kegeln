@@ -51,4 +51,4 @@ Das Projekt wurde als schlanke, performante Client-Side-Webapplikation ohne schw
 └── script.js         # Anwendungslogik, Sortier-Algorithmen, Speicherfunktionen & Berechnungen
 ```
 ---
-> 🎳 Viel Spass beim Spielen 🎳 😉
+> 🎳 Viel Spaß beim Spielen 🎳 😉
