@@ -49,5 +49,6 @@ Das Projekt wurde als schlanke, performante Client-Side-Webapplikation ohne schw
 ├── index.html        # Struktur des Dashboards, der Tabellen und Steuerungselemente
 ├── style.css         # Responsives Layout, CSS-Variablen für Themes & Touch-Gesten
 └── script.js         # Anwendungslogik, Sortier-Algorithmen, Speicherfunktionen & Berechnungen
-
-### 🎳 Viel Spass beim Spielen. 🎳 😊 😉
+```
+---
+> 🎳 Viel Spass beim Spielen 🎳 😉
