@@ -1,6 +1,6 @@
 // --- DATEN-STRUKTUREN ---
 let players = ["Michael", "Hilde", "Peter", "Brigitte", "Elke", "Gerhard", "Helga", "Birgit", "Jo", "Svenja", "Marius"];
-let currentGame = "hausnummer"; // Startet jetzt standardmäßig mit einem Spiel, da Kegelbuch fest unten steht
+let currentGame = "hausnummer";
 
 let gameOrder = [
     { key: "hausnummer", title: "🏠 Große/Kleine Hausnummer" },
@@ -9,7 +9,6 @@ let gameOrder = [
     { key: "idiot", title: "🤪 Idiotenkegeln" }
 ];
 
-// Punktespeicher für den Gesamt-Spielstand
 let grandTotalScores = {};
 
 const gameRules = {
@@ -29,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateKegelbuchTable();
     updateGrandTotalTable();
 
-    // Event-Listener
+    // Event-Listener Setup
     document.getElementById("add-player-btn").addEventListener("click", addPlayer);
     document.getElementById("new-player-name").addEventListener("keypress", (e) => { if(e.key === 'Enter') addPlayer(); });
     document.getElementById("save-players-btn").addEventListener("click", () => savePlayersToStorage(true));
@@ -37,17 +36,32 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("clear-players-btn").addEventListener("click", clearAllPlayers);
 });
 
+// --- NEU: TABS REITER UMSCHALTUNG ---
+function switchTab(tabId, buttonElement) {
+    // Verstecke alle Tab-Inhalte
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    // Entferne 'active' von allen Menüknöpfen
+    document.querySelectorAll('.menu-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Aktiviere gewählten Reiter
+    document.getElementById(tabId).classList.remove('hidden');
+    buttonElement.classList.add('active');
+}
+
 function initGrandTotalScores() {
     players.forEach(p => {
         if (!grandTotalScores[p]) grandTotalScores[p] = 0;
     });
 }
 
-// --- COLLAPSIBLE / EIN- UND AUSKLAPP-FUNKTION ---
+// --- COLLAPSIBLE ---
 function toggleCard(contentId, headerElement) {
     const content = document.getElementById(contentId);
     const icon = headerElement.querySelector(".toggle-icon");
-    
     if (content.classList.contains("collapsed")) {
         content.classList.remove("collapsed");
         icon.innerText = "🔽";
@@ -281,7 +295,8 @@ function switchGame(gameKey) {
 
 function showRules() {
     const box = document.getElementById("rules-box");
-    document.getElementById("rules-title").innerText = `Regeln: ${gameOrder.find(g => g.key === currentGame).title}`;
+    //document.getElementById("rules-title").innerText = `Regeln: ${gameOrder.find(g => g.key === currentGame).title}`;
+    document.getElementById("rules-title").innerText = `Regeln`;
     document.getElementById("rules-text").innerText = gameRules[currentGame];
     box.classList.toggle("hidden");
 }
@@ -290,6 +305,11 @@ function showRules() {
 function updateCurrentGameTable() {
     const thRow = document.getElementById("th-row");
     const tbody = document.getElementById("game-tbody");
+
+    // Alte Unterüberschriften der Hausnummer immer löschen, um Reste zu vermeiden
+    const oldSub = document.getElementById("th-sub-row"); 
+    if(oldSub) oldSub.remove();    
+    
     thRow.innerHTML = ""; tbody.innerHTML = "";
 
     if (players.length === 0) {
@@ -298,17 +318,32 @@ function updateCurrentGameTable() {
     }
 
     if (currentGame === "hausnummer") {
-        thRow.innerHTML = "<th>Name</th><th>Platz</th><th>W1</th><th>W2</th><th>W3</th><th>Zahl</th><th>Modus</th>";
+        thRow.innerHTML = `
+            <th rowspan="2">Name</th>
+            <th colspan="4" class="header-highlight-1">🏠 GROSSE HAUSNUMMER</th>
+            <th colspan="4" class="header-highlight-2 border-left-divider">🏠 KLEINE HAUSNUMMER</th>
+        `;
+        const subHeader = document.createElement("tr");
+        subHeader.id = "th-sub-row";
+        subHeader.innerHTML = `
+            <th class="header-highlight-1">W1</th><th class="header-highlight-1">W2</th><th class="header-highlight-1">W3</th><th class="header-highlight-1">Erg.</th>
+            <th class="header-highlight-2 border-left-divider">W1</th><th class="header-highlight-2">W2</th><th class="header-highlight-2">W3</th><th class="header-highlight-2">Erg.</th>
+        `;
+        thRow.parentNode.appendChild(subHeader);
+
         players.forEach(p => {
             tbody.innerHTML += `
                 <tr id="row-${p}">
-                    <td>${p}</td>
-                    <td class="rank-col">-</td>
-                    <td><input type="number" class="val-w1" min="0" max="9" value="0"></td>
-                    <td><input type="number" class="val-w2" min="0" max="9" value="0"></td>
-                    <td><input type="number" class="val-w3" min="0" max="9" value="0"></td>
-                    <td class="val-result" style="font-weight:bold;">0</td>
-                    <td><select class="val-mode"><option value="groß">Groß ↑</option><option value="klein">Klein ↓</option></select></td>
+                    <td><strong>${p}</strong></td>
+                    <td><input type="number" class="g-w1" min="0" max="9" value="0"></td>
+                    <td><input type="number" class="g-w2" min="0" max="9" value="0"></td>
+                    <td><input type="number" class="g-w3" min="0" max="9" value="0"></td>
+                    <td class="g-res" style="font-weight:bold; color:var(--accent);">0</td>
+                    
+                    <td class="border-left-divider"><input type="number" class="k-w1" min="0" max="9" value="0"></td>
+                    <td><input type="number" class="k-w2" min="0" max="9" value="0"></td>
+                    <td><input type="number" class="k-w3" min="0" max="9" value="0"></td>
+                    <td class="k-res" style="font-weight:bold; color:#f59e0b;">0</td>
                 </tr>`;
         });
     }
@@ -357,7 +392,7 @@ function updateCurrentGameTable() {
     }
 }
 
-// --- STATISCHE FIXIERTE BEREICHE UNTEN ---
+// --- FIXIERTE STATISCHE TABELLEN ---
 function updateKegelbuchTable() {
     const tbody = document.getElementById("kegelbuch-tbody");
     tbody.innerHTML = "";
@@ -410,26 +445,54 @@ function updateGrandTotalTable() {
     });
 }
 
-// --- LIVE-AUSWERTUNG AKTUELLES SPIEL ---
+// --- AUSWERTUNG RECHNER ---
 function calculateGame() {
     let results = [];
     players.forEach(p => { const row = document.getElementById(`row-${p}`); if(row) row.className = ""; });
 
     if (currentGame === "hausnummer") {
+        let großResults = [];
+        let kleinResults = [];
+
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`);
-            const w1 = row.querySelector(".val-w1").value;
-            const w2 = row.querySelector(".val-w2").value;
-            const w3 = row.querySelector(".val-w3").value;
-            const mode = row.querySelector(".val-mode").value;
-            let num = parseInt("" + w1 + w2 + w3) || 0;
-            row.querySelector(".val-result").innerText = num;
-            let scoreEffect = mode === "groß" ? num : (999 - num);
-            results.push({ name: p, score: scoreEffect, element: row });
+            if(!row) return;
+            
+            const g1 = row.querySelector(".g-w1").value;
+            const g2 = row.querySelector(".g-w2").value;
+            const g3 = row.querySelector(".g-w3").value;
+            let gNum = parseInt("" + g1 + g2 + g3) || 0;
+            row.querySelector(".g-res").innerText = gNum;
+            großResults.push({ name: p, val: gNum });
+
+            const k1 = row.querySelector(".k-w1").value;
+            const k2 = row.querySelector(".k-w2").value;
+            const k3 = row.querySelector(".k-w3").value;
+            let kNum = parseInt("" + k1 + k2 + k3) || 0;
+            row.querySelector(".k-res").innerText = kNum;
+            kleinResults.push({ name: p, val: kNum });
         });
-        results.sort((a, b) => b.score - a.score);
+
+        großResults.sort((a,b) => b.val - a.val);
+        kleinResults.sort((a,b) => a.val - b.val);
+
+        großResults.forEach((item, index) => {
+            if(index === 0) grandTotalScores[item.name] += 3;
+            else if(index === 1) grandTotalScores[item.name] += 2;
+            else if(index === 2) grandTotalScores[item.name] += 1;
+            if(index === großResults.length - 1 && großResults.length > 1) grandTotalScores[item.name] -= 1;
+        });
+
+        kleinResults.forEach((item, index) => {
+            if(index === 0) grandTotalScores[item.name] += 3;
+            else if(index === 1) grandTotalScores[item.name] += 2;
+            else if(index === 2) grandTotalScores[item.name] += 1;
+            if(index === kleinResults.length - 1 && kleinResults.length > 1) grandTotalScores[item.name] -= 1;
+        });
+
+        alert("🎉 Beide Hausnummern-Turniere ausgewertet!");
     }
-    else if (currentGame === "siebzehn-vier") {
+    else if (currentGame === "siebzehen-vier") {
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`);
             const points = parseInt(row.querySelector(".val-points").value) || 0;
@@ -467,7 +530,7 @@ function calculateGame() {
         results.sort((a, b) => b.score - a.score);
     }
 
-    // PLATZIERUNGSANZEIGE & TURNIERPUNKTE VERTEILEN
+    // SCORE ANPASSEN
     results.forEach((item, index) => {
         const rank = index + 1;
         const rankCol = item.element.querySelector(".rank-col");
@@ -476,29 +539,26 @@ function calculateGame() {
         if (rank === 1) {
             rankCol.innerHTML = `<span class="rank-badge rank-1">🥇 1</span>`;
             item.element.classList.add("winner-row");
-            grandTotalScores[item.name] += 3; // +3 Punkte für den Ersten
+            grandTotalScores[item.name] += 3;
         } else if (rank === 2) {
             rankCol.innerHTML = `<span class="rank-badge rank-2">🥈 2</span>`;
-            grandTotalScores[item.name] += 2; // +2 Punkte für Platz 2
+            grandTotalScores[item.name] += 2;
         } else if (rank === 3) {
             rankCol.innerHTML = `<span class="rank-badge rank-3">🥉 3</span>`;
-            grandTotalScores[item.name] += 1; // +1 Punkt für Platz 3
+            grandTotalScores[item.name] += 1;
         } else {
             rankCol.innerHTML = `<span class="rank-badge">${rank}</span>`;
         }
 
-        // Letzter Platz erhält Punktabzug
         if (rank === results.length && results.length > 1) {
             item.element.classList.add("loser-row");
-            grandTotalScores[item.name] -= 1; // -1 Punkt für den Letzten
+            grandTotalScores[item.name] -= 1;
         }
     });
 
-    // Beide statischen Übersichten live mit-aktualisieren
     updateGrandTotalTable();
 }
 
-// --- KEGELBUCH / KASSE AUSWERTUNG ---
 function calculateKegelbuch() {
     let kbResults = [];
     players.forEach(p => {
@@ -506,13 +566,10 @@ function calculateKegelbuch() {
         const startgeld = parseFloat(row.querySelector(".kb-startgeld").value) || 0;
         const pudel = parseInt(row.querySelector(".kb-pudel").value) || 0;
         const stinas = parseInt(row.querySelector(".kb-stinas").value) || 0;
-        
         const gesamt = startgeld + (pudel * 0.10) + (stinas * 0.20);
         row.querySelector(".kb-total").innerText = gesamt.toFixed(2) + " €";
         kbResults.push({ name: p, score: gesamt, element: row });
     });
-
-    // Rangliste in der Kasse anzeigen (wer hat am meisten verpudelt/bezahlt)
     kbResults.sort((a, b) => b.score - a.score);
     kbResults.forEach((item, index) => {
         const rankCol = item.element.querySelector(".kb-rank-col");

@@ -1,4 +1,4 @@
-/* --- BASIS-SETUP & DESIGN-VARIANTE REAKTIV --- */
+/* --- BASIS-SETUP --- */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -75,6 +75,45 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* --- NEU: HORIZONTALE TAB-MENÜLEISTE --- */
+.menu-bar {
+    display: flex;
+    background-color: var(--bg-card);
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+}
+.menu-bar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+.menu-tab {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 8px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.95rem;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+}
+.menu-tab:hover {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+.menu-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -84,10 +123,8 @@ body {
 header {
     background: var(--header-gradient);
     color: white;
-    padding: 20px 15px;
+    padding: 15px;
     text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    border-bottom: 3px solid var(--accent);
 }
 
 .card {
@@ -99,7 +136,6 @@ header {
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-/* --- KLAPPBARE HEADERS --- */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -134,7 +170,6 @@ h2 {
     margin-bottom: 12px;
 }
 
-/* --- BACKUP BEREICH --- */
 .file-backup-zone {
     margin-top: 5px;
     padding-top: 12px;
@@ -145,7 +180,6 @@ h2 {
     overflow: hidden;
 }
 
-/* --- THEME & SCREEN BUTTON CONTROLS --- */
 .control-grid {
     display: flex;
     justify-content: space-between;
@@ -188,7 +222,7 @@ select {
 .btn-info { background-color: #3b82f6; color: white; }
 .btn-danger { background-color: #ef4444; color: white; }
 
-/* --- REIHENFOLGE STEUERUNG SPIELER --- */
+/* --- SPIELER STEUERUNG --- */
 .player-management {
     display: flex;
     flex-direction: column;
@@ -246,7 +280,7 @@ input[type="text"], input[type="number"] {
 }
 .btn-order:hover { background-color: var(--border); }
 
-/* --- SPIEL-REIHENFOLGE & NAVIGATION --- */
+/* --- GAME NAV --- */
 .game-selector-grid {
     display: flex;
     flex-direction: column;
@@ -279,7 +313,7 @@ input[type="text"], input[type="number"] {
     color: var(--accent);
 }
 
-/* --- TABELLEN & TOUCH INTERFACES --- */
+/* --- TABLES --- */
 .game-header-row {
     display: flex;
     justify-content: space-between;
@@ -321,7 +355,12 @@ table input[type="number"], table select {
     margin-top: 15px;
 }
 
-/* SMARTPHONE & TOUCH-OPTIMIERUNGEN */
+/* INTERFACES HIDE/SHOW REITER */
+.tab-content.hidden {
+    display: none !important;
+}
+
+/* SMARTPHONE OPTIMIERUNGEN */
 @media (max-width: 768px) {
     body { font-size: 14px; }
     .container { padding: 8px; }
@@ -332,16 +371,12 @@ table input[type="number"], table select {
     table input[type="number"] { width: 50px; padding: 4px; }
     .game-actions { flex-direction: column; }
     .game-actions button { width: 100%; }
+    .menu-tab { font-size: 0.85rem; padding: 10px 4px; }
 }
 
-/* GEWINNER & HIGHLIGHT STYLES */
 .winner-row { background-color: rgba(16, 185, 129, 0.15) !important; }
 .loser-row { background-color: rgba(239, 68, 68, 0.1) !important; }
-.rank-badge {
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-}
+.rank-badge { padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 .rank-1 { background-color: #eab308; color: black; }
 .rank-2 { background-color: #cbd5e1; color: black; }
 .rank-3 { background-color: #b45309; color: white; }
