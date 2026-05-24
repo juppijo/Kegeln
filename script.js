@@ -23,7 +23,7 @@ function defaultState() {
       sv:         {},     // id: {throws:[7], karte:0}
       fuchs: { fuchsId: null, rounds: [] },
                           // rounds: [{fochScore, hunters:{id:score}}]
-      rennen:     {},     // id: {days:[6]}
+      rennen: { teams: [], days: {} },  // teams:[{id,name,p1,p2}], days:{pid:[6]}
       einsacken: { g1: [], g2: [], rounds: [] },
                           // rounds: [{g1:{id:n}, g2:{id:n}}]
       schwein:    {},     // id: {vals:[5]}  (0-9 pins each weight)
@@ -69,12 +69,26 @@ function loadData() {
   try {
     const parsed = JSON.parse(raw);
     state = deepMerge(defaultState(), parsed);
+    migrateRennen();                    // migrate old per-player format
     themeIdx = Math.max(0, THEMES.indexOf(state.theme));
     applyTheme(state.theme);
     const nameEl = document.getElementById('sessionNameDisplay');
     if (nameEl) nameEl.textContent = state.session.name + ' ✏️';
   } catch(e) { console.warn('Load error', e); }
   updateFooter();
+}
+
+// Migrate old rennen format {pid:{days:[...]}} → {teams:[], days:{pid:[...]}}
+function migrateRennen() {
+  const rn = state.scores.rennen;
+  if (rn.days && Array.isArray(rn.teams)) return; // already new format
+  const newDays = {};
+  for (const key in rn) {
+    if (key !== 'teams' && key !== 'days' && rn[key] && Array.isArray(rn[key].days)) {
+      newDays[key] = rn[key].days;
+    }
+  }
+  state.scores.rennen = { teams: rn.teams || [], days: newDays };
 }
 
 function deepMerge(target, source) {
@@ -214,7 +228,8 @@ function addPlayer(name) {
 function initPlayerScores(id) {
   if (!state.scores.hausnummer[id]) state.scores.hausnummer[id] = { gross:[0,0,0], klein:[0,0,0] };
   if (!state.scores.sv[id])         state.scores.sv[id]         = { throws:[0,0,0,0,0,0,0], karte:0 };
-  if (!state.scores.rennen[id])     state.scores.rennen[id]     = { days:[0,0,0,0,0,0] };
+  if (!state.scores.rennen.days)       state.scores.rennen.days = {};
+  if (!state.scores.rennen.days[id])   state.scores.rennen.days[id] = [0,0,0,0,0,0];
   if (!state.scores.schwein[id])    state.scores.schwein[id]    = { vals:[0,0,0,0,0] };
   if (!state.scores.idiot[id])      state.scores.idiot[id]      = { links:0, beine:0, rechts:0 };
   if (!state.scores.mensch[id])     state.scores.mensch[id]     = { throws:Array(10).fill(0) };
@@ -320,8 +335,10 @@ function rulesHtml(id) {
       Die anderen Spieler ("Jäger") versuchen die Punktzahl des Fuchses zu übertreffen. 
       Gelingt es einem Jäger nicht, überlebt der Fuchs die Runde und bekommt einen Punkt. 
       Wer am Ende die meisten Punkte hat, gewinnt.`,
-    rennen: `<strong>🚀 6-Tage-Rennen:</strong> Wie ein Radrennen! Tag 1 = normale Punkte, Tag 2 = doppelte Punkte, 
-      Tag 3 = dreifache Punkte ... Tag 6 = sechsfache Punkte. Laufende Gesamtsumme = Rennstand. Höchste Gesamtsumme gewinnt.`,
+    rennen: `<strong>🚀 6-Tage-Rennen (Zweier-Teams):</strong> Spieler werden in Zweier-Teams aufgeteilt – wie beim echten Radrennen!
+      Beide Teammitglieder würfeln jeden Tag. Die kombinierten Pinzahlen beider Spieler werden mit dem Tagesmultiplikator gewichtet:
+      Tag 1 × 1, Tag 2 × 2, Tag 3 × 3, Tag 4 × 4, Tag 5 × 5, Tag 6 × 6.
+      Team-Tagespunkte = (Spieler1 + Spieler2) × Tageszahl. Höchste Gesamtpunktzahl gewinnt.`,
     einsacken: `<strong>💰 Einsacken:</strong> Zwei Gruppen spielen gegeneinander. In jeder Runde wirft jeder Spieler einmal. 
       Der Spieler mit den meisten Punkten in seiner Gruppe "Sackt" die Runde ein (= bekommt einen Gewinnpunkt). 
       Wer am Ende die meisten Runden gewonnen hat, gewinnt für seine Gruppe.`,
@@ -390,9 +407,10 @@ function handleScore(inp) {
     refreshRanks('sv');
 
   } else if (game === 'rennen') {
-    if (!sc.rennen[pid]) sc.rennen[pid] = { days:[0,0,0,0,0,0] };
-    sc.rennen[pid].days[+idx] = v;
-    updateRennenRow(pid);
+    if (!sc.rennen.days) sc.rennen.days = {};
+    if (!sc.rennen.days[pid]) sc.rennen.days[pid] = Array(6).fill(0);
+    sc.rennen.days[pid][+idx] = v;
+    updateRennenTeamCells(pid);
     refreshRanks('rennen');
 
   } else if (game === 'schwein') {
@@ -457,11 +475,10 @@ function refreshRanks(game) {
     rank(entries).forEach(r => setEl(`sv_rank_${r.id}`, medal(r.rank)));
 
   } else if (game === 'rennen') {
-    const entries = players.map(p => {
-      const r = state.scores.rennen[p.id]||{days:[]};
-      return { id: p.id, total: r.days.reduce((a,v,i) => a+(v||0)*(i+1), 0) };
-    });
-    rank(entries).forEach(r => setEl(`rn_rank_${r.id}`, medal(r.rank)));
+    const rn = state.scores.rennen;
+    if (!rn.teams || !rn.teams.length) return;
+    const teamEntries = rn.teams.map(t => ({ id: t.id, total: rennenTeamTotal(t) }));
+    rank(teamEntries).forEach(r => setEl(`rn_team_rank_${r.id}`, medal(r.rank)));
 
   } else if (game === 'schwein') {
     const wts = [0.2,0.4,0.6,0.8,1.0];
@@ -486,16 +503,35 @@ function refreshRanks(game) {
   }
 }
 
-function updateRennenRow(pid) {
-  const r = state.scores.rennen[pid]||{days:[]};
+// Compute total score for a team across all 6 days (each player's score × day multiplier)
+function rennenTeamTotal(t) {
+  const days = state.scores.rennen.days || {};
+  return [0,1,2,3,4,5].reduce((sum, i) => {
+    const p1v = (days[t.p1] || [])[i] || 0;
+    const p2v = (days[t.p2] || [])[i] || 0;
+    return sum + (p1v + p2v) * (i + 1);
+  }, 0);
+}
+
+// Refresh all per-team day-cells and totals when a player score changes
+function updateRennenTeamCells(pid) {
+  const rn = state.scores.rennen;
+  // Update the player's own raw total cell
+  const rawDays = (rn.days && rn.days[pid]) || Array(6).fill(0);
+  setEl(`rn_ptotal_${pid}`, rawDays.reduce((a,v)=>a+(v||0),0));
+  // Find which team this player is on and update team cells
+  const t = (rn.teams || []).find(t => t.p1 === pid || t.p2 === pid);
+  if (!t) return;
+  const days = rn.days || {};
   let cum = 0;
   for (let i = 0; i < 6; i++) {
-    const mult = (r.days[i]||0) * (i+1);
-    cum += mult;
-    setEl(`rn_mult_${pid}_${i}`, mult);
-    setEl(`rn_sum_${pid}_${i}`, cum);
+    const p1v = (days[t.p1] || [])[i] || 0;
+    const p2v = (days[t.p2] || [])[i] || 0;
+    const combined = (p1v + p2v) * (i + 1);
+    cum += combined;
+    setEl(`rn_teamday_${t.id}_${i}`, combined);
   }
-  setEl(`rn_total_${pid}`, cum);
+  setEl(`rn_teamtotal_${t.id}`, cum);
 }
 
 function updateKbRow(pid) {
@@ -752,16 +788,30 @@ function setFuchsScore(roundIdx, who, val) {
 }
 
 // ======================================================
-// RENDER: 6-TAGE-RENNEN
+// RENDER: 6-TAGE-RENNEN (Zweier-Teams)
 // ======================================================
 function renderRennen() {
   if (!state.players.length) return noPlayers();
-  const entries = state.players.map(p => {
-    const r = state.scores.rennen[p.id]||{days:[]};
-    return { id: p.id, total: r.days.reduce((a,v,i) => a+(v||0)*(i+1), 0) };
-  });
-  const rnRanks = {};
-  rank(entries).forEach(r => { rnRanks[r.id] = medal(r.rank); });
+  const rn = state.scores.rennen;
+  if (!rn.teams) rn.teams = [];
+  if (!rn.days)  rn.days  = {};
+
+  const assignedPids = rn.teams.flatMap(t => [t.p1, t.p2].filter(Boolean));
+  const freePlayers  = state.players.filter(p => !assignedPids.includes(p.id));
+
+  // Team ranking
+  const teamEntries = rn.teams.map(t => ({ id: t.id, name: t.name, total: rennenTeamTotal(t) }));
+  const teamRanked  = rank(teamEntries);
+  const teamRankMap = {};
+  teamRanked.forEach(r => { teamRankMap[r.id] = medal(r.rank); });
+
+  // Helper: options for player selection inside a team (show own slot + free players)
+  function playerOptions(selectedId) {
+    return state.players
+      .filter(p => p.id === selectedId || !assignedPids.includes(p.id) || !selectedId)
+      .map(p => `<option value="${p.id}" ${selectedId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`)
+      .join('');
+  }
 
   return `
   <div class="page-card">
@@ -770,46 +820,131 @@ function renderRennen() {
       <button class="btn-rules" onclick="toggleRules('rennen')">📜 Regeln</button>
     </div>
     <div id="rules_rennen" style="display:none">${rulesHtml('rennen')}</div>
-    <div class="table-wrapper">
-      <table class="score-table">
-        <thead>
-          <tr>
-            <th rowspan="2">Name</th>
-            <th>Tag 1<br><small>×1</small></th>
-            <th>Tag 2<br><small>×2</small></th><th>Wert</th><th>Σ</th>
-            <th>Tag 3<br><small>×3</small></th><th>Wert</th><th>Σ</th>
-            <th>Tag 4<br><small>×4</small></th><th>Wert</th><th>Σ</th>
-            <th>Tag 5<br><small>×5</small></th><th>Wert</th><th>Σ</th>
-            <th>Tag 6<br><small>×6</small></th><th>Wert</th>
-            <th>Gesamt</th><th>Platz</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${state.players.map(p => {
-            const r = state.scores.rennen[p.id]||{days:Array(6).fill(0)};
-            let cum = 0;
-            const cells = r.days.map((v,i) => {
-              const mult = (v||0)*(i+1);
-              cum += mult;
-              const input = `<td><input class="score-input" type="number" min="0" max="9" value="${v||0}"
-                data-score data-game="rennen" data-pid="${p.id}" data-field="day" data-idx="${i}"></td>`;
-              if (i === 0) return input;
-              return input +
-                `<td id="rn_mult_${p.id}_${i}" style="color:var(--accent2);font-weight:700">${mult}</td>` +
-                `<td id="rn_sum_${p.id}_${i}" class="sum-cell">${cum}</td>`;
-            }).join('');
-            const total = r.days.reduce((a,v,i)=>a+(v||0)*(i+1),0);
-            return `<tr>
-              <td class="name-cell">${esc(p.name)}</td>
-              ${cells}
-              <td class="sum-cell" id="rn_total_${p.id}">${total}</td>
-              <td class="rank-cell" id="rn_rank_${p.id}">${rnRanks[p.id]||'–'}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
+
+    <!-- ── TEAM-VERWALTUNG ── -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-weight:700;color:var(--accent);font-size:.95rem">🏁 Zweier-Teams</span>
+        <button class="btn-secondary btn-sm" onclick="addRennenTeam()">➕ Team</button>
+      </div>
+
+      ${rn.teams.length === 0
+        ? '<div style="color:var(--text3);font-size:.85rem">Noch keine Teams. Klicke „+ Team" um ein Paar zu bilden.</div>'
+        : rn.teams.map((t, ti) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:.85rem;min-width:64px;color:var(--accent)">${esc(t.name)}</span>
+            <select class="select-input" style="flex:1;min-width:110px" onchange="setRennenTeamPlayer('${t.id}',1,this.value)">
+              <option value="">– Spieler 1 –</option>
+              ${playerOptions(t.p1)}
+            </select>
+            <span style="color:var(--text3);font-weight:700">+</span>
+            <select class="select-input" style="flex:1;min-width:110px" onchange="setRennenTeamPlayer('${t.id}',2,this.value)">
+              <option value="">– Spieler 2 –</option>
+              ${playerOptions(t.p2)}
+            </select>
+            <button class="btn-icon-sm" onclick="renameRennenTeam('${t.id}')" title="Umbenennen">✏️</button>
+            <button class="btn-icon-sm btn-danger-sm" onclick="removeRennenTeam('${t.id}')" title="Team löschen">🗑️</button>
+          </div>`).join('')}
+
+      ${freePlayers.length > 0
+        ? `<div style="font-size:.75rem;color:var(--warning);margin-top:8px">
+             ⚠️ Noch nicht zugeteilt: ${freePlayers.map(p=>esc(p.name)).join(', ')}
+           </div>` : ''}
     </div>
+
+    <!-- ── SCORECARD PRO TEAM ── -->
+    ${rn.teams.length === 0
+      ? ''
+      : rn.teams.map(t => {
+          const p1 = state.players.find(p => p.id === t.p1);
+          const p2 = state.players.find(p => p.id === t.p2);
+          const total = rennenTeamTotal(t);
+          const teamRank = teamRankMap[t.id] || '–';
+          return `
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span style="font-family:var(--font-title);font-size:1.15rem;color:var(--accent)">${esc(t.name)}</span>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:.85rem;color:var(--text2)">Gesamt: <strong style="color:var(--accent)">${total}</strong></span>
+                <span style="font-size:1.3rem" id="rn_team_rank_${t.id}">${teamRank}</span>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="score-table">
+                <thead>
+                  <tr>
+                    <th>Spieler</th>
+                    ${[1,2,3,4,5,6].map(d=>`<th>Tag ${d}<br><small style="color:var(--accent2)">×${d}</small></th>`).join('')}
+                    <th>Einzel-Σ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${[p1, p2].filter(Boolean).map(pl => {
+                    const days = (rn.days && rn.days[pl.id]) || Array(6).fill(0);
+                    return `<tr>
+                      <td class="name-cell">${esc(pl.name)}</td>
+                      ${days.map((v, i) => `<td>
+                        <input class="score-input" type="number" min="0" max="9" value="${v || 0}"
+                          data-score data-game="rennen" data-pid="${pl.id}" data-field="day" data-idx="${i}">
+                      </td>`).join('')}
+                      <td class="sum-cell" id="rn_ptotal_${pl.id}">${days.reduce((a,v)=>a+(v||0),0)}</td>
+                    </tr>`;
+                  }).join('')}
+                  <!-- Team-Summe-Zeile -->
+                  <tr style="background:rgba(232,160,32,.1);border-top:2px solid var(--accent)">
+                    <td class="name-cell" style="color:var(--accent);font-weight:700">Team (×Faktor)</td>
+                    ${[0,1,2,3,4,5].map(i => {
+                      const p1v = (rn.days && rn.days[t.p1] || [])[i] || 0;
+                      const p2v = (rn.days && rn.days[t.p2] || [])[i] || 0;
+                      const combined = (p1v + p2v) * (i + 1);
+                      return `<td class="sum-cell" id="rn_teamday_${t.id}_${i}" style="font-size:.82rem">${combined}</td>`;
+                    }).join('')}
+                    <td class="sum-cell" id="rn_teamtotal_${t.id}" style="font-size:1rem;font-weight:800">${total}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+        }).join('')}
+
+    <!-- ── GESAMTSTAND ── -->
+    ${rn.teams.length > 1 ? `
+    <div class="game-rules" style="margin-top:4px">
+      <strong>🏁 Rennstand:</strong>
+      ${teamRanked.map(r => `${medal(r.rank)} ${esc(rn.teams.find(t=>t.id===r.id)?.name||'?')}: <strong>${r.total} Pkt</strong>`).join('&nbsp;&nbsp;&nbsp;')}
+    </div>` : ''}
   </div>`;
+}
+
+function addRennenTeam() {
+  const rn = state.scores.rennen;
+  if (!rn.teams) rn.teams = [];
+  const n = rn.teams.length + 1;
+  rn.teams.push({ id: 'rt' + Date.now(), name: 'Team ' + n, p1: '', p2: '' });
+  saveData(); showPage('rennen');
+}
+
+function removeRennenTeam(tid) {
+  state.scores.rennen.teams = state.scores.rennen.teams.filter(t => t.id !== tid);
+  saveData(); showPage('rennen');
+}
+
+function setRennenTeamPlayer(tid, slot, pid) {
+  const t = state.scores.rennen.teams.find(x => x.id === tid);
+  if (!t) return;
+  if (slot === 1) t.p1 = pid;
+  else            t.p2 = pid;
+  // Make sure player days are initialized
+  if (pid && !state.scores.rennen.days[pid]) state.scores.rennen.days[pid] = Array(6).fill(0);
+  saveData(); showPage('rennen');
+}
+
+function renameRennenTeam(tid) {
+  const t = state.scores.rennen.teams.find(x => x.id === tid);
+  if (!t) return;
+  showInputModal('Team umbenennen', t.name, val => {
+    if (val.trim()) { t.name = val.trim(); saveData(); showPage('rennen'); }
+  });
 }
 
 // ======================================================
@@ -1381,8 +1516,8 @@ function renderAuswertung() {
     return t > 17 ? 0 : t;          // busted = 0 points
   }
   function pts_rennen(pid) {
-    const r = state.scores.rennen[pid] || { days: [] };
-    return r.days.reduce((a, v, i) => a + (v || 0) * (i + 1), 0);
+    const days = (state.scores.rennen.days || {})[pid] || [];
+    return days.reduce((a, v, i) => a + (v || 0) * (i + 1), 0);
   }
   function pts_idiot(pid) {
     const id = state.scores.idiot[pid] || { links: 0, beine: 0, rechts: 0 };
