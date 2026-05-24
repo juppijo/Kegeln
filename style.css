@@ -427,6 +427,7 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .btn-icon-sm:hover { border-color: var(--border2); color: var(--text); }
+.btn-icon-sm:disabled { opacity: .3; cursor: default; pointer-events: none; }
 .btn-danger-sm:hover { border-color: var(--danger); color: var(--danger); }
 
 .data-actions {
