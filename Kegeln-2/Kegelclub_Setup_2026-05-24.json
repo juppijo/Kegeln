@@ -1,0 +1,35 @@
+{
+  "exportDate": "2026-05-24T11:33:23.432Z",
+  "players": [
+    "Michael",
+    "Hilde",
+    "Peter",
+    "Brigitte",
+    "Elke",
+    "Gerhard",
+    "Helga",
+    "Birgit",
+    "Jo",
+    "Svenja",
+    "Marius"
+  ],
+  "gameOrder": [
+    {
+      "key": "hausnummer",
+      "title": "🏠 Große/Kleine Hausnummer"
+    },
+    {
+      "key": "siebzehn-vier",
+      "title": "🃏 17 und 4"
+    },
+    {
+      "key": "rennen",
+      "title": "🏎️ 6 Tage Rennen"
+    },
+    {
+      "key": "idiot",
+      "title": "🤪 Idiotenkegeln"
+    }
+  ],
+  "savedCurrentGame": "hausnummer"
+}

@@ -115,11 +115,9 @@ header {
 .toggle-icon {
     font-size: 1rem;
     color: var(--text-muted);
-    transition: transform 0.2s ease;
 }
 .card-content {
     margin-top: 15px;
-    transition: all 0.3s ease;
 }
 .card-content.collapsed {
     display: none;
@@ -134,6 +132,17 @@ h2 {
     font-size: 0.85rem;
     color: var(--text-muted);
     margin-bottom: 12px;
+}
+
+/* --- BACKUP BEREICH --- */
+.file-backup-zone {
+    margin-top: 5px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+}
+.file-input-label {
+    position: relative;
+    overflow: hidden;
 }
 
 /* --- THEME & SCREEN BUTTON CONTROLS --- */
