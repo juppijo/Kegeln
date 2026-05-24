@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KegelClub Master Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-turquoise">
+
+    <header>
+        <div class="header-container">
+            <h1>🎳 KegelClub Master Pro</h1>
+            <p>Digitale Kegeltafel für Smartphone & PC</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="card">
+            <div class="card-header collapsible" onclick="toggleCard('system-controls-content', this)">
+                <h2>🎨 System & Design-Einstellungen</h2>
+                <span class="toggle-icon">🔽</span>
+            </div>
+            <div id="system-controls-content" class="card-content">
+                <div class="control-grid">
+                    <div class="control-box">
+                        <label for="theme-select">Farb-Style Modus:</label>
+                        <select id="theme-select" onchange="changeTheme(this.value)">
+                            <option value="theme-turquoise">💎 Blau-Türkis (Edel-Club)</option>
+                            <option value="theme-classic">🪵 Klassisch Holz (Rustikal)</option>
+                            <option value="theme-dark">🌌 Deep Space (Dunkel)</option>
+                            <option value="theme-neon">⚡ Neon Cyberpunk (Modern)</option>
+                            <option value="theme-light">☀️ Clean Light (Hell)</option>
+                        </select>
+                    </div>
+                    <div class="control-box screen-btn-box">
+                        <button id="fullscreen-btn" class="btn btn-info" onclick="toggleFullscreen()">📺 Vollbildmodus einschalten</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header collapsible" onclick="toggleCard('player-management-content', this)">
+                <h2>👥 Spielerverwaltung (Max. 20)</h2>
+                <span class="toggle-icon">🔽</span>
+            </div>
+            <div id="player-management-content" class="card-content">
+                <p class="hint">Nutze die Pfeile 🔼 🔽 bei den Namen, um die Wurf-Reihenfolge beliebig anzupassen.</p>
+                <div class="player-management">
+                    <div class="input-group">
+                        <input type="text" id="new-player-name" placeholder="Name eingeben..." maxlength="20">
+                        <button id="add-player-btn" class="btn btn-accent">Hinzufügen</button>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="save-players-btn" class="btn btn-success">💾 Speichern</button>
+                        <button id="load-players-btn" class="btn btn-info">📂 Laden</button>
+                        <button id="clear-players-btn" class="btn btn-danger">🗑️ Alle löschen</button>
+                    </div>
+                    <div class="player-badge-container" id="player-badges">
+                        </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header collapsible" onclick="toggleCard('game-selector-content', this)">
+                <h2>🎯 Spiel auswählen & sortieren</h2>
+                <span class="toggle-icon">🔽</span>
+            </div>
+            <div id="game-selector-content" class="card-content">
+                <p class="hint">Verschiebe Spiele mit den Pfeilen links/rechts, um deinen Abend zu strukturieren.</p>
+                <div class="game-selector-grid" id="game-selector-container">
+                    </div>
+            </div>
+        </section>
+
+        <section id="game-area" class="card">
+            <div class="game-header-row">
+                <h2 id="current-game-title">📊 Kegelbuch / Abrechnung</h2>
+                <button id="rules-btn" class="btn btn-sm btn-info" onclick="showRules()">📜 Spielregeln</button>
+            </div>
+
+            <div id="rules-box" class="rules-box hidden">
+                <h3 id="rules-title">Spielregeln</h3>
+                <p id="rules-text"></p>
+            </div>
+
+            <div class="table-responsive">
+                <table id="game-table">
+                    <thead>
+                        <tr id="th-row"></tr>
+                    </thead>
+                    <tbody id="game-tbody">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="game-actions">
+                <button class="btn btn-accent" onclick="calculateGame()">📊 Auswerten / Gewinner ermitteln</button>
+                <button class="btn btn-danger" onclick="resetCurrentGame()">🔄 Zurücksetzen</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 KegelClub Master Pro &bull; Optimiert für alle Touch-Smartphones</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

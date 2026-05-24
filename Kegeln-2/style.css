@@ -1,0 +1,339 @@
+/* --- BASIS-SETUP & DESIGN-VARIANTE REAKTIV --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* --- FARB-THEMEN VARIABLE DEFINITIONEN --- */
+.theme-turquoise {
+    --bg-main: #141b24;
+    --bg-card: #1f2a38;
+    --bg-input: #17202a;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #06b6d4;
+    --accent-hover: #22d3ee;
+    --border: #334155;
+    --header-gradient: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+}
+
+.theme-classic {
+    --bg-main: #2c1d11;
+    --bg-card: #3e2a18;
+    --bg-input: #23160b;
+    --text-main: #fef3c7;
+    --text-muted: #d97706;
+    --accent: #f59e0b;
+    --accent-hover: #fbbf24;
+    --border: #5f3f23;
+    --header-gradient: linear-gradient(135deg, #1e1105 0%, #78350f 100%);
+}
+
+.theme-dark {
+    --bg-main: #09090b;
+    --bg-card: #18181b;
+    --bg-input: #27272a;
+    --text-main: #fafafa;
+    --text-muted: #a1a1aa;
+    --accent: #a855f7;
+    --accent-hover: #c084fc;
+    --border: #3f3f46;
+    --header-gradient: linear-gradient(135deg, #000000 0%, #3b0764 100%);
+}
+
+.theme-neon {
+    --bg-main: #030712;
+    --bg-card: #111827;
+    --bg-input: #1f2937;
+    --text-main: #f9fafb;
+    --text-muted: #6b7280;
+    --accent: #10b981;
+    --accent-hover: #34d399;
+    --border: #374151;
+    --header-gradient: linear-gradient(135deg, #111827 0%, #065f46 100%);
+}
+
+.theme-light {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-input: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --accent: #2563eb;
+    --accent-hover: #3b82f6;
+    --border: #cbd5e1;
+    --header-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.5;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px;
+}
+
+header {
+    background: var(--header-gradient);
+    color: white;
+    padding: 20px 15px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border-bottom: 3px solid var(--accent);
+}
+
+.card {
+    background-color: var(--bg-card);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* --- KLAPPBARE HEADERS --- */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.card-header.collapsible {
+    cursor: pointer;
+    user-select: none;
+}
+.card-header.collapsible:hover h2 {
+    color: var(--accent-hover);
+}
+.toggle-icon {
+    font-size: 1rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+.card-content {
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+.card-content.collapsed {
+    display: none;
+}
+
+h2 {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* --- THEME & SCREEN BUTTON CONTROLS --- */
+.control-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.control-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+select {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+/* --- BUTTONS --- */
+.btn {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background 0.1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-accent { background-color: var(--accent); color: var(--bg-main); }
+.btn-accent:hover { background-color: var(--accent-hover); }
+.btn-success { background-color: #10b981; color: white; }
+.btn-info { background-color: #3b82f6; color: white; }
+.btn-danger { background-color: #ef4444; color: white; }
+
+/* --- REIHENFOLGE STEUERUNG SPIELER --- */
+.player-management {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.input-group {
+    display: flex;
+    gap: 8px;
+}
+input[type="text"], input[type="number"] {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.player-badge-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-color: var(--bg-input);
+    padding: 8px;
+    border-radius: 6px;
+}
+.badge {
+    background-color: var(--bg-card);
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--border);
+}
+.badge-name-box {
+    font-weight: 600;
+}
+.order-btn-group {
+    display: flex;
+    gap: 4px;
+}
+.btn-order {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.btn-order:hover { background-color: var(--border); }
+
+/* --- SPIEL-REIHENFOLGE & NAVIGATION --- */
+.game-selector-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.game-nav-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.game-nav-btn {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.game-nav-item.active {
+    border-color: var(--accent);
+    background-color: var(--bg-card);
+}
+.game-nav-item.active .game-nav-btn {
+    color: var(--accent);
+}
+
+/* --- TABELLEN & TOUCH INTERFACES --- */
+.game-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--bg-input);
+    font-size: 0.95rem;
+}
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+th {
+    background-color: rgba(0,0,0,0.2);
+    color: var(--accent);
+}
+td:first-child, th:first-child {
+    text-align: left;
+    font-weight: bold;
+}
+table input[type="number"], table select {
+    width: 65px;
+    padding: 6px;
+    text-align: center;
+}
+.game-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* SMARTPHONE & TOUCH-OPTIMIERUNGEN */
+@media (max-width: 768px) {
+    body { font-size: 14px; }
+    .container { padding: 8px; }
+    .card { padding: 12px; margin-bottom: 10px; }
+    .control-grid { flex-direction: column; align-items: stretch; }
+    .screen-btn-box button { width: 100%; }
+    th, td { padding: 6px 4px; font-size: 0.85rem; }
+    table input[type="number"] { width: 50px; padding: 4px; }
+    .game-actions { flex-direction: column; }
+    .game-actions button { width: 100%; }
+}
+
+/* GEWINNER & HIGHLIGHT STYLES */
+.winner-row { background-color: rgba(16, 185, 129, 0.15) !important; }
+.loser-row { background-color: rgba(239, 68, 68, 0.1) !important; }
+.rank-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.rank-1 { background-color: #eab308; color: black; }
+.rank-2 { background-color: #cbd5e1; color: black; }
+.rank-3 { background-color: #b45309; color: white; }
+.hidden { display: none !important; }
