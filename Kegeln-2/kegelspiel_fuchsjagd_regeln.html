@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kegelspiel – Fuchsjagd</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at center, #355c3a 0%, #1d3320 60%, #0d160e 100%);
+      color: #eef7ef;
+      min-height: 100vh;
+      padding: 40px 20px;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: auto;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.9rem;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #d3ead6;
+      margin-bottom: 35px;
+      font-size: 1.1rem;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .fox-card,
+    .hunter-card {
+      width: 180px;
+      height: 220px;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 4rem;
+      font-weight: bold;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.35);
+      transition: transform 0.3s ease;
+    }
+
+    .fox-card:hover,
+    .hunter-card:hover {
+      transform: translateY(-6px) scale(1.03);
+    }
+
+    .fox-card {
+      background: linear-gradient(145deg, #ffb066, #d56d28);
+      color: white;
+    }
+
+    .hunter-card {
+      background: linear-gradient(145deg, #8fd38f, #3f8746);
+      color: white;
+    }
+
+    .card-label {
+      margin-top: 12px;
+      font-size: 1.2rem;
+    }
+
+    .versus {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+    }
+
+    .section {
+      background: rgba(255,255,255,0.08);
+      border-radius: 22px;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    h2 {
+      margin-bottom: 18px;
+      font-size: 1.8rem;
+      color: #ffffff;
+    }
+
+    h3 {
+      margin-top: 20px;
+      margin-bottom: 10px;
+      color: #ddf5df;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .example {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.07);
+      border-left: 5px solid #9fe89f;
+    }
+
+    .winner {
+      margin-top: 14px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .footer {
+      margin-top: 35px;
+      padding: 24px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 2.1rem;
+      }
+
+      .fox-card,
+      .hunter-card {
+        width: 140px;
+        height: 180px;
+        font-size: 3rem;
+      }
+
+      .versus {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1>🎳 Fuchsjagd</h1>
+    <p class="subtitle">
+      Das spannende Kegelspiel zwischen Fuchs und Jägern
+    </p>
+
+    <div class="hero">
+
+      <div class="fox-card">
+        🦊
+        <div class="card-label">Der Fuchs</div>
+      </div>
+
+      <div class="versus">VS</div>
+
+      <div class="hunter-card">
+        🎯
+        <div class="card-label">Die Jäger</div>
+      </div>
+
+    </div>
+
+    <div class="content-grid">
+
+      <div class="section">
+        <h2>🦊 Spielidee</h2>
+
+        <p>
+          Ein Spieler übernimmt die Rolle des Fuchses.
+          Der Fuchs erhält zwei Vorwürfe – einen mit der linken und einen mit der rechten Hand.
+          Anschließend versucht er gemeinsam mit seinen weiteren Würfen insgesamt genau 31 Holz zu erreichen.
+        </p>
+
+        <h3>📜 Spielregeln im Detail</h3>
+        <ul>
+          <li><strong>Vorbereitung:</strong> Zuerst wird bestimmt, wer der erste Fuchs ist.</li>
+          <li>Oft werfen dafür alle Spieler einmal in die Vollen.</li>
+          <li>Wer die meisten Holz erzielt, wird der Fuchs.</li>
+          <li><strong>Der Start:</strong> Der Fuchs legt vor und versucht, sich einen Vorsprung zu erspielen.</li>
+          <li>Der Fuchs hat in der Regel zwei Würfe in die Vollen:</li>
+          <li>• einen Wurf mit der rechten Hand</li>
+          <li>• einen Wurf mit der linken Hand</li>
+          <li>Jeder gefallene Kegel zählt 1 Punkt.</li>
+          <li>In manchen Varianten ist zusätzlich eine Kranzwertung erlaubt.</li>
+          <li><strong>Die Verfolgung:</strong> Danach werfen die Jäger reihum.</li>
+          <li>Es wird abwechselnd gekegelt:</li>
+          <li>Ein Wurf des Fuchses → ein Wurf des ersten Jägers → wieder der Fuchs → dann der nächste Jäger usw.</li>
+          <li><strong>Das Spielziel:</strong> Der Fuchs gewinnt bei 31 oder mehr Punkten, wenn seine erspielten Punkte von der Meute nicht eingeholt werden konnten.</li>
+          <li>Die Jäger gewinnen, wenn sie den Punktestand des Fuchses einholen oder – je nach regionaler Variante – unterbieten.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>🎯 Varianten</h2>
+
+        <h3>Variante A – Punktejagd</h3>
+        <ul>
+          <li>Der Fuchs erhält einen Vorsprung.</li>
+          <li>Die Jäger haben nur begrenzte Würfe.</li>
+        </ul>
+
+        <h3>Variante B – Lebenssystem</h3>
+        <ul>
+          <li>Wer den Fuchs nicht erreicht, verliert ein Leben.</li>
+          <li>Nach mehreren verlorenen Leben scheidet man aus.</li>
+        </ul>
+
+        <h3>Variante C – Wandernder Fuchs</h3>
+        <ul>
+          <li>Der Sieger wird automatisch neuer Fuchs.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="example">
+      <h2>✨ Beispielrunde</h2>
+
+      <p>
+        Der Fuchs kegelt:
+      </p>
+
+      <ul>
+        <li>Linke Hand → 5 Holz</li>
+        <li>Rechte Hand → 6 Holz</li>
+        <li>Weitere Würfe → 8 Holz + 12 Holz</li>
+      </ul>
+
+      <p><strong>Gesamt:</strong> 31 Holz</p>
+
+      <br>
+
+      <p>Die Jäger:</p>
+
+      <ul>
+        <li>Spieler 1 → 28 Holz</li>
+        <li>Spieler 2 → 32 Holz ❌</li>
+        <li>Spieler 3 → 30 Holz</li>
+      </ul>
+
+      <div class="winner">
+        🏆 Der Fuchs gewinnt mit genau 31 Holz.
+      </div>
+    </div>
+
+    <div class="footer">
+      <h2>🍻 Beliebte Hausregeln</h2>
+
+      <ul>
+        <li>Der letzte Platz zahlt eine Getränkerunde.</li>
+        <li>Ein Pudel zählt doppelt negativ.</li>
+        <li>Der Fuchs erhält einen Bonuswurf.</li>
+        <li>Bei Gleichstand bleibt der aktuelle Fuchs im Amt.</li>
+        <li>In manchen Regionen heißt das Spiel auch „Hasenjagd“.</li>
+      </ul>
+    </div>
+
+  </div>
+</body>
+</html>
