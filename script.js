@@ -824,10 +824,29 @@ function renderFuchs() {
     if (active.phase === 'fox_rechts') return `🦊 <strong>${fn}</strong> — Vorwurf <em>Rechte Hand</em> ✋`;
     if (active.phase === 'fox')        return `🦊 <strong>${fn}</strong> — normaler Wurf`;
     if (active.phase === 'hunter') {
-      const h = hunters[active.hunterIdx % hunters.length];
-      return `🏹 Jäger: <strong>${esc(h?.name || '?')}</strong>`;
+      const hi = active.hunterIdx % hunters.length;
+      const h  = hunters[hi];
+      return `🏹 Jäger <strong>${esc(h?.name || '?')}</strong>
+        <span style="font-size:.75rem;color:var(--text3)">(Nr. ${hi + 1} von ${hunters.length})</span>`;
     }
     return '';
+  }
+
+  // Jäger-Reihenfolge ab aktuellem Index
+  function hunterQueueHtml() {
+    if (!active || !hunters.length) return '';
+    const currentHi = active.hunterIdx % hunters.length;
+    return hunters.map((h, i) => {
+      const pos = (i - currentHi + hunters.length) % hunters.length;
+      const isCurrent = active.phase === 'hunter' && i === currentHi;
+      return `<span style="
+        display:inline-block;padding:2px 8px;margin:2px;border-radius:12px;font-size:.75rem;
+        background:${isCurrent ? 'var(--accent2)' : pos === 0 && active.phase !== 'hunter' ? 'var(--surface2)' : 'var(--bg3)'};
+        color:${isCurrent ? '#000' : 'var(--text2)'};
+        border:1px solid ${isCurrent ? 'var(--accent2)' : 'var(--border)'};
+        font-weight:${isCurrent ? '700' : '400'};
+      ">${pos === 0 && !isCurrent ? '→ ' : ''}${esc(h.name)}</span>`;
+    }).join('');
   }
 
   const foxTotal   = active?.foxTotal || 0;
@@ -925,6 +944,17 @@ function renderFuchs() {
       </div>
     </div>
 
+    <!-- JÄGER-REIHENFOLGE -->
+    ${hunters.length > 1 ? `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:.8rem">
+      <span style="color:var(--text3);margin-right:6px">🏹 Jäger-Reihenfolge:</span>
+      ${hunterQueueHtml()}
+      ${fr.hunterStartIdx !== undefined && fr.hunterStartIdx > 0 ? `
+        <span style="font-size:.7rem;color:var(--text3);display:block;margin-top:4px">
+          (Fortsetzung ab Kätsche ${fr.kaetschen.length})
+        </span>` : ''}
+    </div>` : ''}
+
     <!-- TURN-LOG -->
     ${active.turns.length > 0 ? `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;max-height:240px;overflow-y:auto">
@@ -977,11 +1007,12 @@ function startKaetsche() {
   if (!fr.fuchsId) { showToast('Bitte zuerst Fuchs auswählen!', 'error'); return; }
   const hunters = state.players.filter(p => p.id !== fr.fuchsId);
   if (!hunters.length) { showToast('Mindestens 1 Jäger nötig!', 'error'); return; }
+  if (fr.hunterStartIdx === undefined) fr.hunterStartIdx = 0;
   fr.active = {
-    foxTotal: 0, lastFoxThrow: 0,
+    foxTotal: 0,
+    lastFoxThrow: 0,
     phase: 'fox_links',
-    hunterIdx: 0,
-    hunterRoundTotal: 0,
+    hunterIdx: fr.hunterStartIdx % hunters.length,  // weitermachen wo aufgehört
     huntersCumTotal: 0,
     turns: [], complete: false, winner: null
   };
@@ -989,24 +1020,28 @@ function startKaetsche() {
 }
 
 // ── Wurf verarbeiten ──
+// Ablauf: Fox_L → Fox_R → Jäger[i] → Fox → Jäger[i+1] → Fox → ...
+// Jäger kommen einzeln abwechselnd mit Fuchs.
+// Fangbedingung: Jäger-Gesamtsumme ≥ Fuchs-Gesamtsumme (nach JEDEM einzelnen Jäger-Wurf geprüft)
 function processFuchsThrow() {
-  const score = parseInt(document.getElementById('fuchs_input')?.value ?? 0) || 0;
-  const fr    = state.scores.fuchs;
+  const score  = parseInt(document.getElementById('fuchs_input')?.value ?? 0) || 0;
+  const fr     = state.scores.fuchs;
   const active = fr.active;
   if (!active || active.complete) return;
-  const hunters = state.players.filter(p => p.id !== fr.fuchsId);
-  const fuchsPlayer = state.players.find(p => p.id === fr.fuchsId);
+  const hunters     = state.players.filter(p => p.id !== fr.fuchsId);
 
   // ── FUCHS wirft ──
   if (['fox_links', 'fox_rechts', 'fox'].includes(active.phase)) {
-    active.foxTotal    += score;
-    active.lastFoxThrow = score;
+    active.foxTotal     += score;
+    active.lastFoxThrow  = score;
     active.turns.push({
       who: 'fox',
       hand: active.phase === 'fox_links' ? 'L' : active.phase === 'fox_rechts' ? 'R' : null,
       score, foxTotal: active.foxTotal
     });
     if (active.foxTotal >= 31) {
+      // FUCHS GEWINNT — Jäger-Reihenfolge dort weitermachen wo sie sind
+      fr.hunterStartIdx = active.hunterIdx % hunters.length;
       fr.fuchsWins++;
       fr.kaetschen.push({ winner: 'fox', foxFinal: active.foxTotal });
       fr.active = null;
@@ -1014,42 +1049,33 @@ function processFuchsThrow() {
       showToast('🦊 Fuchs gewinnt! 31 erreicht!', 'success');
       return;
     }
-    // Phase: L→R→hunter, rechts/fox→hunter
+    // Phase: L → R → Jäger; sonst R/fox → Jäger
     active.phase = active.phase === 'fox_links' ? 'fox_rechts' : 'hunter';
-    active.hunterIdx = 0;
-    active.hunterRoundTotal = 0;
 
-  // ── JÄGER wirft ──
+  // ── EIN JÄGER wirft (strikt alternierend mit Fuchs) ──
   } else if (active.phase === 'hunter') {
     const hi     = active.hunterIdx % hunters.length;
     const hunter = hunters[hi];
-    active.hunterRoundTotal += score;
-    active.huntersCumTotal  += score;
+    active.huntersCumTotal += score;
     active.turns.push({
       who: hunter.id, whoName: hunter.name,
-      score, roundTotal: active.hunterRoundTotal,
-      cumTotal: active.huntersCumTotal,
+      score, cumTotal: active.huntersCumTotal,
       foxTotal: active.foxTotal
     });
-    active.hunterIdx++;
+    active.hunterIdx++;   // nächster Jäger beim nächsten Jäger-Zug
 
-    // Alle Jäger dieser Runde geworfen?
-    if (active.hunterIdx >= hunters.length) {
-      if (active.huntersCumTotal >= active.foxTotal) {
-        // JÄGER FANGEN DEN FUCHS
-        fr.hunterWins++;
-        fr.kaetschen.push({ winner: 'hunters', foxFinal: active.foxTotal });
-        fr.active = null;
-        saveData(); showPage('fuchs');
-        showToast(`🏹 Jäger fangen den Fuchs! (${active.huntersCumTotal} ≥ ${active.foxTotal})`, 'success');
-        return;
-      }
-      // Nicht gefangen — Fuchs ist wieder dran
-      active.phase = 'fox';
-      active.hunterIdx = 0;
-      active.hunterRoundTotal = 0;  // Rundenreset, CumTotal bleibt!
+    if (active.huntersCumTotal >= active.foxTotal) {
+      // JÄGER FANGEN DEN FUCHS
+      fr.hunterStartIdx = active.hunterIdx % hunters.length;  // dort weitermachen
+      fr.hunterWins++;
+      fr.kaetschen.push({ winner: 'hunters', foxFinal: active.foxTotal });
+      fr.active = null;
+      saveData(); showPage('fuchs');
+      showToast(`🏹 Jäger fangen den Fuchs! (${active.huntersCumTotal} ≥ ${active.foxTotal})`, 'success');
+      return;
     }
-    // sonst: nächster Jäger (phase bleibt 'hunter')
+    // Noch nicht gefangen → Fuchs wirft wieder
+    active.phase = 'fox';
   }
 
   const inp = document.getElementById('fuchs_input');
@@ -1063,15 +1089,13 @@ function undoFuchsThrow() {
   if (!fr.active?.turns?.length) return;
   const last = fr.active.turns.pop();
   if (last.who === 'fox') {
-    fr.active.foxTotal     -= last.score;
-    fr.active.phase         = last.hand === 'L' ? 'fox_links' : last.hand === 'R' ? 'fox_rechts' : 'fox';
-    fr.active.hunterIdx     = 0;
-    fr.active.hunterRoundTotal = 0;
+    fr.active.foxTotal      -= last.score;
+    fr.active.lastFoxThrow   = fr.active.turns.filter(t => t.who === 'fox').slice(-1)[0]?.score || 0;
+    fr.active.phase          = last.hand === 'L' ? 'fox_links' : last.hand === 'R' ? 'fox_rechts' : 'fox';
   } else {
-    fr.active.hunterIdx        = Math.max(0, fr.active.hunterIdx - 1);
-    fr.active.hunterRoundTotal = Math.max(0, fr.active.hunterRoundTotal - last.score);
-    fr.active.huntersCumTotal  = Math.max(0, (fr.active.huntersCumTotal || 0) - last.score);
-    fr.active.phase            = 'hunter';
+    fr.active.hunterIdx      = Math.max(fr.active.hunterIdx - 1, 0);
+    fr.active.huntersCumTotal = Math.max((fr.active.huntersCumTotal || 0) - last.score, 0);
+    fr.active.phase          = 'hunter';
   }
   saveData(); showPage('fuchs');
 }
