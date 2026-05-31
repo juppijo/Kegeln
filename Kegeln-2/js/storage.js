@@ -9,14 +9,20 @@ function saveCurrentGameFields() {
         if (!row) return;
 
         if (currentGame === "hausnummer") {
-            activeGamesData.hausnummer[p] = {
-                g1: row.querySelector(".g-w1").value,
-                g2: row.querySelector(".g-w2").value,
-                g3: row.querySelector(".g-w3").value,
-                k1: row.querySelector(".k-w1").value,
-                k2: row.querySelector(".k-w2").value,
-                k3: row.querySelector(".k-w3").value
-            };
+            activeGamesData.hausnummer = activeGamesData.hausnummer || {};
+            players.forEach(p => {
+                const row = document.getElementById(`row-${p}`);
+                if (row) {
+                    activeGamesData.hausnummer[p] = {
+                        g1: row.querySelector(".hn-g1").value,
+                        g2: row.querySelector(".hn-g2").value,
+                        g3: row.querySelector(".hn-g3").value,
+                        k1: row.querySelector(".hn-k1").value,
+                        k2: row.querySelector(".hn-k2").value,
+                        k3: row.querySelector(".hn-k3").value
+                    };
+                }
+            });
 
         } else if (currentGame === "siebzehn-vier") {
             activeGamesData["siebzehn-vier"][p] = {
@@ -25,18 +31,37 @@ function saveCurrentGameFields() {
                 w3: row.querySelector(".sv-w3").value,
                 w4: row.querySelector(".sv-w4").value,
                 w5: row.querySelector(".sv-w5").value,
+                card: row.querySelector(".sv-card").value, // <-- NEU
                 over: row.querySelector(".val-over").checked
             };
 
         } else if (currentGame === "rennen") {
-            activeGamesData.rennen[p] = {
-                t1: row.querySelector(".r-t1").value,
-                t2: row.querySelector(".r-t2").value,
-                t3: row.querySelector(".r-t3").value,
-                t4: row.querySelector(".r-t4").value,
-                t5: row.querySelector(".r-t5").value,
-                t6: row.querySelector(".r-t6").value
-            };
+            activeGamesData.rennen = activeGamesData.rennen || {};
+            
+            // 1. Echte Spieler sichern
+            players.forEach(p => {
+                const row = document.getElementById(`row-${p}`);
+                if (row && activeGamesData.rennen[p]) {
+                    // Wir behalten das Team aus dem Objekt bei, Werte werden aktualisiert
+                    activeGamesData.rennen[p].t1 = row.querySelector(".ren-t1").value;
+                    activeGamesData.rennen[p].t2 = row.querySelector(".ren-t2").value;
+                    activeGamesData.rennen[p].t3 = row.querySelector(".ren-t3").value;
+                    activeGamesData.rennen[p].t4 = row.querySelector(".ren-t4").value;
+                    activeGamesData.rennen[p].t5 = row.querySelector(".ren-t5").value;
+                    activeGamesData.rennen[p].t6 = row.querySelector(".ren-t6").value;
+                }
+            });
+
+            // 2. Gast-Spieler sichern (falls auf dem Bildschirm vorhanden)
+            const gastRow = document.getElementById("row-rennen-Gast");
+            if (gastRow && activeGamesData.rennen["Gast"]) {
+                activeGamesData.rennen["Gast"].t1 = gastRow.querySelector(".ren-g-t1").value;
+                activeGamesData.rennen["Gast"].t2 = gastRow.querySelector(".ren-g-t2").value;
+                activeGamesData.rennen["Gast"].t3 = gastRow.querySelector(".ren-g-t3").value;
+                activeGamesData.rennen["Gast"].t4 = gastRow.querySelector(".ren-g-t4").value;
+                activeGamesData.rennen["Gast"].t5 = gastRow.querySelector(".ren-g-t5").value;
+                activeGamesData.rennen["Gast"].t6 = gastRow.querySelector(".ren-g-t6").value;
+            }
         } else if (currentGame === "idiot") {
             activeGamesData.idiot[p] = {
                 l: row.querySelector(".id-l").value,
