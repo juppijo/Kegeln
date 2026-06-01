@@ -232,72 +232,87 @@ function updateCurrentGameTable() {
         liveCalculateFuchsjagd();
     }
 
-    else if (currentGame === "tannenbaum") {
-        // Wir nutzen die responsive Box für die Tannenbaum-Oberfläche
+else if (currentGame === "tannenbaum") {
+        // 1. Die Grundstruktur der Oberfläche sofort in die Box schreiben
         tableResponsive.innerHTML = `
             <div class="tannenbaum-container" style="display: flex; flex-direction: column; gap: 20px; padding: 10px;">
                 <!-- TEAMAUSWAHL-PANEL -->
                 <div id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
                     <h3 style="margin-top:0; color: var(--accent); font-size: 1.1rem; margin-bottom: 10px;">👥 Teams für den Tannenbaum aufteilen</h3>
-                    <div id="tannenbaum-selectors" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;"></div>
+                    <div id="tannenbaum-selectors" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;"></div>
+                    
+                    <button onclick="applyTannenbaumTeams()" style="background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; max-width: 250px; font-size: 1rem;">
+                        ➔ Teams einteilen & Starten
+                    </button>
                 </div>
 
                 <!-- SPIELFELD (BÄUME UND EINGABEN) -->
                 <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
-                    <!-- Wird dynamisch durch renderTannenbaumSubElements befüllt -->
+                    <!-- Wird dynamisch befüllt -->
                 </div>
             </div>
         `;
 
-        // 1. Initialisiere Spieldaten NUR, wenn noch absolut gar nichts für den Tannenbaum existiert
-        if (!activeGamesData["tannenbaum"] || !activeGamesData["tannenbaum"].team1 || !activeGamesData["tannenbaum"].team2) {
-            activeGamesData["tannenbaum"] = {
-                team1: [],
-                team2: [],
-                wuerfe: {},
-                historie: {}
+        // 2. Datenstruktur im Hintergrund absichern
+        if (!activeGamesData["tannenbaum"]) {
+            activeGamesData["tannenbaum"] = { 
+                team1: [], 
+                team2: [], 
+                wuerfe: {}, 
+                historie: {} 
             };
-            
-            // Nur beim allerersten Mal aufteilen
+        }
+        
+        const data = activeGamesData["tannenbaum"];
+        if (!data.wuerfe) data.wuerfe = {};
+        if (!data.historie) data.historie = {};
+
+        // Falls die Teams noch komplett leer sind, teilen wir fair auf
+        if ((!data.team1 || data.team1.length === 0) && (!data.team2 || data.team2.length === 0)) {
+            data.team1 = [];
+            data.team2 = [];
             players.forEach((p, index) => {
                 if (index < Math.ceil(players.length / 2)) {
-                    activeGamesData["tannenbaum"].team1.push(p);
+                    data.team1.push(p);
                 } else {
-                    activeGamesData["tannenbaum"].team2.push(p);
+                    data.team2.push(p);
                 }
             });
         }
 
-        // Stelle sicher, dass jeder Spieler einen Eintrag im Wurf- und Historienobjekt hat
-        players.forEach(p => {
-            if (!activeGamesData["tannenbaum"].wuerfe[p]) activeGamesData["tannenbaum"].wuerfe[p] = [];
-            if (!activeGamesData["tannenbaum"].historie) activeGamesData["tannenbaum"].historie = {};
-            if (!activeGamesData["tannenbaum"].historie[p]) activeGamesData["tannenbaum"].historie[p] = [];
-        });
-
-        // 2. Erzeuge die Dropdowns für jeden Spieler im Setup-Panel
+        // 3. Dropdowns für jeden existierenden Spieler GARANTIERT ERZEUGEN
         const selectorsContainer = document.getElementById("tannenbaum-selectors");
-        selectorsContainer.innerHTML = "";
+        if (selectorsContainer) {
+            selectorsContainer.innerHTML = ""; // Container leeren
 
-        players.forEach(p => {
-            const isT1 = activeGamesData["tannenbaum"].team1.includes(p);
-            
-            const div = document.createElement("div");
-            div.style = "display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 4px;";
-            div.innerHTML = `
-                <span style="font-size: 0.85rem; font-weight: bold;">${p}</span>
-                <select class="ren-team-select" onchange="changeTannenbaumPlayerTeam('${p}', this.value)" style="width: 100%;">
-                    <option value="1" ${isT1 ? 'selected' : ''}>🎄 Gruppe 1 (Links)</option>
-                    <option value="2" ${!isT1 ? 'selected' : ''}>⭐ Gruppe 2 (Rechts)</option>
-                </select>
-            `;
-            selectorsContainer.appendChild(div);
-        });
+            players.forEach(p => {
+                // Sicherstellen, dass für jeden Spieler die Arrays existieren
+                if (!data.wuerfe[p]) data.wuerfe[p] = [];
+                if (!data.historie[p]) data.historie[p] = [];
 
-        // Zeichne die Bäume und Eingabefelder
-        renderTannenbaumSubElements();
+                // Prüfen, in welchem Team der Spieler aktuell steckt
+                const isT1 = data.team1.includes(p);
+                
+                const div = document.createElement("div");
+                div.style = "display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);";
+                div.innerHTML = `
+                    <span style="font-size: 0.9rem; font-weight: bold; color: var(--text);">${p}</span>
+                    <select class="tannenbaum-team-dropdown" data-player="${p}" style="width: 100%; padding: 6px; border-radius: 4px; background: var(--bg); color: var(--text); border: 1px solid var(--border);">
+                        <option value="1" ${isT1 ? 'selected' : ''}>🎄 Gruppe 1 (Links)</option>
+                        <option value="2" ${!isT1 ? 'selected' : ''}>⭐ Gruppe 2 (Rechts)</option>
+                    </select>
+                `;
+                selectorsContainer.appendChild(div);
+            });
+        }
+
+        // 4. TRICK: Erst nachdem das Menü steht, bauen wir das Spielfeld zeitverzögert auf!
+        // Das verhindert, dass ein fehlendes Canvas-Element das Laden der Dropdowns blockiert.
+        setTimeout(() => {
+            renderTannenbaumSubElements();
+        }, 50);
     }
-}
+}    
 
 function resetCurrentGame() {
     if (confirm("Werte für dieses Spiel wirklich löschen und zurücksetzen?")) {
@@ -1056,4 +1071,35 @@ function undoLastTannenbaumThrow(playerName) {
     // 4. Alles wegsichern und die Oberfläche live aktualisieren
     saveCurrentGameFields();
     renderTannenbaumSubElements();
+}
+// Sammelt alle ausgewählten Gruppen ein und wirft das Spiel an
+function applyTannenbaumTeams() {
+    const data = activeGamesData["tannenbaum"];
+    if (!data) return;
+
+    // Beide Teams komplett leeren, um sie neu zu befüllen
+    data.team1 = [];
+    data.team2 = [];
+
+    // Alle Dropdowns im Setup-Bereich heraussuchen
+    const dropdowns = document.querySelectorAll(".tannenbaum-team-dropdown");
+    
+    dropdowns.forEach(select => {
+        const playerName = select.getAttribute("data-player");
+        const chosenTeam = select.value;
+
+        if (chosenTeam === "1") {
+            data.team1.push(playerName);
+        } else {
+            data.team2.push(playerName);
+        }
+    });
+
+    // Speicher im Browser aktualisieren
+    saveCurrentGameFields();       
+    // Spielfeld und Tannenbäume mit den neuen Teams sofort neu rendern
+    renderTannenbaumSubElements(); 
+
+    // Kleines optisches Feedback für die Bahn
+    alert("👥 Gruppen erfolgreich aufgeteilt! Die Tafel wurde aktualisiert.");
 }
