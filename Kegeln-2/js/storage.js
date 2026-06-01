@@ -77,6 +77,14 @@ function saveCurrentGameFields() {
                 w2: row.querySelector(".fuchs-w2").value,
                 w3: row.querySelector(".fuchs-w3").value
             };
+        } else if (currentGame === "tannenbaum") {
+            // Falls das Tannenbaum-Objekt noch gar nicht existiert, erstellen wir es kurz
+            activeGamesData["tannenbaum"] = activeGamesData["tannenbaum"] || { team1: [], team2: [], wuerfe: {}, historie: {} };
+            
+            // WICHTIG: Die aktuellen Gruppen-Arrays werden direkt mitgesichert!
+            // Da wir die Arrays bereits live in changeTannenbaumPlayerTeam() verändern, 
+            // stellen wir hier sicher, dass sie im Hauptobjekt erhalten bleiben.
+            localStorage.setItem("activeGamesData", JSON.stringify(activeGamesData));
         }
 
     });

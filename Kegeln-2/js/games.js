@@ -231,60 +231,70 @@ function updateCurrentGameTable() {
         players.forEach(p => adjustFuchsFields(p));
         liveCalculateFuchsjagd();
     }
+
     else if (currentGame === "tannenbaum") {
-        // Wir blenden die Standard-Tabelle aus und bauen das Team-Layout live in den Container
-        const tableResponsive = document.querySelector(".table-responsive");
-        
-        // Initialisiere Spieldaten für Tannenbaum, falls noch leer
-        if (!activeGamesData["tannenbaum"].wuerfe) {
+        // Wir nutzen die responsive Box für die Tannenbaum-Oberfläche
+        tableResponsive.innerHTML = `
+            <div class="tannenbaum-container" style="display: flex; flex-direction: column; gap: 20px; padding: 10px;">
+                <!-- TEAMAUSWAHL-PANEL -->
+                <div id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <h3 style="margin-top:0; color: var(--accent); font-size: 1.1rem; margin-bottom: 10px;">👥 Teams für den Tannenbaum aufteilen</h3>
+                    <div id="tannenbaum-selectors" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;"></div>
+                </div>
+
+                <!-- SPIELFELD (BÄUME UND EINGABEN) -->
+                <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
+                    <!-- Wird dynamisch durch renderTannenbaumSubElements befüllt -->
+                </div>
+            </div>
+        `;
+
+        // 1. Initialisiere Spieldaten NUR, wenn noch absolut gar nichts für den Tannenbaum existiert
+        if (!activeGamesData["tannenbaum"] || !activeGamesData["tannenbaum"].team1 || !activeGamesData["tannenbaum"].team2) {
             activeGamesData["tannenbaum"] = {
-                team1: [], // Namen Gruppe 1
-                team2: [], // Namen Gruppe 2
-                wuerfe: {} // Alle Würfe pro Spieler: { "Name": [5, 3, 9] }
+                team1: [],
+                team2: [],
+                wuerfe: {},
+                historie: {}
             };
             
-            // Automatische, faire Aufteilung der vorhandenen Spieler auf 2 Teams
+            // Nur beim allerersten Mal aufteilen
             players.forEach((p, index) => {
-                activeGamesData["tannenbaum"].wuerfe[p] = activeGamesData["tannenbaum"].wuerfe[p] || [];
-                if (index % 2 === 0) {
-                    if (!activeGamesData["tannenbaum"].team1.includes(p)) activeGamesData["tannenbaum"].team1.push(p);
+                if (index < Math.ceil(players.length / 2)) {
+                    activeGamesData["tannenbaum"].team1.push(p);
                 } else {
-                    if (!activeGamesData["tannenbaum"].team2.includes(p)) activeGamesData["tannenbaum"].team2.push(p);
+                    activeGamesData["tannenbaum"].team2.push(p);
                 }
             });
         }
 
-        // HTML-Struktur für das 3-Spalten-Layout injizieren (Gruppe 1 | Bäume | Gruppe 2)
-        tableResponsive.innerHTML = `
-            <div class="tannenbaum-layout">
-                <!-- Gruppe 1 -->
-                <div class="team-card">
-                    <h3 style="color: #5dade2; margin-top:0;">🔵 Gruppe 1</h3>
-                    <div id="t1-players-list"></div>
-                </div>
+        // Stelle sicher, dass jeder Spieler einen Eintrag im Wurf- und Historienobjekt hat
+        players.forEach(p => {
+            if (!activeGamesData["tannenbaum"].wuerfe[p]) activeGamesData["tannenbaum"].wuerfe[p] = [];
+            if (!activeGamesData["tannenbaum"].historie) activeGamesData["tannenbaum"].historie = {};
+            if (!activeGamesData["tannenbaum"].historie[p]) activeGamesData["tannenbaum"].historie[p] = [];
+        });
 
-                <!-- Visuelle Bäume -->
-                <div class="trees-display-container">
-                    <div class="tree-wrapper">
-                        <span style="color: #5dade2; font-weight:bold;">🎄 Baum Team 1</span>
-                        <div class="tree-grid-visual" id="visual-tree-t1"></div>
-                    </div>
-                    <div class="tree-wrapper">
-                        <span style="color: #f5b041; font-weight:bold;">🎄 Baum Team 2</span>
-                        <div class="tree-grid-visual" id="visual-tree-t2"></div>
-                    </div>
-                </div>
+        // 2. Erzeuge die Dropdowns für jeden Spieler im Setup-Panel
+        const selectorsContainer = document.getElementById("tannenbaum-selectors");
+        selectorsContainer.innerHTML = "";
 
-                <!-- Gruppe 2 -->
-                <div class="team-card">
-                    <h3 style="color: #f5b041; margin-top:0;">🟠 Gruppe 2</h3>
-                    <div id="t2-players-list"></div>
-                </div>
-            </div>
-            <div id="tannenbaum-status-banner" class="tannenbaum-status">Spiel läuft... 🎳</div>
-        `;
+        players.forEach(p => {
+            const isT1 = activeGamesData["tannenbaum"].team1.includes(p);
+            
+            const div = document.createElement("div");
+            div.style = "display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 4px;";
+            div.innerHTML = `
+                <span style="font-size: 0.85rem; font-weight: bold;">${p}</span>
+                <select class="ren-team-select" onchange="changeTannenbaumPlayerTeam('${p}', this.value)" style="width: 100%;">
+                    <option value="1" ${isT1 ? 'selected' : ''}>🎄 Gruppe 1 (Links)</option>
+                    <option value="2" ${!isT1 ? 'selected' : ''}>⭐ Gruppe 2 (Rechts)</option>
+                </select>
+            `;
+            selectorsContainer.appendChild(div);
+        });
 
-        // Unter-Funktion zum Rendern der Listen und Bäume aufrufen
+        // Zeichne die Bäume und Eingabefelder
         renderTannenbaumSubElements();
     }
 }
@@ -557,62 +567,166 @@ function liveCalculateFuchsjagd() {
 }
 
 function renderTannenbaumSubElements() {
+    const board = document.getElementById("tannenbaum-game-board");
+    if (!board) return;
+
     const data = activeGamesData["tannenbaum"];
-    
-    // 1. Spieler Listen generieren
-    const t1List = document.getElementById("t1-players-list");
-    const t2List = document.getElementById("t2-players-list");
-    if(!t1List || !t2List) return;
 
-    t1List.innerHTML = "";
-    data.team1.forEach(name => t1List.appendChild(createTannenbaumPlayerRow(name, 1)));
+    // Wir bauen das Spielfeld mit zwei Spalten (Links für Gruppe 1, Rechts für Gruppe 2) neu auf
+    board.innerHTML = `
+        <!-- LINKER BAUM & SPIELER (GRUPPE 1) -->
+        <div id="tannenbaum-col-1" style="display: flex; flex-direction: column; gap: 15px; background: rgba(59, 130, 246, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.1);">
+            <h3 style="text-align: center; color: #60a5fa; margin: 0;">🎄 Gruppe 1</h3>
+            <div id="tannenbaum-canvas-container-1" style="display:flex; justify-content:center;">
+                <canvas id="tannenbaum-canvas-1" width="280" height="340"></canvas>
+            </div>
+            <div id="tannenbaum-players-1" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
 
-    t2List.innerHTML = "";
-    data.team2.forEach(name => t2List.appendChild(createTannenbaumPlayerRow(name, 2)));
+        <!-- RECHTER BAUM & SPIELER (GRUPPE 2) -->
+        <div id="tannenbaum-col-2" style="display: flex; flex-direction: column; gap: 15px; background: rgba(245, 158, 11, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.1);">
+            <h3 style="text-align: center; color: #fbbf24; margin: 0;">⭐ Gruppe 2</h3>
+            <div id="tannenbaum-canvas-container-2" style="display:flex; justify-content:center;">
+                <canvas id="tannenbaum-canvas-2" width="280" height="340"></canvas>
+            </div>
+            <div id="tannenbaum-players-2" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    `;
 
-    // 2. Wurf-Counts berechnen
-    let t1Counts = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
-    let t2Counts = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+    // Spieler von Gruppe 1 links einfügen
+    const pContainer1 = document.getElementById("tannenbaum-players-1");
+    data.team1.forEach(p => {
+        pContainer1.appendChild(createTannenbaumPlayerRow(p, 1));
+    });
 
-    data.team1.forEach(n => { (data.wuerfe[n] || []).forEach(w => { if(t1Counts[w]!==undefined) t1Counts[w]++; }); });
-    data.team2.forEach(n => { (data.wuerfe[n] || []).forEach(w => { if(t2Counts[w]!==undefined) t2Counts[w]++; }); });
+    // Spieler von Gruppe 2 rechts einfügen
+    const pContainer2 = document.getElementById("tannenbaum-players-2");
+    data.team2.forEach(p => {
+        pContainer2.appendChild(createTannenbaumPlayerRow(p, 2));
+    });
 
-    // 3. Bäume rendern
-    renderSingleVisualTree("visual-tree-t1", t1Counts, "node-active-t1");
-    renderSingleVisualTree("visual-tree-t2", t2Counts, "node-active-t2");
-
-    // 4. Gewinner prüfen
-    checkTannenbaumWinner(t1Counts, t2Counts);
+    // Die beiden Tannenbäume auf den Canvas-Elementen bunt zeichnen
+    drawTannenbaumCanvas(1, data.team1);
+    drawTannenbaumCanvas(2, data.team2);
 }
 
 function createTannenbaumPlayerRow(name, teamNum) {
     const div = document.createElement("div");
     div.className = "tannenbaum-player-row";
     const data = activeGamesData["tannenbaum"];
-    const letzteWuerfe = (data.wuerfe[name] || []).slice(-3).join(", ") || "-";
+    
+    const verlauf = (data.historie && data.historie[name]) ? data.historie[name] : [];
+    const letzteWuerfe = verlauf.slice(-3).join(", ") || "-";
 
+    // Wir fügen ein schickes, kompaktes Layout mit einem "↩️" Button hinzu
     div.innerHTML = `
-        <div style="text-align:left;">
+        <div style="text-align:left; flex-grow: 1;">
             <div style="font-weight:bold;">${name}</div>
             <div style="font-size:0.75rem; color:var(--text-muted);">Letzte: ${letzteWuerfe}</div>
         </div>
-        <input type="number" min="1" max="9" class="tannenbaum-input" placeholder="Zahl"
-            onkeydown="if(event.key==='Enter'){ handleTannenbaumInput(event, '${name}'); }">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <input type="number" min="0" max="9" class="tannenbaum-input" placeholder="Zahl" style="width: 60px;"
+                onkeydown="if(event.key==='Enter'){ handleTannenbaumInput(event, '${name}'); }">
+            <button onclick="undoLastTannenbaumThrow('${name}')" title="Letzten Wurf rückgängig machen" 
+                style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                ↩️
+            </button>
+        </div>
     `;
     return div;
 }
 
 function handleTannenbaumInput(event, name) {
     event.preventDefault();
-    const val = parseInt(event.target.value);
-    if (!isNaN(val) && val >= 1 && val <= 9) {
-        activeGamesData["tannenbaum"].wuerfe[name].push(val);
-        saveCurrentGameFields(); // Zustand im Speicher/LocalStorage sichern
-        renderTannenbaumSubElements(); // Ansicht aktualisieren
-    } else {
-        alert("Bitte nur Zahlen von 1 bis 9 eintragen!");
-        event.target.value = "";
+    const inputElement = event.target;
+    const val = parseInt(inputElement.value);
+    
+    if (isNaN(val) || val < 0 || val > 9) {
+        alert("Bitte nur Zahlen von 0 bis 9 eintragen!");
+        inputElement.value = "";
+        return;
     }
+
+    const data = activeGamesData["tannenbaum"];
+    
+    // Falls es für diesen Spieler noch keine Historie gibt, erstellen wir sie kurz
+    if (!data.historie) { data.historie = {}; }
+    if (!data.historie[name]) { data.historie[name] = []; }
+
+    // JEDER WURF wird sofort in der echten Historie gemerkt, egal was passiert!
+    data.historie[name].push(val);
+
+    // Ermitteln, in welchem Team der aktuelle Werfer spielt
+    const isTeam1 = data.team1.includes(name);
+    const eigenGruppe = isTeam1 ? data.team1 : data.team2;
+    const gegnerGruppe = isTeam1 ? data.team2 : data.team1;
+
+    // Hilfsfunktion: Zählt die Baumergebnisse für das Team
+    const getTeamCounts = (gruppe) => {
+        let counts = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+        gruppe.forEach(n => {
+            (data.wuerfe[n] || []).forEach(w => { if(counts[w]!==undefined) counts[w]++; });
+        });
+        return counts;
+    };
+
+    // --- REGEL 1: PUDEL GEWORFEN (0) ---
+    if (val === 0) {
+        // Wir merken uns den Pudel auch im Wurf-Array des Spielers für den Rechts-Links-Wechsel
+        data.wuerfe[name].push(val);
+
+        let gegnerCounts = getTeamCounts(gegnerGruppe);
+        let valideOptionen = [];
+        for(let z=1; z<=9; z++) {
+            if(gegnerCounts[z] < baumStruktur[z]) {
+                valideOptionen.push(z);
+            }
+        }
+
+        if (valideOptionen.length === 0) {
+            alert(`Pudel (0) registriert! Aber der gegnerische Baum ist bereits komplett leer.`);
+            inputElement.value = "";
+            saveCurrentGameFields();
+            renderTannenbaumSubElements();
+            return;
+        }
+
+        let auswahl = prompt(`🎳 PUDEL! Du darfst eine Zahl beim Gegner MANUELL LÖSCHEN.\nWähle eine offene Zahl des Gegners:\n[ ${valideOptionen.join(", ")} ]`);
+        let gewaehlteZahl = parseInt(auswahl);
+
+        if (valideOptionen.includes(gewaehlteZahl)) {
+            const zielSpielerGegner = gegnerGruppe[0];
+            data.wuerfe[zielSpielerGegner].push(gewaehlteZahl);
+            alert(`Zahl ${gewaehlteZahl} wurde beim Gegner weggestrichen!`);
+        } else {
+            alert("Ungültige Auswahl. Die manuelle Streichung verfällt!");
+        }
+
+    // --- REGEL 2: REGULÄRER WURF (1-9) ---
+    } else {
+        let aktuelleCounts = getTeamCounts(eigenGruppe);
+
+        // Prüfen, ob wir diese Zahl SCHON VOR DIESEM WURF voll hatten
+        if (aktuelleCounts[val] >= baumStruktur[val]) {
+            // Zahl ist bei uns schon voll -> Beim Gegner ein Licht wegstreichen!
+            let gegnerCounts = getTeamCounts(gegnerGruppe);
+            
+            if (gegnerCounts[val] < baumStruktur[val]) {
+                const zielSpielerGegner = gegnerGruppe[0];
+                data.wuerfe[zielSpielerGegner].push(val);
+                alert(`💥 Gnadenschuss! Die ${val} hattet ihr schon voll. Dem Gegner wurde dafür ein weiteres Licht WEGGESTRICHEN! 🎄🔥`);
+            } else {
+                alert(`Die ${val} habt ihr schon voll. Der Gegner hat diese Zahl aber leider auch schon komplett leer, der Wurf verpufft.`);
+            }
+        } else {
+            // Ganz normaler Treffer für das eigene Team -> fliegt in den Baum
+            data.wuerfe[name].push(val);
+        }
+    }
+
+    inputElement.value = ""; 
+    saveCurrentGameFields(); 
+    renderTannenbaumSubElements(); 
 }
 
 function renderSingleVisualTree(elementId, counts, activeClass) {
@@ -740,4 +854,206 @@ function updateHausnummerDefaultValues(playerName) {
         if (w2Input.value == "9" || w2Input.value === "") w2Input.value = 0;
         if (w3Input.value == "9" || w3Input.value === "") w3Input.value = 0;
     }
+}
+// Wechselt die Teamzugehörigkeit eines Spielers beim Tannenbaum live
+function renderTannenbaumSubElements() {
+    const board = document.getElementById("tannenbaum-game-board");
+    if (!board) return;
+
+    const data = activeGamesData["tannenbaum"];
+
+    // 1. Spielfeld mit zwei Spalten (Links für Gruppe 1, Rechts für Gruppe 2) aufbauen
+    board.innerHTML = `
+        <!-- LINKER BAUM & SPIELER (GRUPPE 1) -->
+        <div id="tannenbaum-col-1" style="display: flex; flex-direction: column; gap: 15px; background: rgba(59, 130, 246, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.1);">
+            <h3 style="text-align: center; color: #60a5fa; margin: 0;">🎄 Gruppe 1</h3>
+            <div id="tannenbaum-canvas-container-1" style="display:flex; justify-content:center;">
+                <canvas id="tannenbaum-canvas-1" width="280" height="340"></canvas>
+            </div>
+            <div id="tannenbaum-players-1" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+
+        <!-- RECHTER BAUM & SPIELER (GRUPPE 2) -->
+        <div id="tannenbaum-col-2" style="display: flex; flex-direction: column; gap: 15px; background: rgba(245, 158, 11, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.1);">
+            <h3 style="text-align: center; color: #fbbf24; margin: 0;">⭐ Gruppe 2</h3>
+            <div id="tannenbaum-canvas-container-2" style="display:flex; justify-content:center;">
+                <canvas id="tannenbaum-canvas-2" width="280" height="340"></canvas>
+            </div>
+            <div id="tannenbaum-players-2" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    `;
+
+    // 2. Spieler von Gruppe 1 links einfügen
+    const pContainer1 = document.getElementById("tannenbaum-players-1");
+    if (pContainer1 && data.team1) {
+        data.team1.forEach(p => {
+            pContainer1.appendChild(createTannenbaumPlayerRow(p, 1));
+        });
+    }
+
+    // 3. Spieler von Gruppe 2 rechts einfügen
+    const pContainer2 = document.getElementById("tannenbaum-players-2");
+    if (pContainer2 && data.team2) {
+        data.team2.forEach(p => {
+            pContainer2.appendChild(createTannenbaumPlayerRow(p, 2));
+        });
+    }
+
+    // 4. TRICK: Dem Browser ein paar Millisekunden Zeit geben, das HTML zu verarbeiten,
+    // damit die IDs "tannenbaum-canvas-1" und "-2" existieren, bevor gezeichnet wird!
+    setTimeout(() => {
+        drawTannenbaumCanvas(1, data.team1 || []);
+        drawTannenbaumCanvas(2, data.team2 || []);
+    }, 50);
+}
+function drawTannenbaumCanvas(teamNum, teamPlayers) {
+    // 1. Richtige Canvas-ID anvisieren
+    const canvas = document.getElementById(`tannenbaum-canvas-${teamNum}`);
+    if (!canvas) {
+        console.error(`Tannenbaum-Canvas für Team ${teamNum} wurde im DOM nicht gefunden!`);
+        return; 
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Canvas komplett leeren für den sauberen Neuaufbau
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const data = activeGamesData["tannenbaum"];
+    if (!data || !data.wuerfe) return;
+
+    // 2. Alle Würfe des GESAMTEN TEAMS für dieses Baumsammeln zusammenrechnen
+    let teamCounts = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+    
+    if (teamPlayers && teamPlayers.length > 0) {
+        teamPlayers.forEach(p => {
+            const spielerWuerfe = data.wuerfe[p] || [];
+            spielerWuerfe.forEach(w => {
+                if (teamCounts[w] !== undefined) {
+                    teamCounts[w]++;
+                }
+            });
+        });
+    }
+
+    // Farbe festlegen: Gruppe 1 = Blau/Grün, Gruppe 2 = Orange/Gelb
+    const activeColor = teamNum === 1 ? "#3b82f6" : "#f59e0b";
+    const strikeColor = "#1e293b"; // Dunkles Grau/Schwarz für "WEGGESTRICHENE" (getroffene) Zahlen
+    const textMuted   = "#64748b";
+
+    // Struktur-Vorgabe (Zahl -> Wie oft muss sie getroffen werden)
+    const baumStruktur = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 4, 7: 3, 8: 2, 9: 1 };
+    
+    // Y-Koordinaten für die Etagen der Pyramide (1 ganz oben, 9 ganz unten)
+    const yPositions = {
+        1: 40,  2: 75,  3: 110,
+        4: 145, 5: 180, 6: 215,
+        7: 250, 8: 285, 9: 320
+    };
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // 3. Jede Etage des Tannenbaums sauber auf die Leinwand zeichnen
+    for (let z = 1; z <= 9; z++) {
+        const y = yPositions[z];
+        const benoetigt = baumStruktur[z];
+        const getroffen = teamCounts[z] || 0;
+
+        // Ist die Zahl komplett abgeräumt? (Treffer >= Benötigt)
+        const istKomplettWeg = getroffen >= benoetigt;
+
+        // Abstand zwischen den Kreisen auf dieser Etage
+        const spacing = 35;
+        // Start-X berechnen, damit die Reihe exakt mittig sitzt
+        const startX = (canvas.width / 2) - ((benoetigt - 1) * spacing / 2);
+
+        for (let i = 0; i < benoetigt; i++) {
+            const x = startX + (i * spacing);
+
+            ctx.beginPath();
+            ctx.arc(x, y, 14, 0, 2 * Math.PI);
+
+            if (i < getroffen) {
+                // LICHT IST AUS / WEGGESTRICHEN (Treffer gelandet)
+                ctx.fillStyle = strikeColor;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255,255,255,0.05)";
+                ctx.stroke();
+
+                // Zahl durchgestrichen anzeigen
+                ctx.font = "bold 12px sans-serif";
+                ctx.fillStyle = textMuted;
+                ctx.fillText(z, x, y);
+                
+                // Ein kleines "X" über den Kreis zeichnen als visuelles Löschzeichen
+                ctx.strokeStyle = "rgba(239, 68, 68, 0.4)"; // Leichtes Rot fürs Streichen
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x - 8, y - 8); ctx.lineTo(x + 8, y + 8);
+                ctx.moveTo(x + 8, y - 8); ctx.lineTo(x - 8, y + 8);
+                ctx.stroke();
+            } else {
+                // LICHT BRENNT NOCH (Zahl muss noch getroffen werden!)
+                ctx.fillStyle = "rgba(30, 41, 59, 0.5)";
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = activeColor;
+                ctx.stroke();
+
+                // Zahl leuchtend anzeigen
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(z, x, y);
+            }
+        }
+    }
+}
+function undoLastTannenbaumThrow(playerName) {
+    const data = activeGamesData["tannenbaum"];
+    if (!data) return;
+
+    // 1. Prüfen, ob der Spieler überhaupt schon geworfen hat
+    const spielerHistorie = data.historie ? data.historie[playerName] : [];
+    if (!spielerHistorie || spielerHistorie.length === 0) {
+        alert(`Für ${playerName} gibt es keinen Wurf zum Rückgängig machen!`);
+        return;
+    }
+
+    // Bestätigung für die Bahn (optional, verhindert versehentliches Klicken)
+    if (!confirm(`Möchtest du den letzten Wurf von ${playerName} wirklich löschen?`)) {
+        return;
+    }
+
+    // 2. Den letzten Wurf aus der echten Historie entfernen
+    const geloeschterWurf = spielerHistorie.pop();
+
+    // 3. Den Wurf aus den aktiven Spielwürfen entfernen
+    // Falls es ein regulärer Treffer war, liegt er im eigenen Array
+    if (data.wuerfe[playerName] && data.wuerfe[playerName].includes(geloeschterWurf)) {
+        // Wir entfernen nur das LETZTE Vorkommen dieser Zahl beim Spieler
+        const index = data.wuerfe[playerName].lastIndexOf(geloeschterWurf);
+        if (index !== -1) {
+            data.wuerfe[playerName].splice(index, 1);
+        }
+    } else {
+        // Falls der Wurf beim GEGNER gelandet ist (weil die Zahl schon voll war oder ein Pudel vorlag),
+        // müssen wir ihn dort aus dem Array fischen.
+        const isTeam1 = data.team1.includes(playerName);
+        const gegnerGruppe = isTeam1 ? data.team2 : data.team1;
+        const zielSpielerGegner = gegnerGruppe[0]; // Das ist der Standard-Empfänger für Strafen
+
+        if (data.wuerfe[zielSpielerGegner]) {
+            const indexGegner = data.wuerfe[zielSpielerGegner].lastIndexOf(geloeschterWurf);
+            if (indexGegner !== -1) {
+                data.wuerfe[zielSpielerGegner].splice(indexGegner, 1);
+            }
+        }
+    }
+
+    // 4. Alles wegsichern und die Oberfläche live aktualisieren
+    saveCurrentGameFields();
+    renderTannenbaumSubElements();
 }
