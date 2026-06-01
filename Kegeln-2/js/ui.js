@@ -9,16 +9,34 @@ function switchTab(tabId, buttonElement) {
 
 function changeTheme(themeName) { document.body.className = themeName; }
 
+// ... UND DURCH DIESEN ERSETZEN:
 function toggleFullscreen() {
     const btn = document.getElementById("fullscreen-btn");
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => alert(`Fehler: ${err.message}`));
-        btn.innerText = "📺 Vollbildmodus beenden";
-        btn.classList.replace("btn-info", "btn-accent");
+        document.documentElement.requestFullscreen()
+            .then(() => {
+                document.body.classList.add("fullscreen-active");
+            })
+            .catch(err => alert(`Fehler: ${err.message}`));
+        
+        if (btn) {
+            btn.innerText = "📺 Vollbildmodus beenden";
+            btn.classList.replace("btn-info", "btn-accent");
+        }
     } else {
         document.exitFullscreen();
-        btn.innerText = "📺 Vollbildmodus einschalten";
-        btn.classList.replace("btn-accent", "btn-info");
+        document.body.classList.remove("fullscreen-active");
+        
+        const header = document.getElementById("main-header");
+        if (header) header.classList.remove("menu-forced-open");
+        
+        const toggleBtn = document.getElementById("toggle-menu-btn");
+        if (toggleBtn) toggleBtn.innerText = "🔽 Menü einblenden";
+
+        if (btn) {
+            btn.innerText = "📺 Vollbildmodus einschalten";
+            btn.classList.replace("btn-accent", "btn-info");
+        }
     }
 }
 
@@ -197,5 +215,44 @@ function resetGrandTotal() {
     if (confirm("Möchtest du die Punkte des Gesamtstands wirklich für alle zurücksetzen?")) {
         players.forEach(p => grandTotalScores[p] = 0);
         updateGrandTotalTable();
+    }
+}
+
+// ==========================================
+// ERWEITERUNG: ERGÄNZUNGEN FÜR DEN VOLLBILD-HEADER
+// ==========================================
+
+/* Fängt ab, wenn die Kegler den Vollbildmodus manuell über ESC oder 
+   die Zurück-Geste am Smartphone beenden, damit die Klassen synchron bleiben */
+document.addEventListener('fullscreenchange', () => {
+    const btn = document.getElementById("fullscreen-btn");
+    if (!document.fullscreenElement) {
+        document.body.classList.remove("fullscreen-active");
+        
+        const header = document.getElementById("main-header");
+        if (header) header.classList.remove("menu-forced-open");
+        
+        const toggleBtn = document.getElementById("toggle-menu-btn");
+        if (toggleBtn) toggleBtn.innerText = "🔽 Menü einblenden";
+
+        if (btn) {
+            btn.innerText = "📺 Vollbildmodus einschalten";
+            btn.classList.replace("btn-accent", "btn-info");
+        }
+    }
+});
+
+// Steuert den kleinen schwebenden Pfeil-Button, um das Menü im Vollbild kurz anzusehen
+function toggleFullscreenMenu() {
+    const header = document.getElementById("main-header");
+    const btn = document.getElementById("toggle-menu-btn");
+    if (!header || !btn) return;
+    
+    if (header.classList.contains("menu-forced-open")) {
+        header.classList.remove("menu-forced-open");
+        btn.innerText = "🔽 Menü einblenden";
+    } else {
+        header.classList.add("menu-forced-open");
+        btn.innerText = "🔼 Menü ausblenden";
     }
 }

@@ -8,19 +8,27 @@
 </head>
 <body class="theme-turquoise">
 
-    <header>
-        <div class="header-container">
-            <h1>🎳 KegelClub Master Pro</h1>
-            <p>Digitale Kegeltafel & Abrechnung</p>
-        </div>
-    </header>
+    <!-- AB HIER: Der neue umschließende Container für das automatische Wegklappen -->
+    <div id="main-header" class="header-collapsible">
 
-    <nav class="menu-bar">
-        <button class="menu-tab active" onclick="switchTab('tab-setup', this)">👥 Club-Setup</button>
-        <button class="menu-tab" onclick="switchTab('tab-games', this)">🎯 Kegelspiele</button>
-        <button class="menu-tab" onclick="switchTab('tab-grand-total', this)">🏆 Gesamtstand</button>
-        <button class="menu-tab" onclick="switchTab('tab-kegelbuch', this)">📊 Kasse / Ende</button>
-    </nav>
+        <header>
+            <div class="header-container">
+                <h1>🎳 KegelClub Master Pro</h1>
+                <p>Digitale Kegeltafel & Abrechnung</p>
+            </div>
+        </header>
+
+        <nav class="menu-bar">
+            <button class="menu-tab active" onclick="switchTab('tab-setup', this)">👥 Club-Setup</button>
+            <button class="menu-tab" onclick="switchTab('tab-games', this)">🎯 Kegelspiele</button>
+            <button class="menu-tab" onclick="switchTab('tab-grand-total', this)">🏆 Gesamtstand</button>
+            <button class="menu-tab" onclick="switchTab('tab-kegelbuch', this)">📊 Kasse / Ende</button>
+        </nav>
+
+    </div> <!-- / Ende von #main-header -->   
+    
+    <!-- DER NEUE SCHWEBENDE PFEIL-BUTTON (direkt unter dem einklappbaren Header) -->
+    <button id="toggle-menu-btn" onclick="toggleFullscreenMenu()">🔽 Menü einblenden</button> 
 
     <main class="container">
         

@@ -535,3 +535,57 @@ tr[data-team]:hover td {
     text-align: center;
     font-size: 0.95rem;
 }
+/* Vollbild-Modus Optimierungen für den Header */
+.header-collapsible {
+    transition: all 0.4s ease-in-out;
+    max-height: 500px; /* Genug Platz für das normale Menü */
+    overflow: hidden;
+    position: relative;
+}
+
+/* Wenn der Vollbildmodus aktiv ist, klappt der Header weg */
+body.fullscreen-active .header-collapsible {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border: none;
+    opacity: 0;
+    pointer-events: none; /* Verhindert versehentliches Klicken im unsichtbaren Bereich */
+}
+
+/* Der kleine schwebende Button zum manuellen Auf-/Zuklappen im Vollbild */
+#toggle-menu-btn {
+    display: none; /* Normalerweise unsichtbar */
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 4px 15px;
+    border-radius: 0 0 8px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: background 0.2s;
+}
+
+#toggle-menu-btn:hover {
+    background: #2563eb;
+}
+
+/* Im Vollbildmodus zeigen wir den Klapp-Pfeil an */
+body.fullscreen-active #toggle-menu-btn {
+    display: block;
+}
+
+/* Klasse, um das Menü im Vollbildmodus temporär doch einzublenden */
+body.fullscreen-active .header-collapsible.menu-forced-open {
+    max-height: 500px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-bottom: 15px;
+}
