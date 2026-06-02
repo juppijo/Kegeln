@@ -583,15 +583,106 @@ body {
 /* ======================================================
    EINSACKEN GAME
    ====================================================== */
-.einsacken-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* ======================================================
+   TEAM FARBEN  (Einsacken, Rennen, Tannenbaum)
+   ====================================================== */
+:root {
+  --team1:      #3b82f6;
+  --team1-bg:   rgba(59,130,246,.13);
+  --team1-bd:   rgba(59,130,246,.4);
+  --team2:      #f59e0b;
+  --team2-bg:   rgba(245,158,11,.13);
+  --team2-bd:   rgba(245,158,11,.4);
+  --team3:      #22c55e;
+  --team3-bg:   rgba(34,197,94,.13);
+  --team3-bd:   rgba(34,197,94,.4);
+  --team4:      #a855f7;
+  --team4-bg:   rgba(168,85,247,.13);
+  --team4-bd:   rgba(168,85,247,.4);
+}
+
+.einsacken-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 @media (max-width: 680px) { .einsacken-groups { grid-template-columns: 1fr; } }
 
 .group-card {
   background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  overflow: hidden;
 }
+.group-card-header {
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.group-card-header .group-title {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  margin: 0;
+  color: #fff;
+}
+.group-card-header .group-badge {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.group-card-body { padding: 14px 16px; }
+
+/* Team-spezifische Farben */
+.group-card.team-1 { border-color: var(--team1-bd); }
+.group-card.team-1 .group-card-header { background: linear-gradient(135deg, var(--team1), #2563eb); }
+
+.group-card.team-2 { border-color: var(--team2-bd); }
+.group-card.team-2 .group-card-header { background: linear-gradient(135deg, var(--team2), #d97706); }
+
+.group-card.team-3 { border-color: var(--team3-bd); }
+.group-card.team-3 .group-card-header { background: linear-gradient(135deg, var(--team3), #16a34a); }
+
+.group-card.team-4 { border-color: var(--team4-bd); }
+.group-card.team-4 .group-card-header { background: linear-gradient(135deg, var(--team4), #7c3aed); }
+
+.group-add-select {
+  width: 100%;
+  background: var(--surface2);
+  border: 2px dashed var(--border2);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: .9rem;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+.group-add-select:focus { outline: none; }
+.group-card.team-1 .group-add-select:focus,
+.group-card.team-1 .group-add-select:hover { border-color: var(--team1); }
+.group-card.team-2 .group-add-select:focus,
+.group-card.team-2 .group-add-select:hover { border-color: var(--team2); }
+
+.group-player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+  font-size: .88rem;
+  font-weight: 600;
+}
+.group-card.team-1 .group-player-row { border-left: 3px solid var(--team1); }
+.group-card.team-2 .group-player-row { border-left: 3px solid var(--team2); }
+.group-card.team-3 .group-player-row { border-left: 3px solid var(--team3); }
+.group-card.team-4 .group-player-row { border-left: 3px solid var(--team4); }
+
 .group-title {
   font-family: var(--font-title);
   font-size: 1.1rem;

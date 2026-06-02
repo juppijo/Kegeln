@@ -13,6 +13,9 @@ const MAX_PLAYERS = 20;
 const THEMES = ['classic','neon','light','retro'];
 let themeIdx = 0;
 
+// Tannenbaum: Anzahl benötigter Treffer pro Zahl (Pyramide 1→5→1, gesamt 25 Blöcke)
+const BAUM_STRUKTUR = {1:1, 2:2, 3:3, 4:4, 5:5, 6:4, 7:3, 8:2, 9:1};
+
 function defaultState() {
   return {
     session: { name: 'Kegel-Abend', date: '' },
@@ -27,7 +30,7 @@ function defaultState() {
       einsacken: { g1: [], g2: [], rounds: [] },
                           // rounds: [{g1:{id:n}, g2:{id:n}}]
       schwein:    {},     // id: {vals:[5]}  (0-9 pins each weight)
-      tannenbaum: { g1: [], g2: [], g1wins: 0, g2wins: 0, rounds: [] },
+      tannenbaum: { g1: [], g2: [], g1wins: 0, g2wins: 0, throws: {} },
       idiot:      {},     // id: {links, beine, rechts}
       mensch:     {},     // id: {throws:[10]}
       bus: {              // buses array
@@ -1281,6 +1284,11 @@ function renderEinsacken() {
   if (!es.g2) es.g2 = [];
   if (!es.rounds) es.rounds = [];
 
+  const teamDefs = [
+    { key: 'g1', cls: 'team-1', label: 'Team A', color: 'var(--team1)' },
+    { key: 'g2', cls: 'team-2', label: 'Team B', color: 'var(--team2)' }
+  ];
+
   return `
   <div class="page-card">
     <div class="card-header">
@@ -1289,28 +1297,39 @@ function renderEinsacken() {
     </div>
     <div id="rules_einsacken" style="display:none">${rulesHtml('einsacken')}</div>
 
+    <!-- TEAM-KARTEN -->
     <div class="einsacken-groups">
-      ${['g1','g2'].map((g,gi) => `
-        <div class="group-card">
-          <div class="group-title">Gruppe ${gi+1}
-            <span class="badge">${(es[g]||[]).length} Spieler</span>
+      ${teamDefs.map(({ key: g, cls, label, color }) => `
+        <div class="group-card ${cls}">
+          <div class="group-card-header">
+            <span class="group-title">🎳 ${label}</span>
+            <span class="group-badge">${(es[g]||[]).length} Spieler</span>
           </div>
-          <div style="margin-bottom:10px">
-            <select class="select-input" onchange="addToGroup('${g}',this.value);this.value=''">
-              <option value="">Spieler hinzufügen...</option>
-              ${state.players.filter(p=>!es.g1.includes(p.id)&&!es.g2.includes(p.id))
-                .map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+          <div class="group-card-body">
+            <!-- Spieler-Liste -->
+            ${(es[g]||[]).length === 0
+              ? `<div style="color:var(--text3);font-size:.82rem;padding:6px 0;margin-bottom:8px">Noch keine Spieler zugeteilt.</div>`
+              : (es[g]||[]).map(pid => `
+                <div class="group-player-row">
+                  <span style="flex:1">${pname(pid)}</span>
+                  <span style="font-size:.75rem;background:${color}22;color:${color};
+                    padding:2px 8px;border-radius:10px;font-weight:700">
+                    ${countEinsackenWins(g,pid)} 🏆
+                  </span>
+                  <button class="btn-icon-sm btn-danger-sm" onclick="removeFromGroup('${g}','${pid}')">✕</button>
+                </div>`).join('')}
+
+            <!-- Spieler hinzufügen -->
+            <select class="group-add-select" onchange="addToGroup('${g}',this.value);this.value=''">
+              <option value="">➕ Spieler zu ${label} hinzufügen…</option>
+              ${state.players.filter(p => !es.g1.includes(p.id) && !es.g2.includes(p.id))
+                .map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
             </select>
           </div>
-          ${(es[g]||[]).map(pid => `
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="flex:1;font-size:.85rem">${pname(pid)}</span>
-              <span class="badge">${countEinsackenWins(g,pid)} Gewonnen</span>
-              <button class="btn-icon-sm btn-danger-sm" onclick="removeFromGroup('${g}','${pid}')">✕</button>
-            </div>`).join('')}
         </div>`).join('')}
     </div>
 
+    <!-- RUNDEN -->
     <hr class="sect-divider">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <strong>Runden (${es.rounds.length})</strong>
@@ -1323,17 +1342,18 @@ function renderEinsacken() {
           <button class="btn-danger btn-sm" onclick="removeEinsackenRound(${ri})">✕</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          ${['g1','g2'].map((g,gi) => `
-            <div>
-              <div style="font-size:.75rem;color:var(--text3);margin-bottom:6px">GRUPPE ${gi+1}</div>
+          ${teamDefs.map(({ key: g, label, color }) => `
+            <div style="border-left:3px solid ${color};padding-left:10px">
+              <div style="font-size:.8rem;font-weight:700;color:${color};margin-bottom:8px">${label}</div>
               ${(es[g]||[]).map(pid => `
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                   <span style="flex:1;font-size:.82rem">${pname(pid)}</span>
-                  <input class="score-input" type="number" min="0" max="9" value="${(rd[g]&&rd[g][pid])||0}"
+                  <input class="score-input" type="number" min="0" max="9"
+                    value="${(rd[g]&&rd[g][pid])||0}"
                     onchange="setEinsackenScore(${ri},'${g}','${pid}',this.value)">
                 </div>`).join('')}
-              <div style="font-size:.75rem;color:var(--accent);margin-top:6px">
-                🏆 Rundensieger G${gi+1}: ${getEinsackenRoundWinner(rd[g],es[g])}
+              <div style="font-size:.75rem;color:${color};margin-top:6px;font-weight:600">
+                🏆 ${getEinsackenRoundWinner(rd[g],es[g])}
               </div>
             </div>`).join('')}
         </div>
@@ -1439,62 +1459,111 @@ function renderSchwein() {
 }
 
 // ======================================================
-// RENDER: TANNENBAUM  (korrekte Regeln)
+// TANNENBAUM — nach Referenzimplementierung
+// Jede Zahl 1–9 braucht BAUM_STRUKTUR[n] Treffer (1,2,3,4,5,4,3,2,1 = 25 Blöcke)
+// Spieler geben geworfene Zahlen ein → Baum leuchtet live auf
+// Kein Kreuz-Regel: jedes Team füllt seinen eigenen Baum
 // ======================================================
+
+function getTeamCounts(group) {
+  const tb = state.scores.tannenbaum;
+  const c  = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  (tb[group]||[]).forEach(pid => {
+    ((tb.throws||{})[pid]||[]).forEach(v => { if (v>=1&&v<=9) c[v]++; });
+  });
+  return c;
+}
+
+function isTeamDone(group) {
+  const c = getTeamCounts(group);
+  return Object.keys(BAUM_STRUKTUR).every(n => c[n] >= BAUM_STRUKTUR[n]);
+}
+
+function treeDisplayHtml(group) {
+  const c     = getTeamCounts(group);
+  const isG1  = group === 'g1';
+  const color = isG1 ? '#3b82f6' : '#f59e0b';
+  const glow  = isG1 ? 'rgba(59,130,246,.7)' : 'rgba(245,158,11,.7)';
+  const label = isG1 ? '🔵 Team A' : '🟠 Team B';
+  const total = Object.keys(BAUM_STRUKTUR).reduce((a,n)=>a+Math.min(c[n],BAUM_STRUKTUR[n]),0);
+  const done  = isTeamDone(group);
+  return `
+    <div style="flex:1;text-align:center;background:#0f0f1e;border-radius:var(--radius);padding:16px;
+      border:2px solid ${done?color:'#2d3561'}">
+      <div style="color:${color};font-weight:700;font-size:.95rem;margin-bottom:12px">
+        ${label} ${done ? '<span style="color:gold">🏆 FERTIG!</span>' : `(${total}/25)`}
+      </div>
+      ${[1,2,3,4,5,6,7,8,9].map(n=>{
+        const need = BAUM_STRUKTUR[n];
+        const got  = Math.min(c[n], need);
+        return `<div style="display:flex;justify-content:center;gap:4px;margin-bottom:5px">
+          ${Array(need).fill(0).map((_,i)=>`
+            <div style="width:34px;height:34px;border-radius:4px;
+              display:flex;align-items:center;justify-content:center;
+              font-weight:800;font-size:.9rem;
+              background:${i<got?color:'#1e2040'};
+              color:${i<got?'#fff':'#4a5080'};
+              box-shadow:${i<got?`0 0 7px ${glow}`:'none'};
+              transition:background .25s,box-shadow .25s">${n}</div>
+          `).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
 function renderTannenbaum() {
   if (!state.players.length) return noPlayers();
   const tb = state.scores.tannenbaum;
-  if (!tb.g1)       tb.g1       = [];
-  if (!tb.g2)       tb.g2       = [];
-  if (!tb.g1wins)   tb.g1wins   = 0;
-  if (!tb.g2wins)   tb.g2wins   = 0;
-  if (!tb.crossed)  tb.crossed  = { g1: Array(9).fill(false), g2: Array(9).fill(false) };
-  if (!tb.throwLog) tb.throwLog = [];
+  if (!tb.g1)     tb.g1     = [];
+  if (!tb.g2)     tb.g2     = [];
+  if (!tb.g1wins) tb.g1wins = 0;
+  if (!tb.g2wins) tb.g2wins = 0;
+  if (!tb.throws) tb.throws = {};
 
-  // Diamond layout: rows 1,2,3,2,1 → numbers 1–9
-  // Row0:[1], Row1:[2,3], Row2:[4,5,6], Row3:[7,8], Row4:[9]
-  const diamondRows = [[1],[2,3],[4,5,6],[7,8],[9]];
+  const g1done = isTeamDone('g1');
+  const g2done = isTeamDone('g2');
 
-  const g1done = (tb.crossed.g1||Array(9).fill(false)).every(x=>x);
-  const g2done = (tb.crossed.g2||Array(9).fill(false)).every(x=>x);
-  const gameOver = g1done || g2done;
+  // Status-Banner
+  let statusText  = '🎳 Spiel läuft…';
+  let statusBg    = 'var(--bg3)';
+  let statusBd    = 'var(--border)';
+  if (g1done && g2done) { statusText='🤝 Unentschieden — beide gleichzeitig fertig!'; statusBg='rgba(255,255,255,.05)'; statusBd='var(--border2)'; }
+  else if (g1done)      { statusText='🏆 Team A gewinnt! 🎉';  statusBg='rgba(59,130,246,.12)'; statusBd='#3b82f6'; }
+  else if (g2done)      { statusText='🏆 Team B gewinnt! 🎉';  statusBg='rgba(245,158,11,.12)'; statusBd='#f59e0b'; }
 
-  function treeHtml(g) {
-    const crossed = tb.crossed[g] || Array(9).fill(false);
-    const wins    = g==='g1' ? tb.g1wins : tb.g2wins;
-    const color   = g==='g1' ? 'var(--accent)' : 'var(--accent2)';
-    const done    = g==='g1' ? g1done : g2done;
-    const cnt     = crossed.filter(x=>x).length;
-    return `
-      <div style="background:var(--bg3);border:2px solid ${color};border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <span style="font-family:var(--font-title);font-size:1.1rem;color:${color}">GRUPPE ${g==='g1'?1:2}</span>
-          <span style="font-size:.8rem;color:var(--text3)">${cnt}/9 gestrichen &nbsp;|&nbsp; ${wins} 🏆 Siege</span>
-        </div>
-        ${done ? '<div style="color:var(--success);font-size:1rem;font-weight:700;margin-bottom:8px">🏆 FERTIG — GEWONNEN!</div>' : ''}
-        ${diamondRows.map(row=>`
-          <div style="display:flex;justify-content:center;gap:6px;margin-bottom:6px">
-            ${row.map(n => {
-              const x = crossed[n-1];
-              return `<div style="
-                width:40px;height:40px;border-radius:50%;
-                display:flex;align-items:center;justify-content:center;
-                font-weight:800;font-size:.95rem;
-                background:${x ? '#1e6b2e' : 'var(--surface)'};
-                border:2px solid ${x ? '#00cc44' : 'var(--border2)'};
-                color:${x ? '#00ff55' : 'var(--text)'};
-                box-shadow:${x ? '0 0 8px rgba(0,200,60,.4)' : 'none'};
-                transition:all .2s;
-              ">${x ? '✓' : n}</div>`;
-            }).join('')}
-          </div>`).join('')}
-        <div style="font-size:.75rem;color:var(--text3);margin-top:8px">
-          ${(tb[g]||[]).map(pid=>pname(pid)).join(' · ') || '(keine Spieler)'}
-        </div>
-      </div>`;
+  // Spieler-Eingabe-Zeilen
+  function playerRows(group) {
+    const col = group==='g1' ? '#3b82f6' : '#f59e0b';
+    return (tb[group]||[]).map(pid=>{
+      const throws = (tb.throws[pid]||[]);
+      const last4  = throws.slice(-4).join(', ')||'–';
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;
+          border-bottom:1px solid var(--border);flex-wrap:wrap">
+          <div style="flex:1;min-width:80px">
+            <div style="font-weight:700;font-size:.88rem">${pname(pid)}</div>
+            <div style="font-size:.7rem;color:var(--text3)">Letzte: ${last4}</div>
+          </div>
+          <input type="number" min="1" max="9" id="tb_inp_${pid}"
+            style="width:52px;height:36px;text-align:center;background:var(--bg3);
+              border:1px solid var(--border);color:var(--text);border-radius:var(--radius);
+              font-weight:800;font-size:1rem;-moz-appearance:textfield"
+            placeholder="1-9"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();
+              addTbThrow('${pid}',this.value);this.value='';this.focus()}">
+          <button onclick="addTbThrow('${pid}',document.getElementById('tb_inp_${pid}').value);
+            document.getElementById('tb_inp_${pid}').value='';
+            document.getElementById('tb_inp_${pid}').focus()"
+            style="background:${col};border:none;color:#000;font-weight:800;
+              padding:7px 12px;border-radius:var(--radius);cursor:pointer;font-size:.85rem">+</button>
+          ${throws.length>0?`
+            <button onclick="undoTbThrow('${pid}')"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+                padding:7px 8px;border-radius:var(--radius);cursor:pointer;font-size:.75rem"
+              title="Letzten Wurf rückgängig">↺</button>`:''}
+        </div>`;
+    }).join('');
   }
-
-  const recentLog = [...(tb.throwLog||[])].reverse().slice(0,12);
 
   return `
   <div class="page-card">
@@ -1504,152 +1573,127 @@ function renderTannenbaum() {
     </div>
     <div id="rules_tannenbaum" style="display:none">${rulesHtml('tannenbaum')}</div>
 
-    <!-- BÄUME -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-      ${treeHtml('g1')}
-      ${treeHtml('g2')}
+    <!-- STATUS-BANNER -->
+    <div style="text-align:center;font-size:1.15rem;font-weight:700;
+      padding:12px 16px;background:${statusBg};border:2px solid ${statusBd};
+      border-radius:var(--radius);margin-bottom:14px">
+      ${statusText}
+      ${(g1done||g2done)?`<div style="margin-top:8px">
+        <button class="btn-primary btn-sm" onclick="newTbGame()">🔄 Neues Spiel</button>
+      </div>`:''}
     </div>
 
-    <!-- WURF-EINGABE  oder  GEWINN-ANZEIGE -->
-    ${gameOver ? `
-      <div style="text-align:center;padding:20px;background:var(--bg3);border:1px solid var(--success);border-radius:var(--radius);margin-bottom:14px">
-        <div style="font-size:2.5rem">🏆</div>
-        <div style="font-size:1.2rem;font-weight:700;color:var(--success);margin:8px 0">
-          ${g1done&&g2done ? 'Gleichstand! Beide Bäume fertig!' : g1done ? 'Gruppe 1 gewinnt das Spiel!' : 'Gruppe 2 gewinnt das Spiel!'}
-        </div>
-        <div style="font-size:.85rem;color:var(--text3);margin-bottom:12px">Gesamtstand: G1 ${tb.g1wins} : ${tb.g2wins} G2</div>
-        <button class="btn-primary" onclick="newTbGame()">🔄 Neues Spiel starten</button>
-      </div>` : `
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:10px;font-size:.9rem">🎳 Wurf eingeben <span style="font-size:.75rem;color:var(--text3);font-weight:400">(immer in die Vollen – alle 9 Kegel stehen)</span></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <select class="select-input" id="tb_group">
-            <option value="g1" style="color:#000">Gruppe 1</option>
-            <option value="g2" style="color:#000">Gruppe 2</option>
-          </select>
-          <select class="select-input" id="tb_player" style="flex:1;min-width:120px">
-            <option value="">— Spieler —</option>
-            ${state.players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}
-          </select>
-          <input class="score-input-sm" type="number" id="tb_score" min="0" max="9" value="0"
-                 onkeydown="if(event.key==='Enter')processTbThrow()">
-          <button class="btn-primary" onclick="processTbThrow()">✅ Eintragen</button>
-          <button class="btn-secondary btn-sm" onclick="undoTbThrow()" ${!(tb.throwLog&&tb.throwLog.length)?'disabled':''}>↺ Rückgängig</button>
-        </div>
-        <div style="font-size:.75rem;color:var(--text3);margin-top:8px">
-          💡 0 Kegel = <strong>Pumpe/Pille</strong> → nichts wird gestrichen &nbsp;|&nbsp;
-          Zahl schon gestrichen → geht zum <strong>Gegner</strong>
-        </div>
-      </div>`}
+    <!-- BÄUME -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      ${treeDisplayHtml('g1')}
+      ${treeDisplayHtml('g2')}
+    </div>
 
-    <!-- SPIELER-ZUWEISUNG -->
+    <!-- SPIELER-EINGABE (2 Spalten) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      ${['g1','g2'].map((g,gi)=>{
+        const col   = g==='g1'?'#3b82f6':'#f59e0b';
+        const label = g==='g1'?'🔵 Team A':'🟠 Team B';
+        return `
+          <div style="background:var(--bg3);border:2px solid ${col}44;border-radius:var(--radius);padding:12px">
+            <div style="font-weight:700;color:${col};margin-bottom:8px;font-size:.9rem">${label}</div>
+            ${(tb[g]||[]).length===0
+              ? `<div style="color:var(--text3);font-size:.8rem;padding:8px 0">Noch keine Spieler.</div>`
+              : playerRows(g)}
+          </div>`;
+      }).join('')}
+    </div>
+
+    <!-- SPIELER ZUORDNEN -->
     <details style="margin-bottom:12px">
-      <summary style="cursor:pointer;color:var(--text2);font-size:.85rem;padding:6px 0">⚙️ Spieler zuordnen (auf-/zuklappen)</summary>
+      <summary style="cursor:pointer;color:var(--text2);font-size:.85rem;padding:6px 0">
+        ⚙️ Spieler zuordnen
+      </summary>
       <div style="padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        ${['g1','g2'].map((g,gi)=>`
-          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px">
-            <div style="font-weight:700;color:${gi===0?'var(--accent)':'var(--accent2)'};margin-bottom:8px;font-size:.9rem">Gruppe ${gi+1}</div>
-            ${(tb[g]||[]).map(pid=>`
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:.82rem">
-                <span style="flex:1">${pname(pid)}</span>
-                <button class="btn-icon-sm btn-danger-sm" onclick="removeTbPlayer('${g}','${pid}')">✕</button>
-              </div>`).join('')}
-            <select class="select-input" style="width:100%;margin-top:6px;font-size:.8rem"
-              onchange="addTbPlayer('${g}',this.value);this.value=''">
-              <option value="">Spieler hinzufügen…</option>
-              ${state.players.filter(p=>!(tb.g1||[]).includes(p.id)&&!(tb.g2||[]).includes(p.id))
-                .map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}
-            </select>
-          </div>`).join('')}
+        ${['g1','g2'].map((g,gi)=>{
+          const col = g==='g1'?'#3b82f6':'#f59e0b';
+          return `
+            <div style="background:var(--bg3);border:1px solid var(--border);
+              border-radius:var(--radius);padding:10px">
+              <div style="font-weight:700;color:${col};margin-bottom:8px">Team ${gi===0?'A':'B'}</div>
+              ${(tb[g]||[]).map(pid=>`
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:.82rem">
+                  <span style="flex:1">${pname(pid)}</span>
+                  <button class="btn-icon-sm btn-danger-sm" onclick="removeTbPlayer('${g}','${pid}')">✕</button>
+                </div>`).join('')}
+              <select class="select-input" style="width:100%;margin-top:6px;font-size:.8rem"
+                onchange="addTbPlayer('${g}',this.value);this.value=''">
+                <option value="">Spieler hinzufügen…</option>
+                ${state.players.filter(p=>!(tb.g1||[]).includes(p.id)&&!(tb.g2||[]).includes(p.id))
+                  .map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+              </select>
+            </div>`;
+        }).join('')}
       </div>
     </details>
 
-    <!-- WURF-PROTOKOLL -->
-    ${(tb.throwLog&&tb.throwLog.length) ? `
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px">
-      <div style="font-size:.8rem;font-weight:700;color:var(--text3);margin-bottom:6px">📋 Letzten Würfe</div>
-      ${recentLog.map(e=>`
-        <div style="font-size:.78rem;padding:3px 0;border-bottom:1px solid var(--border);
-          color:${e.action==='pumpe'?'var(--text3)':e.action==='own'?'var(--success)':'var(--warning)'}">
-          ${e.action==='pumpe'?'⚫':e.action==='own'?'✅':'↪️'}
-          <strong>${esc(e.pname)}</strong> (G${e.group==='g1'?1:2}) wirft <strong>${e.score}</strong>
-          ${e.action==='pumpe' ? '→ Pumpe! Nichts passiert.'
-            : e.action==='own' ? `→ ${e.score} bei eigenem Team ✓`
-            : `→ ${e.score} schon weg! Beim Gegner gestrichen`}
-        </div>`).join('')}
-    </div>` : ''}
+    <!-- SIEGE -->
+    <div style="display:flex;gap:16px;align-items:center;font-size:.85rem;color:var(--text3)">
+      <span>🔵 Team A: <strong style="color:#3b82f6">${tb.g1wins}</strong> Siege</span>
+      <span>🟠 Team B: <strong style="color:#f59e0b">${tb.g2wins}</strong> Siege</span>
+      ${tb.g1wins>0||tb.g2wins>0
+        ?`<button class="btn-secondary btn-sm" onclick="resetTbAll()" style="margin-left:auto">
+            🗑️ Alles reset</button>`:''}
+    </div>
   </div>`;
 }
 
-// Wurf verarbeiten: eigene Zahl streichen, oder Gegnerzahl wenn schon weg
-function processTbThrow() {
-  const group   = document.getElementById('tb_group')?.value;
-  const pid     = document.getElementById('tb_player')?.value;
-  const scoreEl = document.getElementById('tb_score');
-  const score   = parseInt(scoreEl?.value ?? 0) || 0;
-  if (!pid) { showToast('Bitte Spieler auswählen!', 'error'); return; }
-
+// ── Wurf hinzufügen ──
+function addTbThrow(pid, valStr) {
+  const val = parseInt(valStr);
+  if (!val || val < 1 || val > 9) { showToast('Bitte Zahl 1–9 eingeben!', 'error'); return; }
   const tb = state.scores.tannenbaum;
-  if (!tb.crossed)  tb.crossed  = { g1: Array(9).fill(false), g2: Array(9).fill(false) };
-  if (!tb.throwLog) tb.throwLog = [];
-  const player = state.players.find(p=>p.id===pid);
-
-  let action, targetGroup;
-  if (score === 0) {
-    action = 'pumpe';
-    targetGroup = null;
-  } else {
-    const idx = score - 1;
-    if (!tb.crossed[group][idx]) {
-      action = 'own';
-      targetGroup = group;
-      tb.crossed[group] = [...tb.crossed[group]];
-      tb.crossed[group][idx] = true;
-    } else {
-      action = 'opponent';
-      targetGroup = group==='g1' ? 'g2' : 'g1';
-      tb.crossed[targetGroup] = [...tb.crossed[targetGroup]];
-      tb.crossed[targetGroup][idx] = true;
-    }
+  if (!tb.throws)      tb.throws      = {};
+  if (!tb.throws[pid]) tb.throws[pid] = [];
+  tb.throws[pid].push(val);
+  // Gewinn-Check (nur einmal zählen, wenn gerade vollendet)
+  const g1done = isTeamDone('g1');
+  const g2done = isTeamDone('g2');
+  if (g1done || g2done) {
+    // Nur zählen wenn vorher noch nicht gewonnen
+    const prev1 = (tb.throws.g1winCounted || false);
+    const prev2 = (tb.throws.g2winCounted || false);
+    if (g1done && !prev1) { tb.g1wins++; tb.throws.g1winCounted = true; }
+    if (g2done && !prev2) { tb.g2wins++; tb.throws.g2winCounted = true; }
+    if (g1done && g2done) showToast('🤝 Unentschieden!');
+    else if (g1done) showToast('🏆 Team A gewinnt!', 'success');
+    else             showToast('🏆 Team B gewinnt!', 'success');
   }
-
-  tb.throwLog.push({ group, pid, pname: player?.name||'?', score, action, targetGroup });
-
-  // Gewinn-Check NACH dem Wurf
-  if (tb.crossed.g1.every(x=>x)) {
-    tb.g1wins = (tb.g1wins||0)+1;
-    showToast('🏆 Gruppe 1 gewinnt das Spiel!', 'success');
-  } else if (tb.crossed.g2.every(x=>x)) {
-    tb.g2wins = (tb.g2wins||0)+1;
-    showToast('🏆 Gruppe 2 gewinnt das Spiel!', 'success');
-  }
-
-  if (scoreEl) scoreEl.value = 0;
   saveData();
   showPage('tannenbaum');
 }
 
-// Letzten Wurf rückgängig machen
-function undoTbThrow() {
+// ── Letzten Wurf eines Spielers rückgängig ──
+function undoTbThrow(pid) {
   const tb = state.scores.tannenbaum;
-  if (!tb.throwLog?.length) return;
-  const last = tb.throwLog.pop();
-  if (last.action !== 'pumpe' && last.targetGroup) {
-    tb.crossed[last.targetGroup] = [...tb.crossed[last.targetGroup]];
-    tb.crossed[last.targetGroup][last.score-1] = false;
+  if (tb.throws?.[pid]?.length > 0) {
+    tb.throws[pid].pop();
+    // Win-Flag zurücksetzen falls jetzt nicht mehr fertig
+    if (!isTeamDone('g1')) tb.throws.g1winCounted = false;
+    if (!isTeamDone('g2')) tb.throws.g2winCounted = false;
+    saveData(); showPage('tannenbaum');
   }
-  saveData();
-  showPage('tannenbaum');
-  showToast('↺ Letzter Wurf rückgängig');
 }
 
-// Neues Spiel (Bäume reset, Siege bleiben)
+// ── Neues Spiel (Würfe reset, Siege bleiben) ──
 function newTbGame() {
   const tb = state.scores.tannenbaum;
-  tb.crossed  = { g1: Array(9).fill(false), g2: Array(9).fill(false) };
-  tb.throwLog = [];
-  saveData();
-  showPage('tannenbaum');
+  tb.throws = {};
+  saveData(); showPage('tannenbaum');
+}
+
+// ── Alles zurücksetzen ──
+function resetTbAll() {
+  showConfirm('Alles zurücksetzen?','Siege und alle Würfe werden gelöscht.',()=>{
+    const tb = state.scores.tannenbaum;
+    tb.throws = {}; tb.g1wins = 0; tb.g2wins = 0;
+    saveData(); showPage('tannenbaum');
+  });
 }
 
 function addTbPlayer(g, pid) {
@@ -1661,6 +1705,7 @@ function addTbPlayer(g, pid) {
 }
 function removeTbPlayer(g, pid) {
   state.scores.tannenbaum[g] = (state.scores.tannenbaum[g]||[]).filter(x=>x!==pid);
+  if (state.scores.tannenbaum.throws) delete state.scores.tannenbaum.throws[pid];
   saveData(); showPage('tannenbaum');
 }
 
