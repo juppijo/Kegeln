@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="classic">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎳 Kegel-Spiele Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HEADER ===== -->
+  <header id="header">
+    <div class="header-left">
+      <div class="logo-pin">🎳</div>
+      <div class="title-block">
+        <h1 class="app-title">Kegel<span>Spiele</span></h1>
+        <div class="session-name" id="sessionNameDisplay" onclick="editSessionName()" title="Klicken zum Bearbeiten">Kegel-Abend ✏️</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" id="themeBtn" onclick="cycleTheme()" title="Theme wechseln">🎨</button>
+      <button class="btn-icon" id="fullscreenBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
+      <button class="btn-save" onclick="saveData()">💾</button>
+    </div>
+  </header>
+
+  <!-- ===== NAV ===== -->
+  <nav id="mainNav">
+    <div class="nav-scroll">
+      <button class="nav-btn active" data-page="spieler"    onclick="showPage('spieler')">👥 Spieler</button>
+      <button class="nav-btn"        data-page="hausnummer" onclick="showPage('hausnummer')">🏠 Hausnummer</button>
+      <button class="nav-btn"        data-page="sv"         onclick="showPage('sv')">🃏 17&nbsp;und&nbsp;4</button>
+      <button class="nav-btn"        data-page="fuchs"      onclick="showPage('fuchs')">🦊 Fuchs</button>
+      <button class="nav-btn"        data-page="rennen"     onclick="showPage('rennen')">🚀 6-Tage-Rennen</button>
+      <button class="nav-btn"        data-page="einsacken"  onclick="showPage('einsacken')">💰 Einsacken</button>
+      <button class="nav-btn"        data-page="schwein"    onclick="showPage('schwein')">🐷 Schweinepartie</button>
+      <button class="nav-btn"        data-page="tannenbaum" onclick="showPage('tannenbaum')">🌲 Tannenbaum</button>
+      <button class="nav-btn"        data-page="idiot"      onclick="showPage('idiot')">🤪 Idiotenkegeln</button>
+      <button class="nav-btn"        data-page="mensch"     onclick="showPage('mensch')">🎲 Mensch&nbsp;ä.d.n.</button>
+      <button class="nav-btn"        data-page="bus"        onclick="showPage('bus')">🚌 Busfahren</button>
+      <button class="nav-btn"        data-page="kegelbuch"  onclick="showPage('kegelbuch')">📖 Kegelbuch</button>
+      <button class="nav-btn highlight" data-page="auswertung" onclick="showPage('auswertung')">🏆 Auswertung</button>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN ===== -->
+  <main id="mainContent"></main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer id="footer">
+    <div class="footer-left">
+      <span id="playerCount">0 Spieler</span>
+      <span id="saveStatus" class="save-status">●  Ungespeichert</span>
+    </div>
+    <div class="footer-right">
+      <button class="btn-footer" onclick="exportData()">📤 Export</button>
+      <button class="btn-footer" onclick="importData()">📥 Import</button>
+      <button class="btn-footer btn-danger-foot" onclick="resetAll()">🗑️ Reset</button>
+    </div>
+  </footer>
+
+</div><!-- #app -->
+
+<!-- ===== MODAL ===== -->
+<div id="modal" class="modal hidden" role="dialog">
+  <div class="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- Hidden file input -->
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script src="main.js"></script>
+<script src="player.js"></script>
+<script src="spiele.js"></script>
+<script src="kegelbuch.js"></script>
+
+</body>
+</html>
