@@ -271,7 +271,7 @@ function addPlayer(name) {
 }
 
 function initPlayerScores(id) {
-  if (!state.scores.hausnummer[id]) state.scores.hausnummer[id] = { gross:{H:0,Z:0,E:0}, klein:{H:0,Z:0,E:0} };
+  if (!state.scores.hausnummer[id]) state.scores.hausnummer[id] = { gross:{H:0,Z:0,E:0}, klein:{H:9,Z:9,E:9} };
   if (!state.scores.sv[id])         state.scores.sv[id]         = { throws:[0,0,0,0,0,0,0], karte:0 };
   if (!state.scores.rennen.days)       state.scores.rennen.days = {};
   if (!state.scores.rennen.days[id])   state.scores.rennen.days[id] = [0,0,0,0,0,0];
@@ -342,7 +342,8 @@ function addPlayerFromInput() {
 }
 
 function loadPresetNames() {
-  const names = ['Michael','Hilde','Peter','Brigitte','Elke','Gerhard','Helga','Birgit','Jo','Svenja','Marius'];
+  //const names = ['Michael','Hilde','Peter','Brigitte','Elke','Gerhard','Helga','Birgit','Jo','Svenja','Marius'];
+  const names = ['Michael','Hilde','Peter','Brigitte','Guido','Anette','Elke','Gerhard','Helga','Birgit','Jo','Svenja','Marius','Melissa'];
   names.forEach(n => { if (!state.players.find(p => p.name === n)) addPlayer(n); });
   saveData();
   showPage('spieler');

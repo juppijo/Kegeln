@@ -1,208 +1,81 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="classic">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KegelClub Master Pro</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎳 Kegel-Spiele Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-turquoise">
+<body>
+<div id="app">
 
-    <!-- AB HIER: Der neue umschließende Container für das automatische Wegklappen -->
-    <div id="main-header" class="header-collapsible">
+  <!-- ===== HEADER ===== -->
+  <header id="header">
+    <div class="header-left">
+      <div class="logo-pin">🎳</div>
+      <div class="title-block">
+        <h1 class="app-title">Kegel<span>Spiele</span></h1>
+        <div class="session-name" id="sessionNameDisplay" onclick="editSessionName()" title="Klicken zum Bearbeiten">Kegel-Abend ✏️</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" id="themeBtn" onclick="cycleTheme()" title="Theme wechseln">🎨</button>
+      <button class="btn-icon" id="fullscreenBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
+      <button class="btn-save" onclick="saveData()">💾</button>
+    </div>
+  </header>
 
-        <header>
-            <div class="header-container">
-                <h1>🎳 KegelClub Master Pro</h1>
-                <p>Digitale Kegeltafel & Abrechnung</p>
-            </div>
-        </header>
+  <!-- ===== NAV ===== -->
+  <nav id="mainNav">
+    <div class="nav-scroll">
+      <button class="nav-btn active" data-page="spieler"    onclick="showPage('spieler')">👥 Spieler</button>
+      <button class="nav-btn"        data-page="hausnummer" onclick="showPage('hausnummer')">🏠 Hausnummer</button>
+      <button class="nav-btn"        data-page="sv"         onclick="showPage('sv')">🃏 17&nbsp;und&nbsp;4</button>
+      <button class="nav-btn"        data-page="fuchs"      onclick="showPage('fuchs')">🦊 Fuchs</button>
+      <button class="nav-btn"        data-page="rennen"     onclick="showPage('rennen')">🚀 6-Tage-Rennen</button>
+      <button class="nav-btn"        data-page="einsacken"  onclick="showPage('einsacken')">💰 Einsacken</button>
+      <button class="nav-btn"        data-page="schwein"    onclick="showPage('schwein')">🐷 Schweinepartie</button>
+      <button class="nav-btn"        data-page="tannenbaum" onclick="showPage('tannenbaum')">🌲 Tannenbaum</button>
+      <button class="nav-btn"        data-page="idiot"      onclick="showPage('idiot')">🤪 Idiotenkegeln</button>
+      <button class="nav-btn"        data-page="mensch"     onclick="showPage('mensch')">🎲 Mensch&nbsp;ä.d.n.</button>
+      <button class="nav-btn"        data-page="bus"        onclick="showPage('bus')">🚌 Busfahren</button>
+      <button class="nav-btn"        data-page="kegelbuch"  onclick="showPage('kegelbuch')">📖 Kegelbuch</button>
+      <button class="nav-btn highlight" data-page="auswertung" onclick="showPage('auswertung')">🏆 Auswertung</button>
+    </div>
+  </nav>
 
-        <nav class="menu-bar">
-            <button class="menu-tab active" onclick="switchTab('tab-setup', this)">👥 Club-Setup</button>
-            <button class="menu-tab" onclick="switchTab('tab-games', this)">🎯 Kegelspiele</button>
-            <button class="menu-tab" onclick="switchTab('tab-grand-total', this)">🏆 Gesamtstand</button>
-            <button class="menu-tab" onclick="switchTab('tab-kegelbuch', this)">📊 Kasse / Ende</button>
-        </nav>
+  <!-- ===== MAIN ===== -->
+  <main id="mainContent"></main>
 
-    </div> <!-- / Ende von #main-header -->   
-    
-    <!-- DER NEUE SCHWEBENDE PFEIL-BUTTON (direkt unter dem einklappbaren Header) -->
-    <button id="toggle-menu-btn" onclick="toggleFullscreenMenu()">🔽 Menü einblenden</button> 
+  <!-- ===== FOOTER ===== -->
+  <footer id="footer">
+    <div class="footer-left">
+      <span id="playerCount">0 Spieler</span>
+      <span id="saveStatus" class="save-status">●  Ungespeichert</span>
+    </div>
+    <div class="footer-right">
+      <button class="btn-footer" onclick="exportData()">📤 Export</button>
+      <button class="btn-footer" onclick="importData()">📥 Import</button>
+      <button class="btn-footer btn-danger-foot" onclick="resetAll()">🗑️ Reset</button>
+    </div>
+  </footer>
 
-    <main class="container">
-        
-        <div id="tab-setup" class="tab-content">
-            <section class="card">
-                <div class="card-header collapsible" onclick="toggleCard('system-controls-content', this)">
-                    <h2>🎨 System & Design-Einstellungen</h2>
-                    <span class="toggle-icon">🔽</span>
-                </div>
-                <div id="system-controls-content" class="card-body">
-                    <div class="control-grid">
-                        <div class="control-item">
-                            <label>Farb-Design wählen:</label>
-                            <select onchange="changeTheme(this.value)">
-                                <option value="theme-turquoise">Modernes Türkis (Dunkel)</option>
-                                <option value="theme-classic">Klassisches Holz-Braun</option>
-                                <option value="theme-neon">Neon Club (Cyberpunk)</option>
-                                <option value="theme-light">Klassisch Hell</option>
-                            </select>
-                        </div>
-                        <div class="control-item">
-                            <label>Anzeige-Modus:</label>
-                            <button id="fullscreen-btn" class="btn btn-info" onclick="toggleFullscreen()">📺 Vollbildmodus einschalten</button>
-                        </div>
-                    </div>
-                    <div class="screen-btn-box" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="save-players-btn" class="btn btn-accent">💾 Stand Sichern</button>
-                        <button id="load-players-btn" class="btn btn-info">🔄 Stand Laden</button>
-                        <button class="btn" style="background-color: #ef4444; color: white;" onclick="clearAllBrowserData()">🗑️ Cache leeren / Neue Runde</button>
-                    </div>
-                </div>
-            </section>
+</div><!-- #app -->
 
-            <section class="card">
-                <div class="card-header">
-                    <h2>👥 Spieler-Verwaltung &amp; Reihenfolge</h2>
-                </div>
-                <div class="card-body">
-                    <div class="add-player-box">
-                        <input type="text" id="new-player-name" placeholder="Name des Keglers..." maxlength="15">
-                        <button id="add-player-btn" class="btn btn-accent">➕ Hinzufügen</button>
-                    </div>
-                    
-                    <div id="player-badges" class="badge-container">
-                        </div>
+<!-- ===== MODAL ===== -->
+<div id="modal" class="modal hidden" role="dialog">
+  <div class="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal-box" id="modalBox"></div>
+</div>
 
-                    <div class="danger-zone" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
-                        <button id="clear-players-btn" class="btn" style="background-color:#b91c1c; color:white;">❌ Alle Spieler löschen</button>
-                    </div>
-                </div>
-            </section>
+<!-- ===== TOAST ===== -->
+<div id="toast" class="toast hidden"></div>
 
-            <section class="card">
-                <div class="card-header collapsible collapsed" onclick="toggleCard('backup-controls-content', this)">
-                    <h2>💾 Datensicherung (Datei Export/Import)</h2>
-                    <span class="toggle-icon">🔼</span>
-                </div>
-                <div id="backup-controls-content" class="card-body collapsed">
-                    <p class="hint">Hier kannst du die Spielerliste und den Gesamtstand als Datei auf deinem Gerät sichern oder wieder laden.</p>
-                    <div class="screen-btn-box" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                        <button class="btn btn-info" onclick="exportToJSON()">📥 Setup exportieren (.json)</button>
-                        <button class="btn btn-info" onclick="document.getElementById('import-file-input').click()">📤 Setup importieren</button>
-                        <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importFromJSON(event)">
-                    </div>
-                </div>
-            </section>
-        </div>
+<!-- Hidden file input -->
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
 
-        <div id="tab-games" class="tab-content hidden">
-            <div id="game-selector-container" class="game-nav-bar">
-                </div>
-
-            <section class="card">
-                <div class="game-header-row">
-                    <h2 id="current-game-title">🏠 Große/Kleine Hausnummer</h2>
-                    <div class="game-header-buttons">
-                        <button class="btn-help" onclick="showRules()">💡 Regeln</button>
-                        <button class="btn-reset" onclick="resetCurrentGame()">🔄 Zurücksetzen</button>
-                    </div>
-                </div>
-
-                <div id="rules-box" class="rules-card hidden">
-                    <h4 id="rules-title">Regeln</h4>
-                    <p id="rules-text"></p>
-                </div>
-
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr id="th-row">
-                                </tr>
-                        </thead>
-                        <tbody id="game-tbody">
-                            </tbody>
-                    </table>
-                </div>
-
-                <div class="game-actions">
-                    <button class="btn btn-accent" onclick="calculateGame()">🏆 Dieses Spiel werten &amp; Punkte buchen</button>
-                </div>
-            </section>
-        </div>
-
-        <div id="tab-grand-total" class="tab-content hidden">
-            <section class="card">
-                <div class="game-header-row">
-                    <h2>🏆 König des Abends (Gesamt-Turnierstand)</h2>
-                    <button class="btn-reset" onclick="resetGrandTotal()">🔄 Punkte Nullen</button>
-                </div>
-                <p class="hint">Platz 1 = 3 Pkt, Platz 2 = 2 Pkt, Platz 3 = 1 Pkt. Letzter Platz = -1 Pkt.</p>
-                
-                <div class="table-responsive">
-                    <table class="static-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Aktueller Rang</th>
-                                <th>Gesamtpunkte</th>
-                            </tr>
-                        </thead>
-                        <tbody id="grand-total-tbody">
-                            </tbody>
-                    </table>
-                </div>
-
-                <div class="card-body" style="border-top: 1px solid var(--border); margin-top:20px; padding-top:15px;">
-                    <h4>Turnierstand sichern:</h4>
-                    <div class="screen-btn-box" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                        <button class="btn btn-info" onclick="exportGrandTotalJSON()">📥 Punkte exportieren</button>
-                        <button class="btn btn-info" onclick="document.getElementById('import-total-input').click()">📤 Punkte importieren</button>
-                        <input type="file" id="import-total-input" class="hidden" accept=".json" onchange="importGrandTotalJSON(event)">
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div id="tab-kegelbuch" class="tab-content hidden">
-            <section id="kegelbuch-area" class="card">
-                <div class="game-header-row">
-                    <h2>📊 Kegelbuch / Kasse (Abend-Abrechnung)</h2>
-                </div>
-                <p class="hint">Trage hier Startgeld sowie Strafen für Pudel (0) und Stinas ein. Wird unabhängig vom Spielstand berechnet.</p>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Platz</th>
-                                <th>Startgeld €</th>
-                                <th>Pudel</th>
-                                <th>Stinas</th>
-                                <th>Summe zu zahlen</th>
-                            </tr>
-                        </thead>
-                        <tbody id="kegelbuch-tbody">
-                            </tbody>
-                    </table>
-                </div>
-                <div class="game-actions">
-                    <button class="btn btn-accent" onclick="calculateKegelbuch()">📊 Kasse abrechnen</button>
-                </div>
-            </section>
-        </div>
-
-    </main>
-
-    <footer>
-        <p>&copy; 2026 KegelClub Master Pro &bull; Optimiert für alle Touch-Smartphones</p>
-    </footer>
-
-    <script src="js/config.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/games.js"></script>
-    <script src="js/main.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
