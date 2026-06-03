@@ -66,29 +66,44 @@ function updateCurrentGameTable() {
         liveCalculateHausnummer();
     }
     else if (currentGame === "siebzehn-vier") {
-        thRow.innerHTML = "<th>Name</th><th>Platz</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>🃏 Karte</th><th>Gesamt</th><th>Überkauft?</th>";
-        tbody.innerHTML = ""; // Zur Sicherheit leeren
-        
+        // Spaltenüberschriften für W1 bis W9, Status und Platzierung
+        thRow.innerHTML = `
+            <th style="width: 50px; text-align: center;">Platz</th>
+            <th>Name</th>
+            ${[1,2,3,4,5,6,7,8,9].map(i => `<th>W${i}</th>`).join('')}
+            <th>Karte</th>
+            <th style="text-align:center;">Status</th>
+            <th style="color:var(--accent); text-align: right;">Punkte</th>
+        `;
+
+        tbody.innerHTML = "";
         players.forEach(p => {
-            const d = activeGamesData["siebzehn-vier"][p] || {w1:0, w2:0, w3:0, w4:0, w5:0, card:0, over: false};
+            activeGamesData["siebzehn-vier"][p] = activeGamesData["siebzehn-vier"][p] || { 
+                w1:"", w2:"", w3:"", w4:"", w5:"", w6:"", w7:"", w8:"", w9:"", card:""
+            };
+            const d = activeGamesData["siebzehn-vier"][p];
+
+            const wurfInputs = [1,2,3,4,5,6,7,8,9].map(i => `
+                <td><input type="number" class="sv-w${i} input-klein" min="0" max="9" value="${d[`w${i}`] || ''}" oninput="liveCalculateSiebzehnVier(); saveCurrentGameFields();"></td>
+            `).join('');
+
             tbody.innerHTML += `
                 <tr id="row-${p}">
+                    <td class="sv-rank" style="text-align: center; font-weight: bold;">-</td>
                     <td><strong>${p}</strong></td>
-                    <td class="rank-col">-</td>
-                    <td><input type="number" class="sv-w1" min="0" max="9" value="${d.w1}" oninput="liveCalculate17und4(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="sv-w2" min="0" max="9" value="${d.w2}" oninput="liveCalculate17und4(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="sv-w3" min="0" max="9" value="${d.w3}" oninput="liveCalculate17und4(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="sv-w4" min="0" max="9" value="${d.w4}" oninput="liveCalculate17und4(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="sv-w5" min="0" max="9" value="${d.w5}" oninput="liveCalculate17und4(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="sv-card" min="0" max="11" value="${d.card}" placeholder="0" oninput="liveCalculate17und4(); saveCurrentGameFields();" style="border-color: var(--accent);"></td>
-                    <td class="sv-res" style="font-weight:bold; color:var(--accent);">0</td>
-                    <td><input type="checkbox" class="val-over" ${d.over ? 'checked' : ''} onchange="liveCalculate17und4(); saveCurrentGameFields();"> Ja</td>
-                </tr>`;
+                    ${wurfInputs}
+                    <td><input type="number" class="sv-card input-klein" min="0" max="11" value="${d.card || ''}" oninput="liveCalculateSiebzehnVier(); saveCurrentGameFields();"></td>
+                    <td class="sv-status" style="text-align:center; font-weight: bold;">-</td>
+                    <td class="sv-res-pts final-score" style="font-weight:bold; color:var(--accent); text-align: right;">0</td>
+                </tr>
+            `;
         });
-        liveCalculate17und4();
+
+        liveCalculateSiebzehnVier();
     }
     else if (currentGame === "rennen") {
-        thRow.innerHTML = "<th>Team wählen</th><th>Name</th><th>Tag 1</th><th>Tag 2 (x2)</th><th>Tag 3 (x3)</th><th>Tag 4 (x4)</th><th>Tag 5 (x5)</th><th>Tag 6 (x6)</th><th>Einzel</th><th>Team-Gesamt</th>";
+        // HIER NEU: Spalte für den Platz (Medaillen) ganz links hinzugefügt
+        thRow.innerHTML = "<th>Platz</th><th>Team wählen</th><th>Name</th><th>Tag 1</th><th>Tag 2 (x2)</th><th>Tag 3 (x3)</th><th>Tag 4 (x4)</th><th>Tag 5 (x5)</th><th>Tag 6 (x6)</th><th>Einzel</th><th>Team-Gesamt</th>";
         
         // 1. Initialisiere Daten, falls noch gar nichts vorhanden ist
         if (!activeGamesData["rennen"] || Object.keys(activeGamesData["rennen"]).length === 0) {
@@ -120,12 +135,12 @@ function updateCurrentGameTable() {
 
         tbody.innerHTML = "";
 
-       // Render-Funktion für eine Tabellenzeile mit Klassen-Zuweisung
+        // Render-Funktion für eine Tabellenzeile mit Klassen-Zuweisung
         function generateRennenRowHTML(name, data, isGast = false) {
             const rowId = isGast ? "row-rennen-Gast" : `row-${name}`;
             const inputClass = isGast ? "ren-g" : "ren";
             
-            // Dropdown für das Team (mit unserer neuen CSS-Klasse für die optimale Breite)
+            // Dropdown für das Team
             let selectHTML = `<select class="ren-team-select" onchange="changeRennenTeam('${name}', this.value)">`;
             for (let i = 1; i <= maxTeamsCount; i++) {
                 let tName = `Team ${String.fromCharCode(64 + i)}`;
@@ -139,8 +154,10 @@ function updateCurrentGameTable() {
                 selectHTML = `<span style="color:#94a3b8; font-size:0.85rem; font-style:italic; padding-left:5px;">🤖 Autom. Partner</span>`;
             }
 
+            // HIER NEU: Eine Tabellenzelle mit der Klasse "team-rank-..." ganz vorne eingefügt
             return `
                 <tr id="${rowId}" data-team="${data.team}">
+                    <td class="team-rank-${data.team.replace(' ', '')}" style="text-align: center; font-weight: bold; font-size: 1.1rem;">-</td>
                     <td style="padding: 10px 6px;">${selectHTML}</td>
                     <td><strong>${name}</strong></td>
                     <td><input type="number" class="${inputClass}-t1" min="0" max="9" value="${data.t1}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
@@ -205,51 +222,147 @@ function updateCurrentGameTable() {
         });
     }
     else if (currentGame === "fuchsjagd") {
-        thRow.innerHTML = "<th>Name</th><th>Rolle</th><th>Platz</th><th>Vorwurf L</th><th>Vorwurf R</th><th>W1</th><th>W2</th><th>W3</th><th>Gesamt</th>";
+        // Datenstrukturen initialisieren
+        activeGamesData.fuchsjagd = activeGamesData.fuchsjagd || {};
+        if (!activeGamesData.fuchsjagd["Fuchs"]) activeGamesData.fuchsjagd["Fuchs"] = { vl:0, w1:0, w2:0, w3:0, w4:0, w5:0, w6:0, w7:0, w8:0 };
+        if (!activeGamesData.fuchsjagd["Jaeger"]) activeGamesData.fuchsjagd["Jaeger"] = { vl:0, w1:0, w2:0, w3:0, w4:0, w5:0, w6:0, w7:0, w8:0 };
+        
+        // HIER DIE STRATEGISCHE ANPASSUNG: Wir merken uns ab jetzt den NAMEN, keine Zahl!
+        if (!activeGamesData.fuchsjagd["meta"]) {
+            activeGamesData.fuchsjagd["meta"] = { 
+                activeFuchsPlayer: players[0] || "", 
+                activeJaegerPlayer: players[1] || players[0] || "" 
+            };
+        } else {
+            if (!activeGamesData.fuchsjagd["meta"].activeFuchsPlayer) {
+                activeGamesData.fuchsjagd["meta"].activeFuchsPlayer = players[0] || "";
+            }
+            if (!activeGamesData.fuchsjagd["meta"].activeJaegerPlayer) {
+                // Bestimme einen Jäger, der nicht der Fuchs ist
+                const fallbackJaeger = players.find(p => p !== activeGamesData.fuchsjagd["meta"].activeFuchsPlayer) || players[0] || "";
+                activeGamesData.fuchsjagd["meta"].activeJaegerPlayer = fallbackJaeger;
+            }
+        }
+        
         players.forEach(p => {
-            const d = activeGamesData.fuchsjagd[p] || {role: "jaeger", vl:0, vr:0, w1:0, w2:0, w3:0};
-            
-            tbody.innerHTML += `
-                <tr id="row-${p}">
-                    <td><strong>${p}</strong></td>
-                    <td>
-                        <select class="fuchs-role" onchange="adjustFuchsFields('${p}'); liveCalculateFuchsjagd(); saveCurrentGameFields();">
-                            <option value="jaeger" ${d.role === 'jaeger' ? 'selected' : ''}>🏹 Jäger</option>
-                            <option value="fuchs" ${d.role === 'fuchs' ? 'selected' : ''}>🦊 Fuchs</option>
-                        </select>
-                    </td>
-                    <td class="rank-col">-</td>
-                    <td><input type="number" class="fuchs-vl" min="0" max="9" value="${d.vl}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="fuchs-vr" min="0" max="9" value="${d.vr}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="fuchs-w1" min="0" max="9" value="${d.w1}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="fuchs-w2" min="0" max="9" value="${d.w2}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="fuchs-w3" min="0" max="9" value="${d.w3}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>
-                    <td class="fuchs-res" style="font-weight:bold; color:var(--accent);">0</td>
-                </tr>`;
+            if (!activeGamesData.fuchsjagd[p]) activeGamesData.fuchsjagd[p] = { status: "offen" };
         });
-        // Felder direkt für Jäger sperren, falls sie keine Vorwürfe haben
-        players.forEach(p => adjustFuchsFields(p));
+
+        const meta = activeGamesData.fuchsjagd["meta"];
+        const fuchs = activeGamesData.fuchsjagd["Fuchs"];
+        const jaeger = activeGamesData.fuchsjagd["Jaeger"];
+
+        tableResponsive.innerHTML = `
+            <div class="fuchsjagd-bars-container" style="margin-bottom: 20px; background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>🦊 Fuchs (Ziel: ≥31 Holz)</span>
+                        <span id="bar-text-fuchs" style="font-weight:bold;">0 / 31</span>
+                    </div>
+                    <div style="background:var(--bg-input); width:100%; height:20px; border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                        <div id="bar-fill-fuchs" style="background:#f97316; width:0%; height:100%; transition:width 0.3s;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>🏹 Jäger (Fuchs einholen!)</span>
+                        <span id="bar-text-jaeger" style="font-weight:bold;">0</span>
+                    </div>
+                    <div style="background:var(--bg-input); width:100%; height:20px; border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                        <div id="bar-fill-jaeger" style="background:#06b6d4; width:0%; height:100%; transition:width 0.3s;"></div>
+                    </div>
+                </div>
+                <div id="fuchsjagd-status-msg" style="margin-top:12px; font-weight:bold; text-align:center; color:var(--accent); min-height: 24px;">
+                    Spiel läuft...
+                </div>
+            </div>
+
+            <table style="margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th>Partei</th>
+                        <th>Vorwurf</th>
+                        <th>W1</th>
+                        <th>W2</th>
+                        <th>W3</th>
+                        <th>W4</th>
+                        <th>W5</th>
+                        <th>W6</th>
+                        <th>W7</th>
+                        <th>W8</th>
+                        <th style="color:var(--accent);">Gesamt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="row-fuchs">
+                        <td><span style="font-size:1.2rem;">🦊</span> <strong id="fuchs-name-label">Fuchs</strong></td>
+                        <td><input type="number" class="fuchs-vl" min="0" max="9" value="${fuchs.vl || 0}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>
+                        ${[1,2,3,4,5,6,7,8].map(i => `<td><input type="number" class="fuchs-w${i}" min="0" max="9" value="${fuchs[`w${i}`] || 0}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>`).join('')}
+                        <td id="fuchs-res-total" style="font-weight:bold; color:#f97316;">0</td>
+                    </tr>
+                    <tr id="row-jaeger">
+                        <td><span style="font-size:1.2rem;">🏹</span> <strong>Die Jäger</strong></td>
+                        <td><input type="number" class="fuchs-vl" value="0" disabled style="opacity:0.2;"></td>
+                        ${[1,2,3,4,5,6,7,8].map(i => `<td><input type="number" class="fuchs-w${i}" min="0" max="9" value="${jaeger[`w${i}`] || 0}" oninput="liveCalculateFuchsjagd(); saveCurrentGameFields();"></td>`).join('')}
+                        <td id="jaeger-res-total" style="font-weight:bold; color:#06b6d4;">0</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="card" style="background: var(--bg-card); padding: 15px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                    <h3 style="color: var(--accent); margin: 0;">🏁 Clubmitglieder & Chronik</h3>
+                    
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn btn-sm" style="background: #475569; padding: 6px 12px;" onclick="navigateJaeger(-1)">◀ Vorheriger Jäger</button>
+                        <button class="btn btn-sm" style="background: #0284c7; padding: 6px 12px;" onclick="navigateJaeger(1)">Nächster Jäger ▶</button>
+                    </div>
+                    
+                    <button class="btn btn-sm" style="font-size:0.75rem; padding: 6px 10px;" onclick="resetFuchsRound()">🔄 Nächste Fuchs-Runde</button>
+                </div>
+                <div class="table-responsive">
+                    <table style="width:100%; text-align:left;">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px; text-align:center;">Dran?</th>
+                                <th>Name</th>
+                                <th>Rolle dieser Jagd</th>
+                                <th style="text-align:center;">Fuchs-Ergebnis</th>
+                                <th style="text-align:right;">Punkte (Gesamtstand)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fuchs-players-list-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        renderFuchsPlayerList();
         liveCalculateFuchsjagd();
     }
-
 else if (currentGame === "tannenbaum") {
         // 1. Die Grundstruktur der Oberfläche sofort in die Box schreiben
+        // HIER GEÄNDERT: Das "#tannenbaum-setup" wurde in ein stylisches <details>-Element verwandelt
         tableResponsive.innerHTML = `
             <div class="tannenbaum-container" style="display: flex; flex-direction: column; gap: 20px; padding: 10px;">
-                <!-- TEAMAUSWAHL-PANEL -->
-                <div id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-                    <h3 style="margin-top:0; color: var(--accent); font-size: 1.1rem; margin-bottom: 10px;">👥 Teams für den Tannenbaum aufteilen</h3>
-                    <div id="tannenbaum-selectors" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;"></div>
+                
+                <details open id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer;">
+                    <summary style="font-weight: bold; color: var(--accent); font-size: 1.1rem; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                        <span>👥 Teams für den Tannenbaum aufteilen</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">(Klicken zum Ein-/Ausklappen)</span>
+                    </summary>
                     
-                    <button onclick="applyTannenbaumTeams()" style="background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; max-width: 250px; font-size: 1rem;">
-                        ➔ Teams einteilen & Starten
-                    </button>
-                </div>
+                    <div style="margin-top: 15px; cursor: default;" onclick="event.stopPropagation();">
+                        <div id="tannenbaum-selectors" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;"></div>
+                        
+                        <button onclick="applyTannenbaumTeams()" style="background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; max-width: 250px; font-size: 1rem;">
+                            ➔ Teams einteilen & Starten
+                        </button>
+                    </div>
+                </details>
 
-                <!-- SPIELFELD (BÄUME UND EINGABEN) -->
                 <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
-                    <!-- Wird dynamisch befüllt -->
-                </div>
+                    </div>
             </div>
         `;
 
@@ -296,8 +409,8 @@ else if (currentGame === "tannenbaum") {
                 const div = document.createElement("div");
                 div.style = "display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);";
                 div.innerHTML = `
-                    <span style="font-size: 0.9rem; font-weight: bold; color: var(--text);">${p}</span>
-                    <select class="tannenbaum-team-dropdown" data-player="${p}" style="width: 100%; padding: 6px; border-radius: 4px; background: var(--bg); color: var(--text); border: 1px solid var(--border);">
+                    <span style="font-size: 0.9rem; font-weight: bold; color: var(--text-main, #fff);">${p}</span>
+                    <select class="tannenbaum-team-dropdown" data-player="${p}" style="width: 100%; padding: 6px; border-radius: 4px; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border);">
                         <option value="1" ${isT1 ? 'selected' : ''}>🎄 Gruppe 1 (Links)</option>
                         <option value="2" ${!isT1 ? 'selected' : ''}>⭐ Gruppe 2 (Rechts)</option>
                     </select>
@@ -307,7 +420,6 @@ else if (currentGame === "tannenbaum") {
         }
 
         // 4. TRICK: Erst nachdem das Menü steht, bauen wir das Spielfeld zeitverzögert auf!
-        // Das verhindert, dass ein fehlendes Canvas-Element das Laden der Dropdowns blockiert.
         setTimeout(() => {
             renderTannenbaumSubElements();
         }, 50);
@@ -562,67 +674,107 @@ function adjustFuchsFields(playerName) {
     }
 }
 
-// Rechnet die Live-Punkte zusammen
-function liveCalculateFuchsjagd() {
-    players.forEach(p => {
-        const row = document.getElementById(`row-${p}`); if(!row) return;
-        const role = row.querySelector(".fuchs-role").value;
-        const vl = parseInt(row.querySelector(".fuchs-vl").value) || 0;
-        const vr = parseInt(row.querySelector(".fuchs-vr").value) || 0;
-        const w1 = parseInt(row.querySelector(".fuchs-w1").value) || 0;
-        const w2 = parseInt(row.querySelector(".fuchs-w2").value) || 0;
-        const w3 = parseInt(row.querySelector(".fuchs-w3").value) || 0;
-
-        let total = w1 + w2 + w3;
-        if (role === "fuchs") {
-            total += (vl + vr); // Vorwürfe zählen nur beim Fuchs
-        }
-        row.querySelector(".fuchs-res").innerText = total;
-    });
-}
-
 function renderTannenbaumSubElements() {
+    if (currentGame !== "tannenbaum") return;
+
+    const data = activeGamesData["tannenbaum"];
+    if (!data) return;
+
+    // =========================================================================
+    // KORRIGIERTE LIVE-GEWINNPRÜFUNG: Zählt die Treffer über die Spielernamen
+    // =========================================================================
+    const trefferErforderlich = 25;
+    let geloeschtT1 = 0;
+    let geloeschtT2 = 0;
+
+    // Gruppe 1 durchgehen und alle Treffer aufaddieren
+    if (data.team1) {
+        data.team1.forEach(p => {
+            if (data.wuerfe[p]) {
+                geloeschtT1 += data.wuerfe[p].length;
+            }
+        });
+    }
+
+    // Gruppe 2 durchgehen und alle Treffer aufaddieren
+    if (data.team2) {
+        data.team2.forEach(p => {
+            if (data.wuerfe[p]) {
+                geloeschtT2 += data.wuerfe[p].length;
+            }
+        });
+    }
+
+    // Sobald ein Team 25 Hölzer/Treffer voll hat, öffnet sich das Overlay
+    if (geloeschtT1 >= trefferErforderlich || geloeschtT2 >= trefferErforderlich) {
+        const siegerName = geloeschtT1 >= trefferErforderlich ? "Gruppe 1 🎄" : "Gruppe 2 ⭐";
+        const akzentFarbe = geloeschtT1 >= trefferErforderlich ? "#22c55e" : "#06b6d4";
+        
+        if (!document.getElementById("tannenbaum-win-overlay")) {
+            const overlay = document.createElement("div");
+            overlay.id = "tannenbaum-win-overlay";
+            overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.85); z-index: 99999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);";
+            
+            overlay.innerHTML = `
+                <div class="card" style="background: var(--bg-card); border: 3px solid ${akzentFarbe}; padding: 35px; border-radius: 12px; text-align: center; max-width: 440px; width: 90%; box-shadow: 0 15px 40px rgba(0,0,0,0.6);">
+                    <h1 style="font-size: 3.5rem; margin: 0 0 10px 0;">🎉🏆🎉</h1>
+                    <h2 style="color: #fff; margin-bottom: 10px; font-size: 1.6rem;">Das Spiel ist beendet!</h2>
+                    <h1 style="color: ${akzentFarbe}; font-size: 2.1rem; margin: 15px 0 25px 0; font-weight: 900;">
+                        ${siegerName} GEWINNT!
+                    </h1>
+                    <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem;">Alle Kugeln des Tannenbaums wurden erfolgreich weggeschossen!</p>
+                    <button class="btn" style="background: ${akzentFarbe}; color: #fff; padding: 12px 20px; font-size: 1.1rem; width: 100%; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" onclick="document.getElementById('tannenbaum-win-overlay').remove();">
+                        Fenster schließen
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+    }
+
+    // =========================================================================
+    // AB HIER FOLGT DEIN BESTEHENDER RENDER-CODE
+    // =========================================================================
     const board = document.getElementById("tannenbaum-game-board");
     if (!board) return;
 
-    const data = activeGamesData["tannenbaum"];
-
-    // Wir bauen das Spielfeld mit zwei Spalten (Links für Gruppe 1, Rechts für Gruppe 2) neu auf
     board.innerHTML = `
-        <!-- LINKER BAUM & SPIELER (GRUPPE 1) -->
-        <div id="tannenbaum-col-1" style="display: flex; flex-direction: column; gap: 15px; background: rgba(59, 130, 246, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.1);">
-            <h3 style="text-align: center; color: #60a5fa; margin: 0;">🎄 Gruppe 1</h3>
-            <div id="tannenbaum-canvas-container-1" style="display:flex; justify-content:center;">
-                <canvas id="tannenbaum-canvas-1" width="280" height="340"></canvas>
-            </div>
-            <div id="tannenbaum-players-1" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <div style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center;">
+            <h4 style="margin: 0 0 10px 0; color: #22c55e; font-size: 1.1rem;">🎄 Gruppe 1 (Links)</h4>
+            <canvas id="tannenbaum-canvas-1" width="280" height="340" style="background: rgba(0,0,0,0.1); border-radius: 4px; max-width: 100%;"></canvas>
+            <div id="tannenbaum-players-1" style="width: 100%; margin-top: 15px; display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
 
-        <!-- RECHTER BAUM & SPIELER (GRUPPE 2) -->
-        <div id="tannenbaum-col-2" style="display: flex; flex-direction: column; gap: 15px; background: rgba(245, 158, 11, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.1);">
-            <h3 style="text-align: center; color: #fbbf24; margin: 0;">⭐ Gruppe 2</h3>
-            <div id="tannenbaum-canvas-container-2" style="display:flex; justify-content:center;">
-                <canvas id="tannenbaum-canvas-2" width="280" height="340"></canvas>
-            </div>
-            <div id="tannenbaum-players-2" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <div style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center;">
+            <h4 style="margin: 0 0 10px 0; color: #f59e0b; font-size: 1.1rem;">⭐ Gruppe 2 (Rechts)</h4>
+            <canvas id="tannenbaum-canvas-2" width="280" height="340" style="background: rgba(0,0,0,0.1); border-radius: 4px; max-width: 100%;"></canvas>
+            <div id="tannenbaum-players-2" style="width: 100%; margin-top: 15px; display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     `;
 
-    // Spieler von Gruppe 1 links einfügen
+    // 2. Spieler von Gruppe 1 links einfügen
     const pContainer1 = document.getElementById("tannenbaum-players-1");
-    data.team1.forEach(p => {
-        pContainer1.appendChild(createTannenbaumPlayerRow(p, 1));
-    });
+    if (pContainer1 && data.team1) {
+        pContainer1.innerHTML = "";
+        data.team1.forEach(p => {
+            pContainer1.appendChild(createTannenbaumPlayerRow(p, 1));
+        });
+    }
 
-    // Spieler von Gruppe 2 rechts einfügen
+    // 3. Spieler von Gruppe 2 rechts einfügen
     const pContainer2 = document.getElementById("tannenbaum-players-2");
-    data.team2.forEach(p => {
-        pContainer2.appendChild(createTannenbaumPlayerRow(p, 2));
-    });
+    if (pContainer2 && data.team2) {
+        pContainer2.innerHTML = "";
+        data.team2.forEach(p => {
+            pContainer2.appendChild(createTannenbaumPlayerRow(p, 2));
+        });
+    }
 
-    // Die beiden Tannenbäume auf den Canvas-Elementen bunt zeichnen
-    drawTannenbaumCanvas(1, data.team1);
-    drawTannenbaumCanvas(2, data.team2);
+    // 4. TRICK: Dem Browser ein paar Millisekunden Zeit geben
+    setTimeout(() => {
+        drawTannenbaumCanvas(1, data.team1 || []);
+        drawTannenbaumCanvas(2, data.team2 || []);
+    }, 50);
 }
 
 function createTannenbaumPlayerRow(name, teamNum) {
@@ -797,11 +949,16 @@ function checkTannenbaumWinner(t1Counts, t2Counts) {
 }
 // Rechnet die Live-Werte inklusive Multiplikatoren zusammen
 function liveCalculate6TageRennen() {
-    let teamScores = {};
+    if (currentGame !== "rennen") return;
 
-    // 1. Einzelwerte der Spieler berechnen und dem jeweiligen Team hinzufügen
+    let teamTotals = {};
+    let activeTeams = new Set();
+
+    // 1. Berechne die Einzelergebnisse aller echten Spieler
     players.forEach(p => {
-        const row = document.getElementById(`row-${p}`); if(!row) return;
+        const row = document.getElementById(`row-${p}`);
+        if (!row) return;
+
         const t1 = parseInt(row.querySelector(".ren-t1").value) || 0;
         const t2 = parseInt(row.querySelector(".ren-t2").value) || 0;
         const t3 = parseInt(row.querySelector(".ren-t3").value) || 0;
@@ -809,38 +966,84 @@ function liveCalculate6TageRennen() {
         const t5 = parseInt(row.querySelector(".ren-t5").value) || 0;
         const t6 = parseInt(row.querySelector(".ren-t6").value) || 0;
 
-        const sum = t1 + (t2 * 2) + (t3 * 3) + (t4 * 4) + (t5 * 5) + (t6 * 6);
-        row.querySelector(".ren-res").innerText = sum;
+        const total = t1 + (t2 * 2) + (t3 * 3) + (t4 * 4) + (t5 * 5) + (t6 * 6);
+        row.querySelector(".ren-res").innerText = total;
 
-        const teamName = activeGamesData["rennen"][p].team;
-        teamScores[teamName] = (teamScores[teamName] || 0) + sum;
+        const team = row.getAttribute("data-team");
+        if (team) {
+            teamTotals[team] = (teamTotals[team] || 0) + total;
+            activeTeams.add(team);
+        }
     });
 
-    // 2. Wenn eine Gast-Zeile aktiv auf dem Bildschirm ist, rechnen wir sie mit ein
+    // 2. Berechne das Einzelergebnis des Gastes (falls er auf der Bahn gerendert wurde)
     const gastRow = document.getElementById("row-rennen-Gast");
     if (gastRow) {
-        const t1 = parseInt(gastRow.querySelector(".ren-g-t1").value) || 0;
-        const t2 = parseInt(gastRow.querySelector(".ren-g-t2").value) || 0;
-        const t3 = parseInt(gastRow.querySelector(".ren-g-t3").value) || 0;
-        const t4 = parseInt(gastRow.querySelector(".ren-g-t4").value) || 0;
-        const t5 = parseInt(gastRow.querySelector(".ren-g-t5").value) || 0;
-        const t6 = parseInt(gastRow.querySelector(".ren-g-t6").value) || 0;
+        const gt1 = parseInt(gastRow.querySelector(".ren-g-t1").value) || 0;
+        const gt2 = parseInt(gastRow.querySelector(".ren-g-t2").value) || 0;
+        const gt3 = parseInt(gastRow.querySelector(".ren-g-t3").value) || 0;
+        const gt4 = parseInt(gastRow.querySelector(".ren-g-t4").value) || 0;
+        const gt5 = parseInt(gastRow.querySelector(".ren-g-t5").value) || 0;
+        const gt6 = parseInt(gastRow.querySelector(".ren-g-t6").value) || 0;
 
-        const sum = t1 + (t2 * 2) + (t3 * 3) + (t4 * 4) + (t5 * 5) + (t6 * 6);
-        gastRow.querySelector(".ren-g-res").innerText = sum;
+        const gTotal = gt1 + (gt2 * 2) + (gt3 * 3) + (gt4 * 4) + (gt5 * 5) + (gt6 * 6);
+        gastRow.querySelector(".ren-g-res").innerText = gTotal;
 
-        const teamName = gastRow.getAttribute("data-team");
-        teamScores[teamName] = (teamScores[teamName] || 0) + sum;
+        const gTeam = gastRow.getAttribute("data-team");
+        if (gTeam) {
+            teamTotals[gTeam] = (teamTotals[gTeam] || 0) + gTotal;
+            activeTeams.add(gTeam);
+        }
     }
 
-    // 3. Die Gesamtpunktzahl in die Zellen eintragen
-    for (const [team, total] of Object.entries(teamScores)) {
-        const cellClass = `.team-res-${team.replace(' ', '')}`;
-        document.querySelectorAll(cellClass).forEach(cell => {
-            cell.innerText = total + " Holz";
+    // 3. Schreibe die Team-Summen in alle Zeilen
+    for (let team in teamTotals) {
+        const cells = document.querySelectorAll(`.team-res-${team.replace(' ', '')}`);
+        cells.forEach(cell => {
+            cell.innerText = `${teamTotals[team]} Holz`;
         });
     }
+
+    // 4. MEDAILLEN-BERECHNUNG: Erstelle eine sortierte Rangliste der Teams
+    let rankList = [];
+    activeTeams.forEach(teamName => {
+        rankList.push({
+            name: teamName,
+            score: teamTotals[teamName]
+        });
+    });
+
+    // Sortiere Teams nach Holz (höchste Punktzahl zuerst)
+    rankList.sort((a, b) => b.score - a.score);
+
+    // Medaillen an die betroffenen Tabellenzellen verteilen
+    let currentRank = 1;
+    rankList.forEach((teamObj, index) => {
+        // Bei Punktegleichstand bekommen Teams dieselbe Platzierung
+        if (index > 0 && teamObj.score === rankList[index - 1].score) {
+            // Rang bleibt gleich
+        } else {
+            currentRank = index + 1;
+        }
+
+        // Suche alle Rangfelder dieses Teams (da es 2 Zeilen pro Team gibt)
+        const rankCells = document.querySelectorAll(`.team-rank-${teamObj.name.replace(' ', '')}`);
+        rankCells.forEach(cell => {
+            if (teamObj.score === 0) {
+                cell.innerText = "-"; // Noch keine Punkte erzielt
+            } else if (currentRank === 1) {
+                cell.innerHTML = "🥇";
+            } else if (currentRank === 2) {
+                cell.innerHTML = "🥈";
+            } else if (currentRank === 3) {
+                cell.innerHTML = "🥉";
+            } else {
+                cell.innerText = currentRank;
+            }
+        });
+    });
 }
+
 // Wird aufgerufen, wenn ein Spieler im Dropdown ein neues Team wählt
 function changeRennenTeam(playerName, newTeamName) {
     if (activeGamesData["rennen"] && activeGamesData["rennen"][playerName]) {
@@ -870,57 +1073,7 @@ function updateHausnummerDefaultValues(playerName) {
         if (w3Input.value == "9" || w3Input.value === "") w3Input.value = 0;
     }
 }
-// Wechselt die Teamzugehörigkeit eines Spielers beim Tannenbaum live
-function renderTannenbaumSubElements() {
-    const board = document.getElementById("tannenbaum-game-board");
-    if (!board) return;
 
-    const data = activeGamesData["tannenbaum"];
-
-    // 1. Spielfeld mit zwei Spalten (Links für Gruppe 1, Rechts für Gruppe 2) aufbauen
-    board.innerHTML = `
-        <!-- LINKER BAUM & SPIELER (GRUPPE 1) -->
-        <div id="tannenbaum-col-1" style="display: flex; flex-direction: column; gap: 15px; background: rgba(59, 130, 246, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.1);">
-            <h3 style="text-align: center; color: #60a5fa; margin: 0;">🎄 Gruppe 1</h3>
-            <div id="tannenbaum-canvas-container-1" style="display:flex; justify-content:center;">
-                <canvas id="tannenbaum-canvas-1" width="280" height="340"></canvas>
-            </div>
-            <div id="tannenbaum-players-1" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        </div>
-
-        <!-- RECHTER BAUM & SPIELER (GRUPPE 2) -->
-        <div id="tannenbaum-col-2" style="display: flex; flex-direction: column; gap: 15px; background: rgba(245, 158, 11, 0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.1);">
-            <h3 style="text-align: center; color: #fbbf24; margin: 0;">⭐ Gruppe 2</h3>
-            <div id="tannenbaum-canvas-container-2" style="display:flex; justify-content:center;">
-                <canvas id="tannenbaum-canvas-2" width="280" height="340"></canvas>
-            </div>
-            <div id="tannenbaum-players-2" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        </div>
-    `;
-
-    // 2. Spieler von Gruppe 1 links einfügen
-    const pContainer1 = document.getElementById("tannenbaum-players-1");
-    if (pContainer1 && data.team1) {
-        data.team1.forEach(p => {
-            pContainer1.appendChild(createTannenbaumPlayerRow(p, 1));
-        });
-    }
-
-    // 3. Spieler von Gruppe 2 rechts einfügen
-    const pContainer2 = document.getElementById("tannenbaum-players-2");
-    if (pContainer2 && data.team2) {
-        data.team2.forEach(p => {
-            pContainer2.appendChild(createTannenbaumPlayerRow(p, 2));
-        });
-    }
-
-    // 4. TRICK: Dem Browser ein paar Millisekunden Zeit geben, das HTML zu verarbeiten,
-    // damit die IDs "tannenbaum-canvas-1" und "-2" existieren, bevor gezeichnet wird!
-    setTimeout(() => {
-        drawTannenbaumCanvas(1, data.team1 || []);
-        drawTannenbaumCanvas(2, data.team2 || []);
-    }, 50);
-}
 function drawTannenbaumCanvas(teamNum, teamPlayers) {
     // 1. Richtige Canvas-ID anvisieren
     const canvas = document.getElementById(`tannenbaum-canvas-${teamNum}`);
@@ -1102,4 +1255,262 @@ function applyTannenbaumTeams() {
 
     // Kleines optisches Feedback für die Bahn
     alert("👥 Gruppen erfolgreich aufgeteilt! Die Tafel wurde aktualisiert.");
+}
+
+// Rendert die untere Clubmitglieder-Liste mit Status -----------------
+
+function renderFuchsPlayerList() {
+    const tbody = document.getElementById("fuchs-players-list-tbody");
+    if (!tbody) return;
+
+    const meta = activeGamesData.fuchsjagd["meta"];
+    tbody.innerHTML = "";
+
+    players.forEach((p) => {
+        const isCurrentFuchs = (meta.activeFuchsPlayer === p);
+        const isCurrentJaeger = (meta.activeJaegerPlayer === p);
+        const pData = activeGamesData.fuchsjagd[p] || { status: "offen" };
+        
+        let turnMarker = "";
+        let roleBadge = `<span style="color:var(--text-muted);">🏹 Jäger</span>`;
+        
+        if (isCurrentFuchs) {
+            roleBadge = `<span style="background:#f97316; color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8rem;">🦊 Aktueller Fuchs</span>`;
+        } else if (isCurrentJaeger) {
+            turnMarker = `<span style="color:#06b6d4; font-size:1.2rem; font-weight:bold;">👉</span>`;
+        }
+
+        // HIER WURDE DIE BREITE ERHÖHT (min-width: 190px und etwas mehr padding)
+        const statusSelect = `
+            <select onchange="changeFuchsPlayerStatus('${p}', this.value)" style="background:var(--bg-input); color:var(--text-main); border:1px solid var(--border); padding:4px 6px; border-radius:4px; font-size:0.85rem; min-width: 190px; cursor: pointer;">
+                <option value="offen" ${pData.status === 'offen' ? 'selected' : ''}>⏳ Noch offen</option>
+                <option value="entkommen" ${pData.status === 'entkommen' ? 'selected' : ''}>🦊 Entkommen (Sieg)</option>
+                <option value="gefangen" ${pData.status === 'gefangen' ? 'selected' : ''}>💀 Gefangen (Niederlage)</option>
+            </select>
+        `;
+
+        let pts = 0;
+        if (pData.status === "entkommen") pts = 3; 
+        
+        tbody.innerHTML += `
+            <tr style="${isCurrentFuchs ? 'background: rgba(249, 115, 22, 0.08);' : ''}">
+                <td style="text-align:center;">${turnMarker}</td>
+                <td>
+                    <strong style="cursor:pointer;" onclick="setFuchsTargetPlayer('${p}')" title="Klicken, um diesen Spieler zum aktuellen Fuchs zu machen">
+                        ${p} ${isCurrentFuchs ? '' : ' 🔄'}
+                    </strong>
+                </td>
+                <td>${roleBadge}</td>
+                <td style="text-align:center;">${statusSelect}</td>
+                <td style="text-align:right; font-weight:bold; color:var(--accent);">${pts} Pkt.</td>
+            </tr>
+        `;
+    });
+
+    const label = document.getElementById("fuchs-name-label");
+    if (label) label.innerText = `Fuchs: ${meta.activeFuchsPlayer}`;
+}
+
+function setFuchsTargetPlayer(playerName) {
+    const meta = activeGamesData.fuchsjagd["meta"];
+    meta.activeFuchsPlayer = playerName;
+    
+    // Falls der Jäger-Pfeil jetzt aus Versehen auf dem neuen Fuchs sitzt, einen weiterbewegen
+    if (meta.activeJaegerPlayer === playerName) {
+        let currIndex = players.indexOf(playerName);
+        let nextIndex = (currIndex + 1) % players.length;
+        meta.activeJaegerPlayer = players[nextIndex] || "";
+    }
+    
+    saveCurrentGameFields();
+    renderFuchsPlayerList();
+    liveCalculateFuchsjagd();
+}
+
+function navigateJaeger(direction) {
+    const meta = activeGamesData.fuchsjagd["meta"];
+    if (!players || players.length <= 1) return;
+
+    let currIndex = players.indexOf(meta.activeJaegerPlayer);
+    if (currIndex === -1) currIndex = 0;
+
+    let nextIndex = currIndex;
+    do {
+        nextIndex = (nextIndex + direction + players.length) % players.length;
+    } while (players[nextIndex] === meta.activeFuchsPlayer && players.length > 1);
+
+    meta.activeJaegerPlayer = players[nextIndex];
+    saveCurrentGameFields();
+    renderFuchsPlayerList();
+}
+
+function resetFuchsRound() {
+    if(!confirm("Möchtest du das aktuelle Wurffeld für den nächsten Fuchs leeren? (Die Chronik unten und die Jäger-Reihenfolge bleiben erhalten!)")) return;
+    
+    activeGamesData.fuchsjagd["Fuchs"] = { vl:0, w1:0, w2:0, w3:0, w4:0, w5:0, w6:0, w7:0, w8:0 };
+    activeGamesData.fuchsjagd["Jaeger"] = { vl:0, w1:0, w2:0, w3:0, w4:0, w5:0, w6:0, w7:0, w8:0 };
+    
+    // Prüfen, ob der aktive Jäger nun vielleicht der neue Fuchs ist
+    const meta = activeGamesData.fuchsjagd["meta"];
+    if (meta.activeJaegerPlayer === meta.activeFuchsPlayer && players.length > 1) {
+        let currIndex = players.indexOf(meta.activeJaegerPlayer);
+        let nextIndex = (currIndex + 1) % players.length;
+        meta.activeJaegerPlayer = players[nextIndex];
+    }
+    
+    saveCurrentGameFields();
+    updateCurrentGameTable(); // Baut die Oberfläche ohne Initialisierungsverlust neu auf!
+}
+
+//--------------------------------------------------------------
+
+// Intelligente Balken-Berechnung
+function liveCalculateFuchsjagd() {
+    const rowFuchs = document.getElementById("row-fuchs");
+    const rowJaeger = document.getElementById("row-jaeger");
+    if (!rowFuchs || !rowJaeger) return;
+
+    function getRowSum(row) {
+        const vl = parseInt(row.querySelector(".fuchs-vl").value) || 0;
+        let sum = vl; // Startet nur mit dem einen Vorwurf
+        for(let i=1; i<=8; i++) {
+            sum += parseInt(row.querySelector(`.fuchs-w${i}`).value) || 0;
+        }
+        return sum;
+    }
+
+    const totalFuchs = getRowSum(rowFuchs);
+    const totalJaeger = getRowSum(rowJaeger);
+
+    document.getElementById("fuchs-res-total").innerText = totalFuchs;
+    document.getElementById("jaeger-res-total").innerText = totalJaeger;
+
+    const fuchsPercent = Math.min((totalFuchs / 31) * 100, 100);
+    document.getElementById("bar-fill-fuchs").style.width = `${fuchsPercent}%`;
+    document.getElementById("bar-text-fuchs").innerText = `${totalFuchs} / 31 Holz`;
+
+    const baseValue = Math.max(totalFuchs, 1);
+    const jaegerPercent = Math.min((totalJaeger / baseValue) * 100, 100);
+    document.getElementById("bar-fill-jaeger").style.width = `${jaegerPercent}%`;
+    document.getElementById("bar-text-jaeger").innerText = `${totalJaeger} Holz (Fuchs-Stand: ${totalFuchs})`;
+
+    const statusMsg = document.getElementById("fuchsjagd-status-msg");
+    const meta = activeGamesData.fuchsjagd["meta"];
+
+    if (totalJaeger >= totalFuchs && totalJaeger > 0) {
+        statusMsg.innerHTML = `🎉 <span style='color:#06b6d4;'>Die Jäger haben ${meta.activeFuchsPlayer} EINGEHOLT!</span>`;
+    } else if (totalFuchs >= 31) {
+        statusMsg.innerHTML = `🦊 <span style='color:#f97316;'>Fuchs ${meta.activeFuchsPlayer} ist ENTFLOHEN (Sieg)!</span>`;
+    } else {
+        statusMsg.innerHTML = `🏃 ${meta.activeFuchsPlayer} rennt! Jäger sind auf den Fersen...`;
+    }
+}
+
+// Ändert das historische Ergebnis eines Fuchses
+function changeFuchsPlayerStatus(playerName, newStatus) {
+    activeGamesData.fuchsjagd[playerName].status = newStatus;
+    
+    // Punkte direkt in das globale Gesamtpunkte-System für die Auswertung spiegeln
+    grandTotalScores[playerName] = grandTotalScores[playerName] || 0;
+    
+    saveCurrentGameFields();
+    renderFuchsPlayerList();
+    if(typeof updateGrandTotalTable === "function") updateGrandTotalTable();
+}
+
+function liveCalculateSiebzehnVier() {
+    if (currentGame !== "siebzehn-vier") return;
+
+    let playerResults = [];
+
+    // 1. Berechne die Summen und Stati für jeden Spieler
+    players.forEach(p => {
+        const row = document.getElementById(`row-${p}`);
+        if (!row) return;
+
+        let sum = 0;
+        for (let i = 1; i <= 9; i++) {
+            sum += parseInt(row.querySelector(`.sv-w${i}`).value) || 0;
+        }
+
+        const cardVal = parseInt(row.querySelector(".sv-card").value) || 0;
+        sum += cardVal;
+
+        let statusText = "";
+        let points = 0;
+        let isDead = false;
+
+        if (sum > 21) {
+            statusText = "<span style='color:#ef4444;'>💀 Tod</span>";
+            points = -1;
+            isDead = true;
+        } else if (sum === 21) {
+            statusText = "<span style='color:#22c55e;'>🌟 21 (Super!)</span>";
+            points = 21;
+        } else if (sum > 0) {
+            statusText = "<span style='color:#38bdf8;'>👍 Gut</span>";
+            points = sum;
+        } else {
+            statusText = "<span style='color:var(--text-muted);'>⏳ Wartet</span>";
+            points = 0;
+        }
+
+        // Werte in die Zellen schreiben
+        row.querySelector(".sv-status").innerHTML = statusText;
+        row.querySelector(".sv-res-pts").innerText = points;
+
+        playerResults.push({
+            name: p,
+            points: points,
+            sum: sum,
+            isDead: isDead,
+            hasPlayed: (sum > 0)
+        });
+    });
+
+    // 2. Platzierung & Medaillen ermitteln
+    // Sortierung: Wer nicht tot ist und mehr Punkte hat, steht weiter oben. Tote (-1 Punkt) landen ganz unten.
+    playerResults.sort((a, b) => {
+        if (!a.hasPlayed && b.hasPlayed) return 1;
+        if (a.hasPlayed && !b.hasPlayed) return -1;
+        return b.points - a.points;
+    });
+
+    // Ränge zuweisen
+    let currentRank = 1;
+    playerResults.forEach((res, index) => {
+        const row = document.getElementById(`row-${res.name}`);
+        if (!row) return;
+
+        const rankCell = row.querySelector(".sv-rank");
+        
+        if (!res.hasPlayed) {
+            rankCell.innerText = "-";
+            return;
+        }
+
+        // Bei Punktegleichstand den gleichen Rang vergeben
+        if (index > 0 && res.points === playerResults[index - 1].points) {
+            // gleicher Rang wie der Vordermann
+        } else {
+            currentRank = index + 1;
+        }
+
+        // Wenn der Spieler "Tot" ist, bekommt er keine Medaille, sondern wird hinten angestellt
+        if (res.isDead) {
+            rankCell.innerHTML = `<span style="color:#ef4444; font-size:0.85rem;">💀</span>`;
+            return;
+        }
+
+        // Medaillen für die Top 3 vergeben
+        if (currentRank === 1) {
+            rankCell.innerHTML = "🥇";
+        } else if (currentRank === 2) {
+            rankCell.innerHTML = "🥈";
+        } else if (currentRank === 3) {
+            rankCell.innerHTML = "🥉";
+        } else {
+            rankCell.innerText = currentRank;
+        }
+    });
 }

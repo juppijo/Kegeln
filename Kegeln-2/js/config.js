@@ -10,7 +10,7 @@ let activeGamesData = {
     "siebzehn-vier": {},
     rennen: {},
     idiot: {},
-    fuchsjagd: {}, 
+    fuchsjagd: {}, // Wird dynamisch mit w1 bis w8 befüllt
     tannenbaum: {} // <-- NEU!
 };
 

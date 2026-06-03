@@ -31,8 +31,11 @@ function saveCurrentGameFields() {
                 w3: row.querySelector(".sv-w3").value,
                 w4: row.querySelector(".sv-w4").value,
                 w5: row.querySelector(".sv-w5").value,
-                card: row.querySelector(".sv-card").value, // <-- NEU
-                over: row.querySelector(".val-over").checked
+                w6: row.querySelector(".sv-w6").value,
+                w7: row.querySelector(".sv-w7").value,
+                w8: row.querySelector(".sv-w8").value,
+                w9: row.querySelector(".sv-w9").value,
+                card: row.querySelector(".sv-card").value
             };
 
         } else if (currentGame === "rennen") {
@@ -69,14 +72,37 @@ function saveCurrentGameFields() {
                 re: row.querySelector(".id-re").value
             };
         } else if (currentGame === "fuchsjagd") {
-            activeGamesData.fuchsjagd[p] = {
-                role: row.querySelector(".fuchs-role").value,
-                vl: row.querySelector(".fuchs-vl").value,
-                vr: row.querySelector(".fuchs-vr").value,
-                w1: row.querySelector(".fuchs-w1").value,
-                w2: row.querySelector(".fuchs-w2").value,
-                w3: row.querySelector(".fuchs-w3").value
-            };
+            activeGamesData.fuchsjagd = activeGamesData.fuchsjagd || {};
+            
+            const rowFuchs = document.getElementById("row-fuchs");
+            const rowJaeger = document.getElementById("row-jaeger");
+
+            if (rowFuchs) {
+                activeGamesData.fuchsjagd["Fuchs"] = {
+                    vl: rowFuchs.querySelector(".fuchs-vl").value,
+                    w1: rowFuchs.querySelector(".fuchs-w1").value,
+                    w2: rowFuchs.querySelector(".fuchs-w2").value,
+                    w3: rowFuchs.querySelector(".fuchs-w3").value,
+                    w4: rowFuchs.querySelector(".fuchs-w4").value,
+                    w5: rowFuchs.querySelector(".fuchs-w5").value,
+                    w6: rowFuchs.querySelector(".fuchs-w6").value,
+                    w7: rowFuchs.querySelector(".fuchs-w7").value,
+                    w8: rowFuchs.querySelector(".fuchs-w8").value
+                };
+            }
+            if (rowJaeger) {
+                activeGamesData.fuchsjagd["Jaeger"] = {
+                    vl: 0,
+                    w1: rowJaeger.querySelector(".fuchs-w1").value,
+                    w2: rowJaeger.querySelector(".fuchs-w2").value,
+                    w3: rowJaeger.querySelector(".fuchs-w3").value,
+                    w4: rowJaeger.querySelector(".fuchs-w4").value,
+                    w5: rowJaeger.querySelector(".fuchs-w5").value,
+                    w6: rowJaeger.querySelector(".fuchs-w6").value,
+                    w7: rowJaeger.querySelector(".fuchs-w7").value,
+                    w8: rowJaeger.querySelector(".fuchs-w8").value
+                };
+            }
         } else if (currentGame === "tannenbaum") {
             // Falls das Tannenbaum-Objekt noch gar nicht existiert, erstellen wir es kurz
             activeGamesData["tannenbaum"] = activeGamesData["tannenbaum"] || { team1: [], team2: [], wuerfe: {}, historie: {} };
