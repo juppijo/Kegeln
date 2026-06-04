@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Gebrauchsanweisung - Kegel-App Pro</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+            background-color: #ffffff;
+            @bottom-right {
+                content: "Seite " counter(page) " von " counter(pages);
+                font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+                font-size: 9pt;
+                color: #64748b;
+            }
+            @bottom-left {
+                content: "Alle Neune! - Die Club-Kegel-App";
+                font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+                font-size: 9pt;
+                color: #64748b;
+            }
+        }
+        
+        body {
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.6;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Cover Page Styling using negative margins to break into page margins */
+        .cover {
+            margin: -20mm -15mm 20mm -15mm;
+            padding: 40mm 20mm 30mm 20mm;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            color: #ffffff;
+            text-align: center;
+        }
+        
+        .cover h1 {
+            font-size: 28pt;
+            margin: 0 0 10px 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #38bdf8;
+        }
+        
+        .cover .subtitle {
+            font-size: 14pt;
+            color: #94a3b8;
+            margin-bottom: 30mm;
+            font-weight: 300;
+        }
+
+        .cover .app-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 10pt;
+            color: #38bdf8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .cover-meta {
+            margin-top: 20mm;
+            font-size: 10pt;
+            color: #94a3b8;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        h2 {
+            font-size: 15pt;
+            color: #1e3a8a;
+            border-left: 5px solid #38bdf8;
+            padding-left: 10px;
+            margin-top: 25pt;
+            margin-bottom: 12pt;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 12pt;
+            color: #0f172a;
+            margin-top: 18pt;
+            margin-bottom: 6pt;
+            page-break-after: avoid;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 10pt;
+            text-align: justify;
+        }
+
+        /* Styled lists */
+        ul, ol {
+            margin-top: 0;
+            margin-bottom: 12pt;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 4pt;
+        }
+
+        /* Tables for UI descriptions */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15pt 0;
+            page-break-inside: avoid;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 600;
+            text-align: left;
+            padding: 8pt 10pt;
+            font-size: 10pt;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        td {
+            padding: 8pt 10pt;
+            font-size: 10pt;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        /* Highlight Boxes */
+        .info-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 12pt;
+            border-radius: 0 8px 8px 0;
+            margin: 15pt 0;
+            page-break-inside: avoid;
+        }
+
+        .info-box-title {
+            font-weight: bold;
+            color: #166534;
+            margin-bottom: 4pt;
+        }
+
+        .alert-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 12pt;
+            border-radius: 0 8px 8px 0;
+            margin: 15pt 0;
+            page-break-inside: avoid;
+        }
+
+        .alert-box-title {
+            font-weight: bold;
+            color: #991b1b;
+            margin-bottom: 4pt;
+        }
+
+        /* Inline badges for keys/buttons */
+        .btn-badge {
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 9pt;
+            font-family: monospace;
+            color: #334155;
+        }
+        
+        .accent-badge {
+            background-color: #38bdf8;
+            color: #fff;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- COVER PAGE -->
+    <div class="cover">
+        <div class="app-badge">Offizielle Dokumentation</div>
+        <h1>Gebrauchsanweisung &amp; Handbuch</h1>
+        <div class="subtitle">Die digitale Kegel-App für euren Clubabend</div>
+        <div class="cover-meta">
+            <strong>System-Version:</strong> 2026.1<br>
+            <strong>Features:</strong> Live-Berechnung, Dynamische Ränge &amp; Automatisches Gewinn-Overlay
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <h2>1. Einleitung &amp; Kernfunktionen</h2>
+    <p>
+        Willkommen im Handbuch eurer Kegel-App! Diese Anwendung wurde speziell entwickelt, um die Zettelwirtschaft auf der Kegelbahn komplett zu ersetzen. Alle Berechnungen, Multiplikatoren und Platzierungen laufen vollautomatisch im Hintergrund ab. Dadurch könnt ihr euch ganz auf das Wesentliche konzentrieren: <strong>Gute Würfe und eine gesellige Runde!</strong>
+    </p>
+
+    <h3>Die wichtigsten Vorteile auf einen Blick:</h3>
+    <ul>
+        <li><strong>Echte Live-Berechnung:</strong> Sobald eine Zahl in ein Feld eingetragen wird, aktualisiert sich die gesamte Tabelle in Echtzeit.</li>
+        <li><strong>Automatische Platzierung:</strong> Die App ermittelt sofort die Ränge und vergibt olympische Medaillen (<span style="color:#eab308;">🥇</span>, <span style="color:#94a3b8;">🥈</span>, <span style="color:#ca8a04;">🥉</span>) an die Top-Platzierten.</li>
+        <li><strong>Schutz vor Datenverlust:</strong> Durch die integrierte automatische Speicherung (<span style="font-family: monospace;">saveCurrentGameFields</span>) bleibt der Spielstand auch bei einem versehentlichen Neuladen oder App-Wechsel sicher erhalten.</li>
+    </ul>
+
+    <h2>2. Bedienung der Spezialspiele</h2>
+    <p>
+        Die App beinhaltet eine Vielzahl klassischer und moderner Kegelspiele. Dank eurer letzten Optimierungen laufen die komplexesten Spiele nun völlig autark ab.
+    </p>
+
+    <h3>2.1. 🎲 17 und 4 (Automatisch &amp; Dynamisch)</h3>
+    <p>
+        Bei diesem Spiel müsst ihr nicht mehr manuell prüfen, ob jemand überkauft hat. Das System übernimmt das Denken komplett für euch. Es stehen Spalten für bis zu 9 Würfe (<span style="font-family: monospace;">W1</span> bis <span style="font-family: monospace;">W9</span>) sowie ein Feld für die gezogene Karte zur Verfügung.
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 25%;">Erreichte Summe</th>
+                <th style="width: 25%;">Automatischer Status</th>
+                <th style="width: 20%;">Wertungspunkte</th>
+                <th>Verhalten der Rangliste</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Unter 21</strong></td>
+                <td><span style="color:#38bdf8; font-weight:bold;">👍 Gut</span></td>
+                <td>Entspricht der Summe</td>
+                <td>Spieler wird normal nach Punkten einsortiert.</td>
+            </tr>
+            <tr>
+                <td><strong>Exakt 21</strong></td>
+                <td><span style="color:#22c55e; font-weight:bold;">🌟 21 (Super!)</span></td>
+                <td>21 Punkte</td>
+                <td>Höchste Priorität, landet sofort ganz weit oben.</td>
+            </tr>
+            <tr>
+                <td><strong>Über 21</strong></td>
+                <td><span style="color:#ef4444; font-weight:bold;">💀 Tod</span></td>
+                <td>-1 Punkt</td>
+                <td>Der Spieler gilt als überkauft und wird automatisch ans Ende der Tabelle strafversetzt.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="info-box">
+        <div class="info-box-title">Praxis-Tipp für 17 und 4:</div>
+        Ihr müsst keine Checkboxen mehr anklicken! Tragt einfach die Holzzahlen ein. Sobald die Summe aus Würfen und Karte den Wert 21 übersteigt, schaltet die Zeile sofort auf den Totenkopf-Modus um.
+    </div>
+
+    <div class="page-break"></div>
+
+    <h3>2.2. 🏎️ 6-Tage-Rennen (Das Teamspiel)</h3>
+    <p>
+        Das 6-Tage-Rennen simuliert ein packendes Etappenrennen über sechs fiktive "Tage" (Runden). Hier tretet ihr in dynamischen Zweier-Teams gegeneinander an.
+    </p>
+    <ul>
+        <li><strong>Multiplikatoren:</strong> Jeder Tag wiegt schwerer! Tag 1 zählt einfach, Tag 2 zählt doppelt (<span style="font-family: monospace;">x2</span>), Tag 3 dreifach (<span style="font-family: monospace;">x3</span>) bis hin zu Tag 6, welcher sechsfach gewertet wird (<span style="font-family: monospace;">x6</span>).</li>
+        <li><strong>Automatischer Gast-Partner:</strong> Sollte euer Club an dem Abend eine ungerade Spieleranzahl haben, erkennt die App dies sofort beim Rendern. Sie fügt automatisch einen <span style="color:#94a3b8; font-style:italic;">🤖 Autom. Partner (Gast)</span> in das unvollständige Team ein, damit absolute Chancengleichheit herrscht.</li>
+        <li><strong>Live Team-Medaillen:</strong> Die Einzelergebnisse der beiden Partner werden live zum <span style="font-family: monospace;">Team-Gesamt</span> addiert. Die Medaillen (<span style="font-size:11pt;">🥇, 🥈, 🥉</span>) werden live ermittelt und sofort synchron an <strong>beide</strong> Partner ganz links in die Tabelle geheftet!</li>
+    </ul>
+
+    <h3>2.3. 🎄 Tannenbaum (Teams)</h3>
+    <p>
+        Beim Tannenbaum gilt es, die Kugeln des gegnerischen Baums durch gezielte Würfe (Zahlen 1 bis 9) wegzuschießen. Dieses Spiel hat zwei massive Komfort-Updates erhalten:
+    </p>
+    <ol>
+        <li><strong>Einklappbares Setup-Panel:</strong> Der Bereich <span class="btn-badge">👥 Teams für den Tannenbaum aufteilen</span> lässt sich durch einen Klick auf die Überschrift flüssig einklappen. Das spart extrem viel Platz auf dem Smartphone-Bildschirm, sodass die beiden Tannenbäume voll im Fokus stehen.</li>
+        <li><strong>Automatisches Sieger-Overlay:</strong> Ihr müsst die Kugeln nicht mehr mühsam selbst zählen. Ein kompletter Baum erfordert exakt 25 Treffer (Stamm und alle Äste). Sobald ein Team den 25. Treffer landet, friert das Spiel ein und es öffnet sich ein wunderschönes, unübersehbares Vollbild-Fenster:</li>
+    </ol>
+    
+    <div style="margin: 15pt auto; padding: 20px; border: 2px dashed #22c55e; background-color: #f8fafc; border-radius: 8px; text-align: center; max-width: 80%;">
+        <span style="font-size: 24pt;">🎉🏆🎉</span>
+        <h4 style="margin: 5px 0; color:#1e293b; font-size:14pt;">Spiel vorbei!</h4>
+        <h3 style="margin: 5px 0 15px 0; color: #22c55e; font-size:16pt; font-weight:900;">Gruppe 1 🎄 GEWINNT!</h3>
+        <p style="font-size: 9.5pt; color:#64748b; margin-bottom: 0; text-align:center;">Der Tannenbaum wurde komplett abgeräumt!</p>
+    </div>
+
+    <h2>3. Fehlerbehebung (Troubleshooting)</h2>
+    <p>
+        Sollte es während des Kegelns zu unerwartetem Verhalten kommen, findet ihr hier die schnellen Lösungen:
+    </p>
+    
+    <div class="alert-box">
+        <div class="alert-box-title">Problem: Die Tannenbäume werden nicht bunt gezeichnet oder bleiben weiß?</div>
+        <strong>Lösung:</strong> Das System verwendet in der Funktion <span style="font-family: monospace;">renderTannenbaumSubElements()</span> einen integrierten 50-Millisekunden-Trick (<span style="font-family: monospace;">setTimeout</span>). Dies gibt dem Browser Zeit, das HTML zu verarbeiten. Falls es dennoch stockt, wechselt kurz das Spiel (z.B. auf Hausnummer) und kehrt zum Tannenbaum zurück. Dadurch wird das Canvas sauber neu initialisiert.
+    </div>
+
+    <div class="info-box" style="background-color: #fef8e6; border-left-color: #f59e0b;">
+        <div class="info-box-title" style="color: #b45309;">Problem: Punktegleichstand beim Rennen oder 17+4?</div>
+        <strong>Verhalten:</strong> Die App ist absolut fair programmiert. Haben zwei Spieler oder Teams exakt dieselbe Punktzahl erzielt, teilen sie sich den Platz (z. B. erhalten beide ein <span style="font-size:11pt;">🥇</span>). Der darauffolgende Rang wird entsprechend übersprungen.
+    </div>
+
+    <h2>4. Technische Hinweise für den Admin</h2>
+    <p>
+        Solltet ihr weiteren Code anpassen wollen, merkt euch diese Struktur:
+    </p>
+    <ul>
+        <li><strong>Datenhoheit:</strong> Alle Live-Eingaben werden direkt im zentralen Objekt <span style="font-family: monospace;">activeGamesData</span> hinterlegt.</li>
+        <li><strong>Sicherheitsabfragen:</strong> Verwendet immer die Container-Prüfungen (z. B. <span style="font-family: monospace;">if (!board) return;</span>) vor dem Rendern, um JavaScript-Abstürze auf älteren Smartphones zu verhindern.</li>
+    </ul>
+
+</body>
+</html>
