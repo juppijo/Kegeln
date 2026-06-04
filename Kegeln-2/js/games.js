@@ -599,6 +599,44 @@ function calculateGame() {
         updateGrandTotalTable();
         alert("🎉 Beide Hausnummern erfolgreich ausgewertet!");
         
+    } else if (currentGame === "fuchsjagd") {
+        // KORREKTUR FUCHSJAGD: Holt die Summen direkt aus den neuen Ergebnis-Zellen
+        const fuchsTotalScore = parseInt(document.getElementById("fuchs-res-total").innerText) || 0;
+        const jaegerTotalScore = parseInt(document.getElementById("jaeger-res-total").innerText) || 0;
+        
+        // Wer ist aktuell der Fuchs? (wird aus den Metadaten ausgelesen)
+        const aktuellerFuchs = activeGamesData.fuchsjagd?.meta?.activeFuchsPlayer || players[0];
+
+        // Fuchs gewinnt, wenn er mindestens 31 Punkte hat UND mehr als die Jäger
+        if (fuchsTotalScore >= 31 && fuchsTotalScore > jaegerTotalScore) {
+            
+            // 1. Fuchs belohnen (+3 Clubpunkte)
+            grandTotalScores[aktuellerFuchs] += 3;
+            alert(`🦊 Der Fuchs ${aktuellerFuchs} hat die Jagd mit ${fuchsTotalScore} Holz gewonnen! 🎉 Jäger hatten ${jaegerTotalScore} Holz.`);
+            
+            // 2. Allen Jägern (jeder außer dem Fuchs) einen Strafpunkt geben
+            players.forEach(p => {
+                if (p !== aktuellerFuchs) {
+                    grandTotalScores[p] -= 1;
+                }
+            });
+        } else {
+            // Die Jäger gewinnen und erlegen den Fuchs
+            alert(`🏹 Die Jäger haben den Fuchs erlegt! Jäger-Gesamt: ${jaegerTotalScore} Holz vs. Fuchs: ${fuchsTotalScore} Holz.`);
+            
+            // 1. Fuchs kriegt einen Strafpunkt (-1)
+            grandTotalScores[aktuellerFuchs] -= 1;
+            
+            // 2. Alle Jäger bekommen +2 Punkte auf das Clubkonto
+            players.forEach(p => {
+                if (p !== aktuellerFuchs) {
+                    grandTotalScores[p] += 2;
+                }
+            });
+        }
+        
+        updateGrandTotalTable();
+        
     } else {
         // Logik für die restlichen Spiele (17&4, Rennen, Idiot)
         players.forEach(p => {
@@ -606,13 +644,10 @@ function calculateGame() {
             let score = 0;
             
             if (currentGame === "siebzehn-vier") {
-                liveCalculateSiebzehnVier(); // Nutzt deine korrekte Berechnungsfunktion
-                
-                // KORREKTUR: Auslesen aus der richtigen Zelle (.sv-res-pts)
+                liveCalculateSiebzehnVier();
                 const pts = parseInt(row.querySelector(".sv-res-pts").innerText) || 0;
                 const statusText = row.querySelector(".sv-status").innerText || "";
                 
-                // Wer "Überkauft" / "Tot" ist (Zahl über 21 oder entsprechend markiert), bekommt -1 Punkt für die Platzierungsreihenfolge
                 if (pts > 21 || statusText.includes("💀") || statusText.toLowerCase().includes("über")) {
                     score = -1;
                 } else {
@@ -626,100 +661,54 @@ function calculateGame() {
             } else if (currentGame === "idiot") {
                 score = (parseInt(row.querySelector(".id-l").value) || 0) + (parseInt(row.querySelector(".id-r").value) || 0) + (parseInt(row.querySelector(".id-re").value) || 0);
                 row.querySelector(".id-gesamt").innerText = score;
-            } else if (currentGame === "fuchsjagd") {
-                liveCalculateFuchsjagd();
-                score = parseInt(row.querySelector(".fuchs-res").innerText) || 0;
             }
 
             results.push({ name: p, score: score, element: row });
         });
 
         // Ränge ermitteln ------------------------------------------------------
-        // Höchste Punktzahl gewinnt (Tote/Überkaufte mit -1 landen automatisch ganz unten)
         results.sort((a, b) => b.score - a.score);
         
-        if (currentGame === "fuchsjagd") {
-            // Sonderwertung Fuchsjagd
-            let fuchsObj = null;
-            let hoechsterJaegerScore = -1;
+        let currentRank = 1;
+        results.forEach((item, index) => {
+            const rankCol = item.element.querySelector(".sv-rank") || item.element.querySelector(".rank-col");
             
-            players.forEach(p => {
-                const row = document.getElementById(`row-${p}`);
-                const role = row.querySelector(".fuchs-role").value;
-                const total = parseInt(row.querySelector(".fuchs-res").innerText) || 0;
-                if (role === "fuchs") fuchsObj = { name: p, score: total, element: row };
-                else if (total > hoechsterJaegerScore) hoechsterJaegerScore = total;
-            });
-
-            if (fuchsObj) {
-                if (fuchsObj.score >= 31 && fuchsObj.score > hoechsterJaegerScore) {
-                    fuchsObj.element.querySelector(".rank-col").innerHTML = `🦊🥇 Win`;
-                    fuchsObj.element.classList.add("winner-row");
-                    grandTotalScores[fuchsObj.name] += 3;
-                } else {
-                    fuchsObj.element.querySelector(".rank-col").innerHTML = `💀 Erlegt`;
-                    fuchsObj.element.classList.add("loser-row");
-                    grandTotalScores[fuchsObj.name] -= 1;
-                    
-                    players.forEach(p => {
-                        const row = document.getElementById(`row-${p}`);
-                        const total = parseInt(row.querySelector(".fuchs-res").innerText) || 0;
-                        if (row.querySelector(".fuchs-role").value === "jaeger" && total >= fuchsObj.score) {
-                            row.querySelector(".rank-col").innerHTML = `🏹🥇`;
-                            row.classList.add("winner-row");
-                            grandTotalScores[p] += 2;
-                        }
-                    });
-                }
+            if (index > 0 && item.score === results[index - 1].score) {
+                // Gleicher Rang bei Gleichstand
+            } else {
+                currentRank = index + 1;
             }
-        } else {
-            // Das ist der Standard-Code für 17&4, Rennen und Idiot:
-            // HIER KORREKTUR: Es wird dynamisch nach .sv-rank (für 17&4) oder .rank-col (für andere Spiele) gesucht!
-            let currentRank = 1;
-            results.forEach((item, index) => {
-                const rankCol = item.element.querySelector(".sv-rank") || item.element.querySelector(".rank-col");
-                
-                // Punktegleichstand abfangen
-                if (index > 0 && item.score === results[index - 1].score) {
-                    // Gleicher Rang wie Vordermann
-                } else {
-                    currentRank = index + 1;
-                }
 
-                // Club-Punkteverteilung und visuelle Badges
-                if (currentRank === 1 && item.score >= 0) { 
-                    if(rankCol) rankCol.innerHTML = `🥇`; 
-                    item.element.classList.add("winner-row"); 
-                    grandTotalScores[item.name] += 3; 
-                }
-                else if (currentRank === 2 && item.score >= 0) { 
-                    if(rankCol) rankCol.innerHTML = `🥈`; 
-                    grandTotalScores[item.name] += 2; 
-                }
-                else if (currentRank === 3 && item.score >= 0) { 
-                    if(rankCol) rankCol.innerHTML = `🥉`; 
-                    grandTotalScores[item.name] += 1; 
-                }
-                else {
-                    if(rankCol) {
-                        // Wenn der Spieler bei 17&4 überkauft ist, das Totenkopf-Symbol beibehalten
-                        if (currentGame === "siebzehn-vier" && item.score === -1) {
-                            rankCol.innerHTML = `<span style="color:#ef4444;">💀</span>`;
-                        } else {
-                            rankCol.innerHTML = `<span class="rank-badge">${currentRank}</span>`;
-                        }
+            if (currentRank === 1 && item.score >= 0) { 
+                if(rankCol) rankCol.innerHTML = `🥇`; 
+                item.element.classList.add("winner-row"); 
+                grandTotalScores[item.name] += 3; 
+            }
+            else if (currentRank === 2 && item.score >= 0) { 
+                if(rankCol) rankCol.innerHTML = `🥈`; 
+                grandTotalScores[item.name] += 2; 
+            }
+            else if (currentRank === 3 && item.score >= 0) { 
+                if(rankCol) rankCol.innerHTML = `🥉`; 
+                grandTotalScores[item.name] += 1; 
+            }
+            else {
+                if(rankCol) {
+                    if (currentGame === "siebzehn-vier" && item.score === -1) {
+                        rankCol.innerHTML = `<span style="color:#ef4444;">💀</span>`;
+                    } else {
+                        rankCol.innerHTML = `<span class="rank-badge">${currentRank}</span>`;
                     }
                 }
-                
-                // Der Letzte kriegt einen Strafpunkt (Überkaufte Spieler zählen als Letzte)
-                if (index === results.length - 1 && results.length > 1) { 
-                    item.element.classList.add("loser-row"); 
-                    grandTotalScores[item.name] -= 1; 
-                }
-            });
-        }
+            }
+            
+            if (index === results.length - 1 && results.length > 1) { 
+                item.element.classList.add("loser-row"); 
+                grandTotalScores[item.name] -= 1; 
+            }
+        });
         updateGrandTotalTable();
-        alert(`🎉 ${currentGame === "siebzehn-vier" ? "17 & 4" : "Spiel"} erfolgreich ausgewertet & Punkte eingetragen!`);
+        alert("🎉 Spiel erfolgreich ausgewertet!");
     }   
 }
 
