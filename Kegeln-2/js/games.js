@@ -540,40 +540,75 @@ function liveCalculateHausnummer() {
     });
 }
 
+//*******************************************************
+
 function calculateGame() {
     let results = [];
     players.forEach(p => { const row = document.getElementById(`row-${p}`); if(row) row.className = ""; });
 
     if (currentGame === "hausnummer") {
         liveCalculateHausnummer();
-        let großResults = []; let kleinResults = [];
+        let großResults = []; 
+        let kleinResults = [];
 
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`); if(!row) return;
-            großResults.push({ name: p, val: parseInt(row.querySelector(".g-res").innerText) || 0 });
-            kleinResults.push({ name: p, val: parseInt(row.querySelector(".k-res").innerText) || 0 });
+            // KORREKTUR: Klassen auf .hn-g-res und .hn-k-res angepasst, damit sie gefunden werden
+            großResults.push({ name: p, val: parseInt(row.querySelector(".hn-g-res").innerText) || 0 });
+            kleinResults.push({ name: p, val: parseInt(row.querySelector(".hn-k-res").innerText) || 999 });
         });
 
+        // Sortierung (Groß: Höchste Zahl gewinnt; Klein: Niedrigste Zahl gewinnt, 999 ist unbespielt)
         großResults.sort((a,b) => b.val - a.val);
-        kleinResults.sort((a,b) => a.val - b.val);
+        kleinResults.sort((a,b) => {
+            if (a.val === 999) return 1;
+            if (b.val === 999) return -1;
+            return a.val - b.val;
+        });
 
-        [großResults, kleinResults].forEach(resList => {
-            resList.forEach((item, index) => {
+        // Punktevergabe für die Große und Kleine Hausnummer (Top 3 belohnen, Letzter kriegt Minus)
+        [großResults, kleinResults].forEach((resList, listIndex) => {
+            // Filtere Spieler heraus, die gar nicht mitgespielt haben
+            let gueltigeSpieler = resList.filter(item => {
+                if (listIndex === 0) return item.val > 0; // Bei Groß müssen Punkte > 0 sein
+                return item.val < 999;                    // Bei Klein müssen Punkte < 999 sein
+            });
+
+            gueltigeSpieler.forEach((item, index) => {
                 if(index === 0) grandTotalScores[item.name] += 3;
                 else if(index === 1) grandTotalScores[item.name] += 2;
                 else if(index === 2) grandTotalScores[item.name] += 1;
-                if(index === resList.length - 1 && resList.length > 1) grandTotalScores[item.name] -= 1;
+                
+                // Der Letzte der Runde kriegt einen Strafpunkt (nur wenn mehr als 1 Spieler teilgenommen haben)
+                if(index === gueltigeSpieler.length - 1 && gueltigeSpieler.length > 1) {
+                    grandTotalScores[item.name] -= 1;
+                }
             });
         });
 
+        // Tabellenzeilen visuell hervorheben (Grün für Sieger, Rot für Verlierer)
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`); if(!row) return;
-            if(großResults[0].name === p || kleinResults[0].name === p) row.classList.add("winner-row");
-            if(großResults[großResults.length - 1].name === p || kleinResults[kleinResults.length - 1].name === p) row.classList.add("loser-row");
+            
+            // Finde heraus, wer tatsächlich Erster oder Letzter geworden ist (ohne unbespielte Werte)
+            let istGewinnerGroß = großResults[0] && großResults[0].val > 0 && großResults[0].name === p;
+            let istGewinnerKlein = kleinResults[0] && kleinResults[0].val < 999 && kleinResults[0].name === p;
+            
+            let gueltigeGroß = großResults.filter(item => item.val > 0);
+            let gueltigeKlein = kleinResults.filter(item => item.val < 999);
+            
+            let istVerliererGroß = gueltigeGroß.length > 1 && gueltigeGroß[gueltigeGroß.length - 1].name === p;
+            let istVerliererKlein = gueltigeKlein.length > 1 && gueltigeKlein[gueltigeKlein.length - 1].name === p;
+
+            if(istGewinnerGroß || istGewinnerKlein) row.classList.add("winner-row");
+            if(istVerliererGroß || istVerliererKlein) row.classList.add("loser-row");
         });
-        alert("🎉 Beide Hausnummern ausgewertet!");
+
+        updateGrandTotalTable();
+        alert("🎉 Beide Hausnummern erfolgreich ausgewertet & Punkte eingetragen!");
+        
     } else {
-        // Logik für die restlichen Spiele (17&4, Rennen, Idiot)
+        // Logik für die restlichen Spiele (17&4, Rennen, Idiot, Fuchsjagd)
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`); if(!row) return;
             let score = 0;
@@ -585,7 +620,6 @@ function calculateGame() {
             } else if (currentGame === "rennen") {
                 liveCalculate6TageRennen();
                 const teamName = row.getAttribute("data-team");
-                // Wir holen das Gesamtergebnis des Teams aus der Zelle
                 const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
                 score = parseInt(teamCell.innerText) || 0; 
             } else if (currentGame === "idiot") {
@@ -593,12 +627,8 @@ function calculateGame() {
                 row.querySelector(".id-gesamt").innerText = score;
             } else if (currentGame === "fuchsjagd") {
                 liveCalculateFuchsjagd();
-                const role = row.querySelector(".fuchs-role").value;
                 const totalPoints = parseInt(row.querySelector(".fuchs-res").innerText) || 0;
-                
-                // Wir speichern den Score. Füchse bekommen einen Bonus zur internen Sortierung,
-                // aber die Logik ermittelt den Gewinner anhand der Regeln:
-                score = totalPoints; 
+                score = totalPoints;
             }
 
             results.push({ name: p, score: score, element: row });
@@ -624,7 +654,6 @@ function calculateGame() {
             });
 
             if (fuchsObj) {
-                // Fuchs gewinnt, wenn er >= 31 hat UND nicht von Jägern eingeholt wurde
                 if (fuchsObj.score >= 31 && fuchsObj.score > hoechsterJaegerScore) {
                     fuchsObj.element.querySelector(".rank-col").innerHTML = `🦊🥇 Win`;
                     fuchsObj.element.classList.add("winner-row");
@@ -636,7 +665,6 @@ function calculateGame() {
                     grandTotalScores[fuchsObj.name] -= 1;
                     alert(`Die Jäger haben den Fuchs erlegt! (Höchster Jäger: ${hoechsterJaegerScore} Holz) 🏹`);
                     
-                    // Jäger belohnen, die den Fuchs eingeholt haben
                     players.forEach(p => {
                         const row = document.getElementById(`row-${p}`);
                         const role = row.querySelector(".fuchs-role").value;
@@ -650,7 +678,7 @@ function calculateGame() {
                 }
             }
         } else {
-            // Das ist der Standard-Code für die restlichen Spiele:
+            // Standard-Code für die restlichen Spiele:
             results.forEach((item, index) => {
                 const rank = index + 1; const rankCol = item.element.querySelector(".rank-col"); if(!rankCol) return;
                 if (rank === 1) { rankCol.innerHTML = `<span class="rank-badge rank-1">🥇 1</span>`; item.element.classList.add("winner-row"); grandTotalScores[item.name] += 3; }
@@ -664,6 +692,7 @@ function calculateGame() {
     }   
 }
 
+//*************************************************
 
 function calculateKegelbuch() {
     let kbResults = [];
