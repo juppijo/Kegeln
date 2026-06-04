@@ -32,8 +32,8 @@ function updateCurrentGameTable() {
         // Die Spaltenüberschriften für die Kombi-Hausnummer (überschreibt thRow mit den 2 Platzierungen)
         thRow.innerHTML = `
             <th>Name</th>
-            <th style="color: #60a5fa; font-size: 0.85rem;">Pl. Groß</th>
-            <th style="color: #fbbf24; font-size: 0.85rem;">Pl. Klein</th>
+            <th style="color: #60a5fa; font-size: 0.85rem; text-align: center;">Pl. Groß</th>
+            <th style="color: #fbbf24; font-size: 0.85rem; text-align: center;">Pl. Klein</th>
             <th style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">📈 W1 (Groß)</th>
             <th style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">📈 W2 (Groß)</th>
             <th style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">📈 W3 (Groß)</th>
@@ -48,11 +48,12 @@ function updateCurrentGameTable() {
 
         players.forEach(p => {
             const d = activeGamesData.hausnummer[p] || { g1: 0, g2: 0, g3: 0, k1: 9, k2: 9, k3: 9 };
+            // HIER GEÄNDERT: Die Platzierungsfelder haben jetzt eine dynamische ID erhalten (id="rank1-${p}" und id="rank2-${p}")
             tbody.innerHTML += `
                 <tr id="row-${p}">
                     <td><strong>${p}</strong></td>
-                    <td class="rank-col-gross" style="font-weight:bold; color:#60a5fa; text-align:center;">-</td>
-                    <td class="rank-col-klein" style="font-weight:bold; color:#fbbf24; text-align:center;">-</td>
+                    <td id="rank1-${p}" class="rank-col-gross" style="font-weight:bold; color:#60a5fa; text-align:center; font-size:1.1rem;">-</td>
+                    <td id="rank2-${p}" class="rank-col-klein" style="font-weight:bold; color:#fbbf24; text-align:center; font-size:1.1rem;">-</td>
                     <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g1" min="0" max="9" value="${d.g1}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
                     <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g2" min="0" max="9" value="${d.g2}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
                     <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g3" min="0" max="9" value="${d.g3}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
@@ -468,19 +469,73 @@ function liveCalculateHausnummer() {
 
     // 2. Platzierung für GROSS ermitteln (Höchste Zahl gewinnt -> Platz 1)
     grossScores.sort((a, b) => b.score - a.score);
+    
+    let currentRankGross = 1;
     grossScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            row.querySelector(".rank-col-gross").innerText = (index + 1) + ".";
+            const cell = row.querySelector(".rank-col-gross");
+            if (cell) {
+                // Wenn noch 0 Punkte (nicht geworfen), dann kein Rang
+                if (item.score === 0) {
+                    cell.innerText = "-";
+                    return;
+                }
+
+                // Bei Punktegleichstand den gleichen Rang beibehalten
+                if (index > 0 && item.score === grossScores[index - 1].score) {
+                    // gleicher Rang wie Vordermann
+                } else {
+                    currentRankGross = index + 1;
+                }
+
+                // Medaillen oder Text anzeigen
+                if (currentRankGross === 1) {
+                    cell.innerHTML = "🥇";
+                } else if (currentRankGross === 2) {
+                    cell.innerHTML = "🥈";
+                } else if (currentRankGross === 3) {
+                    cell.innerHTML = "🥉";
+                } else {
+                    cell.innerText = currentRankGross + ".";
+                }
+            }
         }
     });
 
     // 3. Platzierung für KLEIN ermitteln (Niedrigste Zahl gewinnt -> Platz 1)
     kleinScores.sort((a, b) => a.score - b.score);
+    
+    let currentRankKlein = 1;
     kleinScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            row.querySelector(".rank-col-klein").innerText = (index + 1) + ".";
+            const cell = row.querySelector(".rank-col-klein");
+            if (cell) {
+                // Wenn noch 999 Punkte (nicht geworfen), dann kein Rang
+                if (item.score === 999) {
+                    cell.innerText = "-";
+                    return;
+                }
+
+                // Bei Punktegleichstand den gleichen Rang beibehalten
+                if (index > 0 && item.score === kleinScores[index - 1].score) {
+                    // gleicher Rang wie Vordermann
+                } else {
+                    currentRankKlein = index + 1;
+                }
+
+                // Medaillen oder Text anzeigen
+                if (currentRankKlein === 1) {
+                    cell.innerHTML = "🥇";
+                } else if (currentRankKlein === 2) {
+                    cell.innerHTML = "🥈";
+                } else if (currentRankKlein === 3) {
+                    cell.innerHTML = "🥉";
+                } else {
+                    cell.innerText = currentRankKlein + ".";
+                }
+            }
         }
     });
 }
