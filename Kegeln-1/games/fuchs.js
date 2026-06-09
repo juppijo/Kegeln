@@ -62,7 +62,6 @@ function renderFuchs() {
     </div>
     <div id="rules_fuchs" style="display:none">${rulesHtml('fuchs')}</div>
 
-    <!-- FUCHS-WAHL & STEUERUNG -->
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg3);padding:12px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:14px">
       <span style="font-weight:700;color:var(--accent)">🦊 Fuchs:</span>
       <select class="select-input" onchange="setFuchs(this.value)" ${active ? 'disabled' : ''}>
@@ -84,10 +83,8 @@ function renderFuchs() {
     ${!fuchsPlayer ? '<div class="empty-state">Bitte zuerst einen Fuchs auswählen!</div>' : ''}
 
     ${active ? `
-    <!-- DOPPEL-FORTSCHRITTSBALKEN: FUCHS vs JÄGER -->
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
 
-      <!-- Fuchs-Balken -->
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
         <span style="font-weight:700;color:var(--accent);font-size:.9rem">🦊 Fuchs</span>
         <span style="font-weight:800;font-size:1.3rem;color:${foxTotal>=25?'var(--danger)':'var(--text)'}">
@@ -99,7 +96,6 @@ function renderFuchs() {
              box-shadow:0 0 8px ${barColor}40"></div>
       </div>
 
-      <!-- Jäger-Balken -->
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
         <span style="font-weight:700;color:var(--accent2);font-size:.9rem">🏹 Jäger Gesamt</span>
         <span style="font-weight:800;font-size:1.3rem;
@@ -114,7 +110,6 @@ function renderFuchs() {
              transition:width .3s;border-radius:20px"></div>
       </div>
 
-      <!-- Differenz-Anzeige -->
       <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text3)">
         <span>Fuchs braucht noch <strong>${31-foxTotal}</strong> bis Sieg</span>
         <span>Jäger brauchen noch
@@ -125,7 +120,6 @@ function renderFuchs() {
       </div>
     </div>
 
-    <!-- AKTUELLER ZUG -->
     <div style="background:var(--surface2);border:2px solid ${isHunterPhase ? 'var(--accent2)' : 'var(--accent)'};border-radius:var(--radius);padding:16px;margin-bottom:12px">
       <div style="font-size:.7rem;color:var(--text3);letter-spacing:1px;margin-bottom:6px">AKTUELLER ZUG</div>
       <div style="font-size:1.05rem;margin-bottom:12px">${turnLabel()}</div>
@@ -143,7 +137,6 @@ function renderFuchs() {
       </div>
     </div>
 
-    <!-- JÄGER-REIHENFOLGE -->
     ${hunters.length > 1 ? `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:.8rem">
       <span style="color:var(--text3);margin-right:6px">🏹 Jäger-Reihenfolge:</span>
@@ -154,7 +147,6 @@ function renderFuchs() {
         </span>` : ''}
     </div>` : ''}
 
-    <!-- TURN-LOG -->
     ${active.turns.length > 0 ? `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;max-height:240px;overflow-y:auto">
       <div style="font-size:.72rem;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:1px">
@@ -174,7 +166,6 @@ function renderFuchs() {
     </div>` : ''}
     ` : ''}
 
-    <!-- KÄTSCHE-CHRONIK -->
     ${fr.kaetschen.length > 0 && !active ? `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px">
       <div style="font-size:.72rem;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:1px">
@@ -182,14 +173,15 @@ function renderFuchs() {
       </div>
       
       ${fr.kaetschen.map((k, i) => {
-        const foxName = state.players.find(p => p.id === fr.fuchsId)?.name || 'Fuchs';
+        // Fallback falls ein altes Spiel geladen wurde, das noch keinen Namen gespeichert hatte
+        const historicFoxName = k.foxName || 'Fuchs'; 
         return `
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.82rem">
             <span style="color:var(--text3)">Kätsche ${i + 1}</span>
             <span style="font-weight:700;color:${k.winner === 'fox' ? 'var(--accent)' : 'var(--accent2)'}">
               ${k.winner === 'fox'
-                ? `🦊 ${esc(foxName)} gewinnt (${k.foxFinal} Pkt)`
-                : `🏹 Jäger fangen ${esc(foxName)} (${k.foxFinal} Pkt)`}
+                ? `🦊 ${esc(historicFoxName)} gewinnt (${k.foxFinal} Pkt)`
+                : `🏹 Jäger fangen ${esc(historicFoxName)} ${k.caughtBy ? `durch ${esc(k.caughtBy)}` : ''} (${k.foxFinal} Pkt)`}
             </span>
           </div>`;
       }).join('')}
@@ -224,15 +216,14 @@ function startKaetsche() {
 }
 
 // ── Wurf verarbeiten ──
-// Ablauf: Fox_L → Fox_R → Jäger[i] → Fox → Jäger[i+1] → Fox → ...
-// Jäger kommen einzeln abwechselnd mit Fuchs.
-// Fangbedingung: Jäger-Gesamtsumme ≥ Fuchs-Gesamtsumme (nach JEDEM einzelnen Jäger-Wurf geprüft)
 function processFuchsThrow() {
   const score  = parseInt(document.getElementById('fuchs_input')?.value ?? 0) || 0;
   const fr     = state.scores.fuchs;
   const active = fr.active;
   if (!active || active.complete) return;
   const hunters     = state.players.filter(p => p.id !== fr.fuchsId);
+  const fuchsPlayer = state.players.find(p => p.id === fr.fuchsId);
+  const currentFoxName = fuchsPlayer ? fuchsPlayer.name : 'Fuchs';
 
   // ── FUCHS wirft ──
   if (['fox_links', 'fox_rechts', 'fox'].includes(active.phase)) {
@@ -244,19 +235,19 @@ function processFuchsThrow() {
       score, foxTotal: active.foxTotal
     });
     if (active.foxTotal >= 31) {
-      // FUCHS GEWINNT — Jäger-Reihenfolge dort weitermachen wo sie sind
+      // FUCHS GEWINNT
       fr.hunterStartIdx = active.hunterIdx % hunters.length;
       fr.fuchsWins++;
-      fr.kaetschen.push({ winner: 'fox', foxFinal: active.foxTotal });
+      // HIER GEÄNDERT: Aktuellen Fuchsnamen für die Chronik einfrieren
+      fr.kaetschen.push({ winner: 'fox', foxName: currentFoxName, foxFinal: active.foxTotal });
       fr.active = null;
       saveData(); showPage('fuchs');
-      showToast('🦊 Fuchs gewinnt! 31 erreicht!', 'success');
+      showToast(`🦊 Fuchs ${currentFoxName} gewinnt! 31 erreicht!`, 'success');
       return;
     }
-    // Phase: L → R → Jäger; sonst R/fox → Jäger
     active.phase = active.phase === 'fox_links' ? 'fox_rechts' : 'hunter';
 
-  // ── EIN JÄGER wirft (strikt alternierend mit Fuchs) ──
+  // ── EIN JÄGER wirft ──
   } else if (active.phase === 'hunter') {
     const hi     = active.hunterIdx % hunters.length;
     const hunter = hunters[hi];
@@ -266,19 +257,19 @@ function processFuchsThrow() {
       score, cumTotal: active.huntersCumTotal,
       foxTotal: active.foxTotal
     });
-    active.hunterIdx++;   // nächster Jäger beim nächsten Jäger-Zug
+    active.hunterIdx++;
 
     if (active.huntersCumTotal >= active.foxTotal) {
       // JÄGER FANGEN DEN FUCHS
-      fr.hunterStartIdx = active.hunterIdx % hunters.length;  // dort weitermachen
+      fr.hunterStartIdx = active.hunterIdx % hunters.length;
       fr.hunterWins++;
-      fr.kaetschen.push({ winner: 'hunters', foxFinal: active.foxTotal });
+      // HIER GEÄNDERT: Fuchsnamen und erfolgreichen Jäger einfrieren
+      fr.kaetschen.push({ winner: 'hunters', foxName: currentFoxName, foxFinal: active.foxTotal, caughtBy: hunter.name });
       fr.active = null;
       saveData(); showPage('fuchs');
       showToast(`🏹 Jäger fangen den Fuchs! (${active.huntersCumTotal} ≥ ${active.foxTotal})`, 'success');
       return;
     }
-    // Noch nicht gefangen → Fuchs wirft wieder
     active.phase = 'fox';
   }
 
