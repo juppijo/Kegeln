@@ -28,7 +28,17 @@ function defaultState() {
       einsacken: { g1: [], g2: [], rounds: [] },
                           // rounds: [{g1:{id:n}, g2:{id:n}}]
       schwein:    {},     // id: {vals:[5]}  (0-9 pins each weight)
-      tannenbaum: { g1: [], g2: [], g1wins: 0, g2wins: 0, rounds: [] },
+      
+      // AB HIER ERSETZEN / ERGÄNZEN:
+      tannenbaum: { 
+        g1: [], 
+        g2: [], 
+        g1wins: 0, 
+        g2wins: 0, 
+        rounds: [],
+        pendingPudelChoice: null // ← NEU für das Pudel-Banner-Update
+      },
+      
       idiot:      {},     // id: {links, beine, rechts}
       mensch:     {},     // id: {throws:[10]}
       bus: {              // buses array
