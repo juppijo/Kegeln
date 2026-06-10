@@ -126,10 +126,13 @@ function renderAuswertung() {
     const t  = s(sv.throws) + (sv.karte||0);
     return t > 21 ? -1 : t;              // Überkauft = letzter Platz
   };
-  const scoreRennen    = pid => {
-    const d = (state.scores.rennen.days||{})[pid] || [];
-    return d.reduce((a,v,i) => a+(v||0)*(i+1), 0);
+  // NEU — ersetzen durch:
+  const scoreRennen = pid => {
+    const rn   = state.scores.rennen;
+    const team = (rn.teams||[]).find(t => t.p1===pid || t.p2===pid);
+    return team ? rennenTeamTotal(team) : 0;  // kein Team → letzter Platz
   };
+
   const scoreSchwein   = pid => {
     const sw = state.scores.schwein[pid] || { vals:[] };
     return sw.vals.reduce((a,x,i) => a+(x||0)*wts[i], 0);
@@ -217,7 +220,7 @@ function renderAuswertung() {
     { key:'grossHN',   label:'Gr.HN',   title:'Große Hausnummer (höchste Zahl)' },
     { key:'kleinHN',   label:'Kl.HN',   title:'Kleine Hausnummer (niedrigste Zahl)' },
     { key:'sv',        label:'17u4',    title:'17 und 4' },
-    { key:'rennen',    label:'Rennen',  title:'6-Tage-Rennen (Einzel)' },
+    { key:'rennen',   label:'Rennen🤝', title:'6-Tage-Rennen — Team: beide Spieler teilen die gleiche Platzierung' },
     { key:'schwein',   label:'Schwein', title:'Schweinepartie (mehr Pins = besser)' },
     { key:'idiot',     label:'Idiot',   title:'Idiotenkegeln' },
     { key:'mensch',    label:'Mensch',  title:'Mensch ärger dich nicht' },
