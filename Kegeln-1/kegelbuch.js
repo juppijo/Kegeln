@@ -105,6 +105,7 @@ function toggleStartgeld(pid, checked) {
 // ======================================================
 // RENDER: AUSWERTUNG
 // ======================================================
+
 function renderAuswertung() {
   if (!state.players.length) return noPlayers();
   const wts = [0.2, 0.4, 0.6, 0.8, 1.0];
@@ -160,25 +161,54 @@ function renderAuswertung() {
   }
 
   // ---- RANGLISTEN-ERSTELLUNG PRO SPIEL ----
-  // Wandelt Ergebnisse in Platzierungspunkte um (Letzter = 1 Pkt, Vorletzter = 2 Pkt, etc.)
   function getPlacementPointsMap(scoreFn, higherBetter = true) {
     const entries = state.players.map(p => ({ id: p.id, total: scoreFn(p.id) }));
-    // Nutzt die existierende globale rank()-Funktion
     const ranked = rank(entries, higherBetter); 
     
     const pointsMap = {};
     ranked.forEach(r => {
-      // Formel: (Spieleranzahl - Platzierung) + 1
       pointsMap[r.id] = (numPlayers - r.rank) + 1;
     });
     return pointsMap;
   }
 
+  // Sonderlogik für 6-Tage-Rennen: Team-Wertung mit doppelten (gleichen) Platzierungspunkten
+  function getRennenPlacementPointsMap() {
+    const teams = state.scores.rennen.teams || [];
+    
+    // Berechne für jedes definierte Team die gemeinsame Gesamtpunktzahl
+    const teamScores = teams.map(t => {
+      const s1 = score_rennen(t.p1);
+      const s2 = score_rennen(t.p2);
+      return { id: t.id, total: s1 + s2, p1: t.p1, p2: t.p2 };
+    });
+
+    // Sortiere/Ranke die Teams anhand der gemeinsamen Summe
+    const rankedTeams = rank(teamScores, true);
+    const rennenPointsMap = {};
+
+    // Initialisiere alle Spieler erst einmal mit 0 Punkten
+    state.players.forEach(p => { rennenPointsMap[p.id] = 0; });
+
+    // Vergebe Platzierungspunkte basierend auf dem Team-Rang (Letzter = 1, Vorletzter = 2, ...)
+    // Da zwei Spieler pro Team die gleiche Platzierung belegen, werden Punkte per 2 (z.B. (numPlayers - r.rank) + 1) an beide gegeben.
+    rankedTeams.forEach(r => {
+      const p1 = r.item ? r.item.p1 : r.p1;
+      const p2 = r.item ? r.item.p2 : r.p2;
+      const pts = (numPlayers - r.rank) + 1;
+      
+      if (p1) rennenPointsMap[p1] = pts;
+      if (p2) rennenPointsMap[p2] = pts;
+    });
+
+    return rennenPointsMap;
+  }
+
   // Berechne die Punkte-Maps für jedes einzelne Spiel
   const pointsGrossHN  = getPlacementPointsMap(score_grossHN, true);
-  const pointsKleinHN  = getPlacementPointsMap(score_kleinHN, false); // false, weil kleinere HN besser ist
+  const pointsKleinHN  = getPlacementPointsMap(score_kleinHN, false);
   const pointsSv       = getPlacementPointsMap(score_sv, true);
-  const pointsRennen   = getPlacementPointsMap(score_rennen, true);
+  const pointsRennen   = getRennenPlacementPointsMap(); // Aufruf der neuen Team-Wertung
   const pointsIdiot    = getPlacementPointsMap(score_idiot, true);
   const pointsMensch   = getPlacementPointsMap(score_mensch, true);
   const pointsFuchs    = getPlacementPointsMap(score_fuchs, true);
@@ -212,11 +242,29 @@ function renderAuswertung() {
     };
   }
 
+  // Spezifischer Sieger für das 6-Tage-Rennen (Team-basiert)
+  function rennenGameWinner() {
+    const teams = state.scores.rennen.teams || [];
+    if (!teams.length) return null;
+    const teamScores = teams.map(t => {
+      const s1 = score_rennen(t.p1);
+      const s2 = score_rennen(t.p2);
+      return { name: t.name, total: s1 + s2 };
+    });
+    const ranked = rank(teamScores, true);
+    const winners = ranked.filter(r => r.rank === 1);
+    if (!winners.length || winners[0].total === 0) return null;
+    return {
+      names: winners.map(w => esc(w.name)).join(' &amp; '),
+      score: winners[0].total
+    };
+  }
+
   const gameWinners = [
     { title: '🏠 Große Hausnummer',  w: gameWinner(score_grossHN, true) },
     { title: '🏠 Kleine Hausnummer', w: gameWinner(score_kleinHN, false) },
     { title: '🃏 17 und 4',          w: gameWinner(pid => { const t = score_sv(pid); return t === 0 ? -1 : t; }, true) },
-    { title: '🚀 6-Tage-Rennen',     w: gameWinner(score_rennen, true) },
+    { title: '🚀 6-Tage-Rennen',     w: rennenGameWinner() }, // Nutzt den Team-Sieger
     { title: '🐷 Schwein. (höchst)', w: gameWinner(score_schwein, true) },
     { title: '🤪 Idiotenkegeln',     w: gameWinner(score_idiot, true) },
     { title: '🎲 Mensch ä.d.n.',     w: gameWinner(score_mensch, true) },
