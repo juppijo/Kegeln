@@ -100,6 +100,7 @@ function toggleStartgeld(pid, checked) {
   state.kegelbuch[pid].startgeld = checked;
   saveData();
 }
+//-------------------------------------------------------------------------
 
 // ======================================================
 // RENDER: AUSWERTUNG
@@ -107,43 +108,44 @@ function toggleStartgeld(pid, checked) {
 function renderAuswertung() {
   if (!state.players.length) return noPlayers();
   const wts = [0.2, 0.4, 0.6, 0.8, 1.0];
+  const numPlayers = state.players.length;
 
-  // ---- Points per game per player ----
-  function pts_hausnummer(pid) {
-    // For overall points: use gross HN value (normalized 0-9 per digit = max 999)
-    // Give bonus points for good performance: gross ranks up, klein ranks down
-    return grossHN(pid);
-  }
-  function pts_sv(pid) {
+  // ---- RÜCKGABEWRETE DER EINZELNEN SPIELE (Raw Scores) ----
+  function score_grossHN(pid) { return grossHN(pid); }
+  function score_kleinHN(pid) { return kleinHN(pid); } // Hier gilt: niedriger ist besser
+  
+  function score_sv(pid) {
     const sv = state.scores.sv[pid] || { throws: [], karte: 0 };
     const t = s(sv.throws) + (sv.karte || 0);
-    return t > 21 ? 0 : t;          // busted = 0 points
+    return t > 21 ? 0 : t; // Überkauft = 0 Punkte
   }
-  function pts_rennen(pid) {
+  function score_rennen(pid) {
     const days = (state.scores.rennen.days || {})[pid] || [];
     return days.reduce((a, v, i) => a + (v || 0) * (i + 1), 0);
   }
-  function pts_idiot(pid) {
+  function score_schwein(pid) {
+    const sw = state.scores.schwein[pid] || { vals: [] };
+    return sw.vals.reduce((a, x, i) => a + (x || 0) * wts[i], 0);
+  }
+  function score_idiot(pid) {
     const id = state.scores.idiot[pid] || { links: 0, beine: 0, rechts: 0 };
     return (id.links || 0) + (id.beine || 0) + (id.rechts || 0);
   }
-  function pts_mensch(pid) {
+  function score_mensch(pid) {
     return s((state.scores.mensch[pid] || { throws: [] }).throws);
   }
-  function pts_fuchs(pid) {
+  function score_fuchs(pid) {
     const fr = state.scores.fuchs;
     if (!fr || !fr.kaetschen) return 0;
-    // Fuchs gets 1 pt per won Kätsche; Hunters each get 1 pt per won Kätsche
     if (pid === fr.fuchsId) {
       return fr.kaetschen.filter(k => k.winner === 'fox').length;
     } else {
-      // This player is a hunter
       const hunters = state.players.filter(p => p.id !== fr.fuchsId);
       if (!hunters.find(h => h.id === pid)) return 0;
       return fr.kaetschen.filter(k => k.winner === 'hunters').length;
     }
   }
-  function pts_einsacken(pid) {
+  function score_einsacken(pid) {
     const es = state.scores.einsacken;
     let g = null;
     if ((es.g1 || []).includes(pid)) g = 'g1';
@@ -157,16 +159,48 @@ function renderAuswertung() {
     }, 0);
   }
 
-  function allPoints(pid) {
-    return pts_hausnummer(pid) + pts_sv(pid) + pts_rennen(pid) +
-           pts_idiot(pid) + pts_mensch(pid) + pts_fuchs(pid) + pts_einsacken(pid);
+  // ---- RANGLISTEN-ERSTELLUNG PRO SPIEL ----
+  // Wandelt Ergebnisse in Platzierungspunkte um (Letzter = 1 Pkt, Vorletzter = 2 Pkt, etc.)
+  function getPlacementPointsMap(scoreFn, higherBetter = true) {
+    const entries = state.players.map(p => ({ id: p.id, total: scoreFn(p.id) }));
+    // Nutzt die existierende globale rank()-Funktion
+    const ranked = rank(entries, higherBetter); 
+    
+    const pointsMap = {};
+    ranked.forEach(r => {
+      // Formel: (Spieleranzahl - Platzierung) + 1
+      pointsMap[r.id] = (numPlayers - r.rank) + 1;
+    });
+    return pointsMap;
   }
 
-  // ---- Overall ranking ----
-  const overallEntries = state.players.map(p => ({ id: p.id, name: p.name, total: allPoints(p.id) }));
-  const overallRanked  = rank(overallEntries);
+  // Berechne die Punkte-Maps für jedes einzelne Spiel
+  const pointsGrossHN  = getPlacementPointsMap(score_grossHN, true);
+  const pointsKleinHN  = getPlacementPointsMap(score_kleinHN, false); // false, weil kleinere HN besser ist
+  const pointsSv       = getPlacementPointsMap(score_sv, true);
+  const pointsRennen   = getPlacementPointsMap(score_rennen, true);
+  const pointsIdiot    = getPlacementPointsMap(score_idiot, true);
+  const pointsMensch   = getPlacementPointsMap(score_mensch, true);
+  const pointsFuchs    = getPlacementPointsMap(score_fuchs, true);
+  const pointsEinsacken= getPlacementPointsMap(score_einsacken, true);
 
-  // ---- Per-game winners (return raw name string, not escaped) ----
+  // ---- GESAMTPUNKTEBERECHNUNG (Summe der Platzierungspunkte) ----
+  function totalPlacementPoints(pid) {
+    return (pointsGrossHN[pid] || 0) +
+           (pointsKleinHN[pid] || 0) +
+           (pointsSv[pid] || 0) +
+           (pointsRennen[pid] || 0) +
+           (pointsIdiot[pid] || 0) +
+           (pointsMensch[pid] || 0) +
+           (pointsFuchs[pid] || 0) +
+           (pointsEinsacken[pid] || 0);
+  }
+
+  // Gesamt-Rangliste erstellen
+  const overallEntries = state.players.map(p => ({ id: p.id, name: p.name, total: totalPlacementPoints(p.id) }));
+  const overallRanked  = rank(overallEntries, true);
+
+  // ---- SPIELSIEGER ERMITTELN (Für die Kacheln unten) ----
   function gameWinner(scoreFn, higherBetter = true) {
     const entries = state.players.map(p => ({ id: p.id, name: p.name, total: scoreFn(p.id) }));
     const ranked  = rank(entries, higherBetter);
@@ -179,30 +213,27 @@ function renderAuswertung() {
   }
 
   const gameWinners = [
-    { title: '🏠 Große Hausnummer',  w: gameWinner(pid => grossHN(pid), true) },
-    { title: '🏠 Kleine Hausnummer', w: gameWinner(pid => kleinHN(pid), false) },
-    { title: '🃏 17 und 4',          w: gameWinner(pid => { const sv = state.scores.sv[pid] || { throws: [], karte: 0 }; const t = s(sv.throws) + (sv.karte || 0); return t > 21 ? -1 : t; }) },
-    { title: '🚀 6-Tage-Rennen',     w: gameWinner(pts_rennen) },
-    { title: '🐷 Schwein. (höchst)', w: gameWinner(pid => { const sw = state.scores.schwein[pid] || { vals: [] }; return sw.vals.reduce((a, x, i) => a + (x || 0) * wts[i], 0); }) },
-    { title: '🤪 Idiotenkegeln',     w: gameWinner(pts_idiot) },
-    { title: '🎲 Mensch ä.d.n.',     w: gameWinner(pts_mensch) },
-    { title: '🦊 Fuchs',            w: gameWinner(pts_fuchs) },
-    { title: '💰 Einsacken',        w: gameWinner(pts_einsacken) },
+    { title: '🏠 Große Hausnummer',  w: gameWinner(score_grossHN, true) },
+    { title: '🏠 Kleine Hausnummer', w: gameWinner(score_kleinHN, false) },
+    { title: '🃏 17 und 4',          w: gameWinner(pid => { const t = score_sv(pid); return t === 0 ? -1 : t; }, true) },
+    { title: '🚀 6-Tage-Rennen',     w: gameWinner(score_rennen, true) },
+    { title: '🐷 Schwein. (höchst)', w: gameWinner(score_schwein, true) },
+    { title: '🤪 Idiotenkegeln',     w: gameWinner(score_idiot, true) },
+    { title: '🎲 Mensch ä.d.n.',     w: gameWinner(score_mensch, true) },
+    { title: '🦊 Fuchs',            w: gameWinner(score_fuchs, true) },
+    { title: '💰 Einsacken',        w: gameWinner(score_einsacken, true) },
   ];
 
-  // ---- Podium top3 (sorted desc already by rank()) ----
+  // ---- PODIUM TOP 3 ----
   const sorted3 = overallRanked.slice(0, 3);
   while (sorted3.length < 3) sorted3.push(null);
-  // Podium layout: 2nd left, 1st center, 3rd right
   const podiumOrder = [sorted3[1], sorted3[0], sorted3[2]];
   const podiumCls   = ['p2', 'p1', 'p3'];
   const podiumTroph = ['🥈', '🥇', '🥉'];
 
   function podiumCard(entry, cls, trophy) {
     if (!entry) {
-      return `<div class="podium-place ${cls}">
-        <div class="podium-block" style="opacity:.3">–</div>
-      </div>`;
+      return `<div class="podium-place ${cls}"><div class="podium-block" style="opacity:.3">–</div></div>`;
     }
     return `
       <div class="podium-place ${cls}">
@@ -213,22 +244,19 @@ function renderAuswertung() {
       </div>`;
   }
 
-  // ---- Breakdown table columns ----
-  const breakCols = ['Haus','17u4','Rennen','Idiot','Mensch','Fuchs','Eins.'];
-  const breakFns  = [pts_hausnummer, pts_sv, pts_rennen, pts_idiot, pts_mensch, pts_fuchs, pts_einsacken];
+  // ---- SPALTEN FÜR DIE TABELLEN-ÜBERSICHT ----
+  const breakCols = ['Gr. HN', 'Kl. HN', '17u4', 'Rennen', 'Idiot', 'Mensch', 'Fuchs', 'Eins.'];
 
   return `
   <div class="page-card">
     <div class="card-header"><h2>🏆 Gesamtauswertung</h2></div>
 
-    <!-- PODIUM -->
     <div class="podium-section">
       ${podiumOrder.map((e,i) => podiumCard(e, podiumCls[i], podiumTroph[i])).join('')}
     </div>
 
-    <!-- GESAMTRANGLISTE -->
     <hr class="sect-divider">
-    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">GESAMTRANGLISTE</h3>
+    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">GESAMTRANGLISTE (NACH PLATZIERUNGSPUNKTEN)</h3>
     <div class="table-wrapper">
       <table class="score-table">
         <thead>
@@ -244,23 +272,29 @@ function renderAuswertung() {
             <tr style="${r.rank <= 3 ? 'background:rgba(232,160,32,.06)' : ''}">
               <td class="rank-cell" style="font-size:1.05rem">${medal(r.rank)}</td>
               <td class="name-cell">${esc(r.name)}</td>
-              ${breakFns.map(fn => `<td style="font-size:.78rem;color:var(--text2)">${fn(r.id)}</td>`).join('')}
+              <td style="font-size:.78rem;color:var(--text2)">${pointsGrossHN[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsKleinHN[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsSv[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsRennen[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsIdiot[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsMensch[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsFuchs[r.id] || 0}</td>
+              <td style="font-size:.78rem;color:var(--text2)">${pointsEinsacken[r.id] || 0}</td>
               <td class="sum-cell">${r.total}</td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>
 
-    <!-- SPIELSIEGER -->
     <hr class="sect-divider">
-    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">SPIELSIEGER</h3>
+    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">SPIELSIEGER (REALE ERGEBNISSE)</h3>
     <div class="game-results-grid">
       ${gameWinners.map(gw => `
         <div class="game-result-card">
           <div class="game-name">${gw.title}</div>
           ${gw.w
             ? `<div class="winner">🥇 ${gw.w.names}</div>
-               <div class="score">${typeof gw.w.score === 'number' ? (Number.isInteger(gw.w.score) ? gw.w.score : gw.w.score.toFixed(2)) : gw.w.score} Pkt</div>`
+               <div class="score">${typeof gw.w.score === 'number' ? (Number.isInteger(gw.w.score) ? gw.w.score : gw.w.score.toFixed(2)) : gw.w.score} ${gw.title.includes('Schwein') ? '€' : 'Pkt'}</div>`
             : `<div class="winner" style="color:var(--text3)">– Noch keine Daten –</div>`}
         </div>`).join('')}
       <div class="game-result-card">
