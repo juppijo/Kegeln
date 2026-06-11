@@ -8,24 +8,40 @@ let grandTotalScores = {};
 let activeGamesData = {
     hausnummer: {},
     "siebzehn-vier": {},
+    "aergere-dich-nicht": {},
     rennen: {},
     idiot: {},
     fuchsjagd: {}, // Wird dynamisch mit w1 bis w8 befüllt
     tannenbaum: {} // <-- NEU!
 };
 
-let gameOrder = [
+const defaultGameOrder = [
     { key: "hausnummer", title: "🏠 Große/Kleine Hausnummer" },
     { key: "siebzehn-vier", title: "🃏 17 und 4" },
+    { key: "aergere-dich-nicht", title: "Mensch ärgere dich nicht" },
     { key: "rennen", title: "🏎️ 6 Tage Rennen" },
     { key: "idiot", title: "🤪 Idiotenkegeln" },
     { key: "fuchsjagd", title: "🦊 Fuchsjagd" },  
     { key: "tannenbaum", title: "🎄 Tannenbaum (Teams)" } // <-- NEU!
 ];
 
+let gameOrder = [...defaultGameOrder];
+
+function ensureDefaultGamesAvailable() {
+    defaultGameOrder.forEach(defaultGame => {
+        if (!gameOrder.some(game => game.key === defaultGame.key)) {
+            gameOrder.push(defaultGame);
+        }
+        if (!activeGamesData[defaultGame.key]) {
+            activeGamesData[defaultGame.key] = {};
+        }
+    });
+}
+
 const gameRules = {
     hausnummer: "3 Würfe. Bei 'Groß' wird eine möglichst hohe dreistellige Zahl gebildet, bei 'Klein' eine möglichst niedrige.",
     "siebzehn-vier": "Kegel nacheinander in die Wurf-Kästchen eintragen. Am Ende kann im Feld 'Karte' der Wert einer gezogenen Karte addiert werden. Ziel ist es, so nah wie möglich an die 21 heranzukommen. Wer über 21 Punkte kommt (überkauft), hakt das Kästchen an und erhält für die Runde -1 Punkt.",
+    "aergere-dich-nicht": "Alle starten bei 0 und kegeln reihum in die Vollen. Die gefallenen Kegel werden addiert. Wer eine 6 wirft, darf sofort noch einmal kegeln. Landet ein Spieler exakt auf dem Punktestand eines oder mehrerer Mitspieler, werden diese auf 0 zurückgesetzt. Gewonnen hat, wer die Zielmarke genau erreicht.",
     rennen: "6 Runden Ausdauerrennen. Runde 2 zählt doppelt (x2), Runde 3 dreifach (x3) bis Runde 6 (x6). Höchste Summe gewinnt.",
     idiot: "Spassturnier: Wurf 1 mit LINKS, Wurf 2 RÜCKWÄRTS durch die Beine, Wurf 3 mit RECHTS. Gesamtsumme zählt.",
     fuchsjagd: "Ein Spieler ist der Fuchs. Der Fuchs erhält 2 Vorwürfe (1x links, 1x rechts) und versucht mit seinen Folgewürfen 31 oder mehr Holz zu erreichen. Die Jäger versuchen, den Fuchs einzuholen!",
