@@ -977,6 +977,51 @@ body {
   margin-bottom: 4px;
 }
 
+/* splash-screen  ----------------------------------------*/
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg2);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease-out, visibility 0.5s;
+}
+
+.splash-inner { text-align: center; }
+.splash-inner h1 { font-family: var(--font-title); color: var(--accent); font-size: 2.5rem; margin-bottom: 2rem; }
+
+.bowling-animation { position: relative; width: 300px; height: 100px; margin: 0 auto 2rem; }
+
+.ball {
+  font-size: 2rem;
+  position: absolute;
+  left: -50px;
+  animation: roll 2s forwards ease-in;
+}
+
+.pin-group { position: absolute; right: 20px; display: flex; gap: 5px; }
+.pin { font-size: 4.8rem; animation: pin-fall 0.5s 1.8s forwards; }
+
+@keyframes roll {
+  0% { left: -50px; transform: rotate(0); }
+  90% { left: 200px; transform: rotate(720deg); }
+  100% { left: 220px; transform: rotate(750deg); opacity: 0; }
+}
+
+@keyframes pin-fall {
+  to { transform: translateY(30px) rotate(70deg); opacity: 0; }
+}
+
+.loading-container { width: 250px; height: 10px; background: var(--bg3); border-radius: 5px; margin: 0 auto; overflow: hidden; }
+.loading-bar { width: 0; height: 100%; background: var(--accent); animation: load 3s forwards linear; }
+
+@keyframes load { to { width: 100%; } }
+
+.splash-hidden { opacity: 0; visibility: hidden; }
+
 /* ======================================================
    RESPONSIVE — SMARTPHONE
    ====================================================== */
