@@ -38,6 +38,11 @@ function saveCurrentGameFields() {
                 card: row.querySelector(".sv-card").value
             };
 
+        } else if (currentGame === "aergere-dich-nicht") {
+            if (typeof saveMenschAergereDichNichtFields === "function") {
+                saveMenschAergereDichNichtFields();
+            }
+
         } else if (currentGame === "rennen") {
             activeGamesData.rennen = activeGamesData.rennen || {};
             
@@ -135,6 +140,7 @@ function loadPlayersFromStorage(notify) {
     if (localGames) gameOrder = JSON.parse(localGames);
     if (localTotal) grandTotalScores = JSON.parse(localTotal);
     if (localGamesData) activeGamesData = JSON.parse(localGamesData);
+    ensureDefaultGamesAvailable();
     
     initGrandTotalScores();
     renderPlayerBadges();
@@ -169,10 +175,11 @@ function importFromJSON(event) {
     reader.onload = function(e) {
         try {
             const importedData = JSON.parse(e.target.result);
-            if (importedData.players && Array.isArray(importedData.players)) {
+                if (importedData.players && Array.isArray(importedData.players)) {
                 players = importedData.players;
                 if (importedData.gameOrder && Array.isArray(importedData.gameOrder)) gameOrder = importedData.gameOrder;
                 if (importedData.savedCurrentGame) currentGame = importedData.savedCurrentGame;
+                ensureDefaultGamesAvailable();
                 initGrandTotalScores();
                 renderPlayerBadges();
                 renderGameSelector();
