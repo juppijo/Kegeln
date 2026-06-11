@@ -259,3 +259,12 @@ function editSessionName() {
     saveData();
   });
 }
+
+//  splash-screen  ----------------------------------------
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) splash.classList.add('splash-hidden');
+  }, 3000); // 3 Sekunden
+});
