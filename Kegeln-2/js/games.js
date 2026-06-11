@@ -102,6 +102,9 @@ function updateCurrentGameTable() {
 
         liveCalculateSiebzehnVier();
     }
+    else if (currentGame === "aergere-dich-nicht") {
+        renderMenschAergereDichNichtGame(tableResponsive);
+    }
     else if (currentGame === "rennen") {
         // HIER NEU: Spalte für den Platz (Medaillen) ganz links hinzugefügt
         thRow.innerHTML = "<th>Platz</th><th>Team wählen</th><th>Name</th><th>Tag 1</th><th>Tag 2 (x2)</th><th>Tag 3 (x3)</th><th>Tag 4 (x4)</th><th>Tag 5 (x5)</th><th>Tag 6 (x6)</th><th>Einzel</th><th>Team-Gesamt</th>";
@@ -599,6 +602,9 @@ function calculateGame() {
         updateGrandTotalTable();
         alert("🎉 Beide Hausnummern erfolgreich ausgewertet!");
         
+    } else if (currentGame === "aergere-dich-nicht") {
+        calculateMenschAergereDichNichtGame();
+
     } else if (currentGame === "fuchsjagd") {
         // KORREKTUR FUCHSJAGD: Holt die Summen direkt aus den neuen Ergebnis-Zellen
         const fuchsTotalScore = parseInt(document.getElementById("fuchs-res-total").innerText) || 0;
