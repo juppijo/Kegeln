@@ -161,19 +161,21 @@ function renderAuswertung() {
   }
 
   // ---- RANGLISTEN-ERSTELLUNG PRO SPIEL ----
-  function getPlacementPointsMap(scoreFn, higherBetter = true) {
+  function getPlacementData(scoreFn, higherBetter = true) {
     const entries = state.players.map(p => ({ id: p.id, total: scoreFn(p.id) }));
     const ranked = rank(entries, higherBetter); 
     
     const pointsMap = {};
+    const ranksMap = {};
     ranked.forEach(r => {
       pointsMap[r.id] = (numPlayers - r.rank) + 1;
+      ranksMap[r.id] = r.rank;
     });
-    return pointsMap;
+    return { points: pointsMap, ranks: ranksMap };
   }
 
   // Sonderlogik für 6-Tage-Rennen: Team-Wertung mit doppelten (gleichen) Platzierungspunkten
-  function getRennenPlacementPointsMap() {
+  function getRennenPlacementData() {
     const teams = state.scores.rennen.teams || [];
     
     // Berechne für jedes definierte Team die gemeinsame Gesamtpunktzahl
@@ -186,9 +188,13 @@ function renderAuswertung() {
     // Sortiere/Ranke die Teams anhand der gemeinsamen Summe
     const rankedTeams = rank(teamScores, true);
     const rennenPointsMap = {};
+    const rennenRanksMap = {};
 
     // Initialisiere alle Spieler erst einmal mit 0 Punkten
-    state.players.forEach(p => { rennenPointsMap[p.id] = 0; });
+    state.players.forEach(p => {
+      rennenPointsMap[p.id] = 0;
+      rennenRanksMap[p.id] = null;
+    });
 
     // Vergebe Platzierungspunkte basierend auf dem Team-Rang (Letzter = 1, Vorletzter = 2, ...)
     // Da zwei Spieler pro Team die gleiche Platzierung belegen, werden Punkte per 2 (z.B. (numPlayers - r.rank) + 1) an beide gegeben.
@@ -197,22 +203,36 @@ function renderAuswertung() {
       const p2 = r.item ? r.item.p2 : r.p2;
       const pts = (numPlayers - r.rank) + 1;
       
-      if (p1) rennenPointsMap[p1] = pts;
-      if (p2) rennenPointsMap[p2] = pts;
+      if (p1) {
+        rennenPointsMap[p1] = pts;
+        rennenRanksMap[p1] = r.rank;
+      }
+      if (p2) {
+        rennenPointsMap[p2] = pts;
+        rennenRanksMap[p2] = r.rank;
+      }
     });
 
-    return rennenPointsMap;
+    return { points: rennenPointsMap, ranks: rennenRanksMap };
   }
 
   // Berechne die Punkte-Maps für jedes einzelne Spiel
-  const pointsGrossHN  = getPlacementPointsMap(score_grossHN, true);
-  const pointsKleinHN  = getPlacementPointsMap(score_kleinHN, false);
-  const pointsSv       = getPlacementPointsMap(score_sv, true);
-  const pointsRennen   = getRennenPlacementPointsMap(); // Aufruf der neuen Team-Wertung
-  const pointsIdiot    = getPlacementPointsMap(score_idiot, true);
-  const pointsMensch   = getPlacementPointsMap(score_mensch, true);
-  const pointsFuchs    = getPlacementPointsMap(score_fuchs, true);
-  const pointsEinsacken= getPlacementPointsMap(score_einsacken, true);
+  const grossHNData   = getPlacementData(score_grossHN, true);
+  const kleinHNData   = getPlacementData(score_kleinHN, false);
+  const svData        = getPlacementData(score_sv, true);
+  const rennenData    = getRennenPlacementData(); // Aufruf der neuen Team-Wertung
+  const idiotData     = getPlacementData(score_idiot, true);
+  const menschData    = getPlacementData(score_mensch, true);
+  const fuchsData     = getPlacementData(score_fuchs, true);
+  const einsackenData = getPlacementData(score_einsacken, true);
+  const pointsGrossHN   = grossHNData.points;
+  const pointsKleinHN   = kleinHNData.points;
+  const pointsSv        = svData.points;
+  const pointsRennen    = rennenData.points;
+  const pointsIdiot     = idiotData.points;
+  const pointsMensch    = menschData.points;
+  const pointsFuchs     = fuchsData.points;
+  const pointsEinsacken = einsackenData.points;
 
   // ---- GESAMTPUNKTEBERECHNUNG (Summe der Platzierungspunkte) ----
   function totalPlacementPoints(pid) {
@@ -229,6 +249,14 @@ function renderAuswertung() {
   // Gesamt-Rangliste erstellen
   const overallEntries = state.players.map(p => ({ id: p.id, name: p.name, total: totalPlacementPoints(p.id) }));
   const overallRanked  = rank(overallEntries, true);
+  const placementLabel = r => r <= 3 ? `${medal(r)} ${r}.` : `${r}.`;
+  const placementCell = (data, pid) => {
+    const rankValue = data.ranks[pid];
+    const pointsValue = data.points[pid] || 0;
+    return `
+      <span class="game-placement-badge">${rankValue ? placementLabel(rankValue) : '-'}</span>
+      <span>${pointsValue}</span>`;
+  };
 
   // ---- SPIELSIEGER ERMITTELN (Für die Kacheln unten) ----
   function gameWinner(scoreFn, higherBetter = true) {
@@ -320,15 +348,18 @@ function renderAuswertung() {
             <tr style="${r.rank <= 3 ? 'background:rgba(232,160,32,.06)' : ''}">
               <td class="rank-cell" style="font-size:1.05rem">${medal(r.rank)}</td>
               <td class="name-cell">${esc(r.name)}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsGrossHN[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsKleinHN[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsSv[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsRennen[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsIdiot[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsMensch[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsFuchs[r.id] || 0}</td>
-              <td style="font-size:.78rem;color:var(--text2)">${pointsEinsacken[r.id] || 0}</td>
-              <td class="sum-cell">${r.total}</td>
+              <td class="game-points-cell">${placementCell(grossHNData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(kleinHNData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(svData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(rennenData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(idiotData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(menschData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(fuchsData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(einsackenData, r.id)}</td>
+              <td class="sum-cell">
+                <span class="total-placement-badge">${placementLabel(r.rank)}</span>
+                <span>${r.total}</span>
+              </td>
             </tr>`).join('')}
         </tbody>
       </table>
