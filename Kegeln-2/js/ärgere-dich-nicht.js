@@ -6,7 +6,7 @@ function getMenschAergereData() {
     const data = activeGamesData[MENSCH_AERGERE_KEY];
 
     data.meta = data.meta || {
-        target: 51,
+        target: 31,
         winner: "",
         finished: false,
         message: "",
@@ -34,13 +34,14 @@ function getMenschAergereData() {
 
 function renderMenschAergereDichNichtGame(tableResponsive) {
     const data = getMenschAergereData();
-    const target = parseInt(data.meta.target, 10) || 51;
+    const target = parseInt(data.meta.target, 10) || 31;
 
     tableResponsive.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <label for="madn-target" style="font-weight:bold;">Zielmarke</label>
                 <select id="madn-target" onchange="setMenschAergereTarget(this.value)" style="min-width:90px;">
+                    <option value="31" ${target === 31 ? "selected" : ""}>31</option>
                     <option value="41" ${target === 41 ? "selected" : ""}>41</option>
                     <option value="51" ${target === 51 ? "selected" : ""}>51</option>
                 </select>
@@ -143,7 +144,7 @@ function addMenschAergereDichNichtThrow(playerIndex) {
     const data = getMenschAergereData();
     if (data.meta.finished) return;
 
-    const target = parseInt(data.meta.target, 10) || 51;
+    const target = parseInt(data.meta.target, 10) || 31;
     const playerData = data[player];
     const nextScore = (parseInt(playerData.score, 10) || 0) + throwValue;
 
@@ -152,8 +153,12 @@ function addMenschAergereDichNichtThrow(playerIndex) {
     data.meta.events.push({ player, value: throwValue });
 
     if (nextScore > target) {
-        playerData.status = `<span style='color:#f59e0b;'>${throwValue} zu viel, Stand bleibt</span>`;
-        data.meta.message = `${player} braucht exakt ${target - playerData.score} Holz.`;
+        playerData.status = `<span style='color:#f59e0b;'>${throwValue}  erreicht !</span>`;
+        //data.meta.message = `${player} braucht exakt ${target - playerData.score} Holz.`;
+        data.meta.winner = player;
+        data.meta.finished = true;
+        playerData.score = nextScore;
+        data.meta.message = `${player} erreicht ${target} Punkte und gewinnt!`;
     } else {
         playerData.score = nextScore;
         playerData.status = throwValue === 6
@@ -233,7 +238,7 @@ function undoMenschAergereDichNichtThrow(playerIndex) {
 
 function rebuildMenschAergereDichNichtScores() {
     const data = getMenschAergereData();
-    const target = parseInt(data.meta.target, 10) || 51;
+    const target = parseInt(data.meta.target, 10) || 31;
     const histories = {};
     const events = data.meta.events.length
         ? [...data.meta.events]
@@ -261,7 +266,10 @@ function rebuildMenschAergereDichNichtScores() {
         const nextScore = (parseInt(playerData.score, 10) || 0) + throwValue;
 
         if (nextScore > target) {
-            playerData.status = `<span style='color:#f59e0b;'>${throwValue} zu viel, Stand bleibt</span>`;
+            playerData.status = `<span style='color:#f59e0b;'>${throwValue} erreicht und mehr ! </span>`;
+            data.meta.winner = player;
+            data.meta.finished = true;
+            data.meta.message = `${player} erreicht und mehr ! ${target} Punkte und gewinnt!`;
             continue;
         }
 
@@ -269,7 +277,7 @@ function rebuildMenschAergereDichNichtScores() {
         if (playerData.score === target) {
             data.meta.winner = player;
             data.meta.finished = true;
-            data.meta.message = `${player} erreicht genau ${target} Punkte und gewinnt!`;
+            data.meta.message = `${player} erreicht genau ! ${target} Punkte und gewinnt!`;
             continue;
         }
 
@@ -292,7 +300,7 @@ function focusNextMenschAergereInput(playerIndex) {
 
 function setMenschAergereTarget(value) {
     const data = getMenschAergereData();
-    data.meta.target = parseInt(value, 10) || 51;
+    data.meta.target = parseInt(value, 10) || 31;
     rebuildMenschAergereDichNichtScores();
     saveMenschAergereDichNichtFields();
     renderMenschAergereDichNichtGame(document.querySelector(".table-responsive"));
@@ -303,7 +311,7 @@ function saveMenschAergereDichNichtFields() {
     const targetSelect = document.getElementById("madn-target");
 
     if (targetSelect) {
-        data.meta.target = parseInt(targetSelect.value, 10) || 51;
+        data.meta.target = parseInt(targetSelect.value, 10) || 31;
     }
 
     localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
