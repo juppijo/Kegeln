@@ -58,7 +58,17 @@ let state = defaultState();
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   showPage('spieler');
+  initSplashScreen();
 });
+
+function initSplashScreen() {
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+  window.setTimeout(() => {
+    splash.classList.add('hidden');
+    window.setTimeout(() => splash.remove(), 500);
+  }, 3000);
+}
 
 // ======================================================
 // PERSISTENCE
