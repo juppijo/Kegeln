@@ -100,246 +100,291 @@ function toggleStartgeld(pid, checked) {
   state.kegelbuch[pid].startgeld = checked;
   saveData();
 }
+//-------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------------------
-
-// ── Auswertung — Platzierungs-Wertung ────────────────────────────
-// Ersetze die bestehende renderAuswertung()-Funktion in spiele.js
-// durch diese Version.
-//
-// Wertung: Jedes Spiel vergibt Platzierungspunkte (1. = 1 Pkt, 2. = 2 Pkt …)
-// Niedrigste Gesamtsumme = Gesamtsieger (wie Mehrkampf / Golfsystem)
-// Hausnummer: zwei getrennte Wertungen (Große HN + Kleine HN)
-// ─────────────────────────────────────────────────────────────────
+// ======================================================
+// RENDER: AUSWERTUNG
+// ======================================================
 
 function renderAuswertung() {
   if (!state.players.length) return noPlayers();
-
   const wts = [0.2, 0.4, 0.6, 0.8, 1.0];
-  const n   = state.players.length; // Anzahl Spieler
+  const numPlayers = state.players.length;
 
-  // ── Score-Funktionen pro Spiel ──────────────────────────────────
-  const scoreGrossHN   = pid => grossHN(pid);
-  const scoreKleinHN   = pid => kleinHN(pid);
-  const scoreSv        = pid => {
-    const sv = state.scores.sv[pid] || { throws:[], karte:0 };
-    const t  = s(sv.throws) + (sv.karte||0);
-    return t > 21 ? -1 : t;              // Überkauft = letzter Platz
-  };
-  // NEU — ersetzen durch:
-  const scoreRennen = pid => {
-    const rn   = state.scores.rennen;
-    const team = (rn.teams||[]).find(t => t.p1===pid || t.p2===pid);
-    return team ? rennenTeamTotal(team) : 0;  // kein Team → letzter Platz
-  };
-
-  const scoreSchwein   = pid => {
-    const sw = state.scores.schwein[pid] || { vals:[] };
-    return sw.vals.reduce((a,x,i) => a+(x||0)*wts[i], 0);
-  };
-  const scoreIdiot     = pid => {
-    const id = state.scores.idiot[pid] || {};
-    return (id.links||0) + (id.beine||0) + (id.rechts||0);
-  };
-  const scoreMensch    = pid => s((state.scores.mensch[pid]||{throws:[]}).throws);
-  const scoreFuchs     = pid => {
-    const fr = state.scores.fuchs; if (!fr?.kaetschen) return 0;
-    if (pid === fr.fuchsId) return fr.kaetschen.filter(k => k.winner==='fox').length;
-    const hunters = state.players.filter(p => p.id !== fr.fuchsId);
-    return hunters.find(h => h.id===pid)
-      ? fr.kaetschen.filter(k => k.winner==='hunters').length : 0;
-  };
-  const scoreEinsacken = pid => {
-    const es = state.scores.einsacken;
-    let g = (es.g1||[]).includes(pid) ? 'g1' : (es.g2||[]).includes(pid) ? 'g2' : null;
-    if (!g) return 0;
-    return (es.rounds||[]).reduce((sum, rd) => {
-      const members = es[g]||[]; let best = -1;
-      members.forEach(p => { const sc=(rd[g]&&rd[g][p])||0; if(sc>best) best=sc; });
-      return sum + (((rd[g]&&rd[g][pid])||0) === best && best > 0 ? 1 : 0);
-    }, 0);
-  };
-
-  // ── Platzierungen pro Spiel berechnen ──────────────────────────
-  // Gibt {pid → Platz} zurück. Nicht gespielte Spiele (alle 0)
-  // → alle auf Platz n (letzter), damit kein Vorteil entsteht.
-  function placementMap(scoreFn, higherBetter = true) {
-    const entries = state.players.map(p => ({ id: p.id, total: scoreFn(p.id) }));
-    const allZero = entries.every(e => e.total === 0);
-    const map = {};
-    if (allZero) {
-      // Spiel noch nicht gespielt → alle neutral auf Platz n
-      state.players.forEach(p => { map[p.id] = n; });
+  // ---- RÜCKGABEWRETE DER EINZELNEN SPIELE (Raw Scores) ----
+  function score_grossHN(pid) { return grossHN(pid); }
+  function score_kleinHN(pid) { return kleinHN(pid); } // Hier gilt: niedriger ist besser
+  
+  function score_sv(pid) {
+    const sv = state.scores.sv[pid] || { throws: [], karte: 0 };
+    const t = s(sv.throws) + (sv.karte || 0);
+    return t > 21 ? 0 : t; // Überkauft = 0 Punkte
+  }
+  function score_rennen(pid) {
+    const days = (state.scores.rennen.days || {})[pid] || [];
+    return days.reduce((a, v, i) => a + (v || 0) * (i + 1), 0);
+  }
+  function score_schwein(pid) {
+    const sw = state.scores.schwein[pid] || { vals: [] };
+    return sw.vals.reduce((a, x, i) => a + (x || 0) * wts[i], 0);
+  }
+  function score_idiot(pid) {
+    const id = state.scores.idiot[pid] || { links: 0, beine: 0, rechts: 0 };
+    return (id.links || 0) + (id.beine || 0) + (id.rechts || 0);
+  }
+  function score_mensch(pid) {
+    return s((state.scores.mensch[pid] || { throws: [] }).throws);
+  }
+  function score_fuchs(pid) {
+    const fr = state.scores.fuchs;
+    if (!fr || !fr.kaetschen) return 0;
+    if (pid === fr.fuchsId) {
+      return fr.kaetschen.filter(k => k.winner === 'fox').length;
     } else {
-      rank(entries, higherBetter).forEach(r => { map[r.id] = r.rank; });
+      const hunters = state.players.filter(p => p.id !== fr.fuchsId);
+      if (!hunters.find(h => h.id === pid)) return 0;
+      return fr.kaetschen.filter(k => k.winner === 'hunters').length;
     }
-    return map;
+  }
+  function score_einsacken(pid) {
+    const es = state.scores.einsacken;
+    let g = null;
+    if ((es.g1 || []).includes(pid)) g = 'g1';
+    else if ((es.g2 || []).includes(pid)) g = 'g2';
+    if (!g) return 0;
+    return (es.rounds || []).reduce((sum, rd) => {
+      const members = es[g] || [];
+      let best = -1;
+      members.forEach(p => { const sc = (rd[g] && rd[g][p]) || 0; if (sc > best) best = sc; });
+      return sum + (((rd[g] && rd[g][pid]) || 0) === best && best > 0 ? 1 : 0);
+    }, 0);
   }
 
-  // Alle 9 Einzel-Platzierungskarten (Hausnummer = 2×)
-  const pl = {
-    grossHN:   placementMap(scoreGrossHN,   true),
-    kleinHN:   placementMap(scoreKleinHN,   false),  // niedrige Zahl = besser
-    sv:        placementMap(scoreSv,         true),
-    rennen:    placementMap(scoreRennen,     true),
-    schwein:   placementMap(scoreSchwein,    true),
-    idiot:     placementMap(scoreIdiot,      true),
-    mensch:    placementMap(scoreMensch,     true),
-    fuchs:     placementMap(scoreFuchs,      true),
-    einsacken: placementMap(scoreEinsacken,  true),
+  // ---- RANGLISTEN-ERSTELLUNG PRO SPIEL ----
+  function getPlacementData(scoreFn, higherBetter = true) {
+    const entries = state.players.map(p => ({ id: p.id, total: scoreFn(p.id) }));
+    const ranked = rank(entries, higherBetter); 
+    
+    const pointsMap = {};
+    const ranksMap = {};
+    ranked.forEach(r => {
+      pointsMap[r.id] = (numPlayers - r.rank) + 1;
+      ranksMap[r.id] = r.rank;
+    });
+    return { points: pointsMap, ranks: ranksMap };
+  }
+
+  // Sonderlogik für 6-Tage-Rennen: Team-Wertung mit doppelten (gleichen) Platzierungspunkten
+  function getRennenPlacementData() {
+    const teams = state.scores.rennen.teams || [];
+    
+    // Berechne für jedes definierte Team die gemeinsame Gesamtpunktzahl
+    const teamScores = teams.map(t => {
+      const s1 = score_rennen(t.p1);
+      const s2 = score_rennen(t.p2);
+      return { id: t.id, total: s1 + s2, p1: t.p1, p2: t.p2 };
+    });
+
+    // Sortiere/Ranke die Teams anhand der gemeinsamen Summe
+    const rankedTeams = rank(teamScores, true);
+    const rennenPointsMap = {};
+    const rennenRanksMap = {};
+
+    // Initialisiere alle Spieler erst einmal mit 0 Punkten
+    state.players.forEach(p => {
+      rennenPointsMap[p.id] = 0;
+      rennenRanksMap[p.id] = null;
+    });
+
+    // Vergebe Platzierungspunkte basierend auf dem Team-Rang (Letzter = 1, Vorletzter = 2, ...)
+    // Da zwei Spieler pro Team die gleiche Platzierung belegen, werden Punkte per 2 (z.B. (numPlayers - r.rank) + 1) an beide gegeben.
+    rankedTeams.forEach(r => {
+      const p1 = r.item ? r.item.p1 : r.p1;
+      const p2 = r.item ? r.item.p2 : r.p2;
+      const pts = (numPlayers - r.rank) + 1;
+      
+      if (p1) {
+        rennenPointsMap[p1] = pts;
+        rennenRanksMap[p1] = r.rank;
+      }
+      if (p2) {
+        rennenPointsMap[p2] = pts;
+        rennenRanksMap[p2] = r.rank;
+      }
+    });
+
+    return { points: rennenPointsMap, ranks: rennenRanksMap };
+  }
+
+  // Berechne die Punkte-Maps für jedes einzelne Spiel
+  const grossHNData   = getPlacementData(score_grossHN, true);
+  const kleinHNData   = getPlacementData(score_kleinHN, false);
+  const svData        = getPlacementData(score_sv, true);
+  const rennenData    = getRennenPlacementData(); // Aufruf der neuen Team-Wertung
+  const idiotData     = getPlacementData(score_idiot, true);
+  const menschData    = getPlacementData(score_mensch, true);
+  const fuchsData     = getPlacementData(score_fuchs, true);
+  const einsackenData = getPlacementData(score_einsacken, true);
+  const pointsGrossHN   = grossHNData.points;
+  const pointsKleinHN   = kleinHNData.points;
+  const pointsSv        = svData.points;
+  const pointsRennen    = rennenData.points;
+  const pointsIdiot     = idiotData.points;
+  const pointsMensch    = menschData.points;
+  const pointsFuchs     = fuchsData.points;
+  const pointsEinsacken = einsackenData.points;
+
+  // ---- GESAMTPUNKTEBERECHNUNG (Summe der Platzierungspunkte) ----
+  function totalPlacementPoints(pid) {
+    return (pointsGrossHN[pid] || 0) +
+           (pointsKleinHN[pid] || 0) +
+           (pointsSv[pid] || 0) +
+           (pointsRennen[pid] || 0) +
+           (pointsIdiot[pid] || 0) +
+           (pointsMensch[pid] || 0) +
+           (pointsFuchs[pid] || 0) +
+           (pointsEinsacken[pid] || 0);
+  }
+
+  // Gesamt-Rangliste erstellen
+  const overallEntries = state.players.map(p => ({ id: p.id, name: p.name, total: totalPlacementPoints(p.id) }));
+  const overallRanked  = rank(overallEntries, true);
+  const placementLabel = r => r <= 3 ? `${medal(r)} ${r}.` : `${r}.`;
+  const placementCell = (data, pid) => {
+    const rankValue = data.ranks[pid];
+    const pointsValue = data.points[pid] || 0;
+    return `
+      <span class="game-placement-badge">${rankValue ? placementLabel(rankValue) : '-'}</span>
+      <span>${pointsValue}</span>`;
   };
-  const colKeys = Object.keys(pl); // Reihenfolge der Spalten
 
-  // ── Gesamtsumme & Rangliste ──────────────────────────────────
-  const totalPl = pid => colKeys.reduce((sum, k) => sum + (pl[k][pid]||n), 0);
+  // ---- SPIELSIEGER ERMITTELN (Für die Kacheln unten) ----
+  function gameWinner(scoreFn, higherBetter = true) {
+    const entries = state.players.map(p => ({ id: p.id, name: p.name, total: scoreFn(p.id) }));
+    const ranked  = rank(entries, higherBetter);
+    const winners = ranked.filter(r => r.rank === 1);
+    if (!winners.length || winners[0].total === 0) return null;
+    return {
+      names: winners.map(w => esc(w.name)).join(' &amp; '),
+      score: winners[0].total
+    };
+  }
 
-  // Aufsteigend: niedrigste Summe = Rang 1
-  const overallRanked = rank(
-    state.players.map(p => ({ id:p.id, name:p.name, total:totalPl(p.id) })),
-    false
-  );
-
-  // ── Podium ────────────────────────────────────────────────────
-  const sorted3     = overallRanked.slice(0, 3);
-  while (sorted3.length < 3) sorted3.push(null);
-  const podiumOrder = [sorted3[1], sorted3[0], sorted3[2]];
-  const podiumCls   = ['p2','p1','p3'];
-  const podiumTroph = ['🥈','🥇','🥉'];
-
-  const podiumCard  = (entry, cls, trophy) => !entry
-    ? `<div class="podium-place ${cls}"><div class="podium-block" style="opacity:.3">–</div></div>`
-    : `<div class="podium-place ${cls}">
-        <div class="podium-trophy">${trophy}</div>
-        <div class="podium-name">${esc(entry.name)}</div>
-        <div class="podium-score" title="Niedrigere Summe = besser">${entry.total} Pl.</div>
-        <div class="podium-block">${entry.rank}.</div>
-      </div>`;
-
-  // ── Spalten-Definition ────────────────────────────────────────
-  const cols = [
-    { key:'grossHN',   label:'Gr.HN',   title:'Große Hausnummer (höchste Zahl)' },
-    { key:'kleinHN',   label:'Kl.HN',   title:'Kleine Hausnummer (niedrigste Zahl)' },
-    { key:'sv',        label:'17u4',    title:'17 und 4' },
-    { key:'rennen',   label:'Rennen🤝', title:'6-Tage-Rennen — Team: beide Spieler teilen die gleiche Platzierung' },
-    { key:'schwein',   label:'Schwein', title:'Schweinepartie (mehr Pins = besser)' },
-    { key:'idiot',     label:'Idiot',   title:'Idiotenkegeln' },
-    { key:'mensch',    label:'Mensch',  title:'Mensch ärger dich nicht' },
-    { key:'fuchs',     label:'Fuchs',   title:'Fuchsjagd (Kätsche-Siege)' },
-    { key:'einsacken', label:'Einsa.',  title:'Einsacken (Runden-Siege)' },
-  ];
-
-  // Zellen-Renderer: Medaillen-Farbe für Top 3
-  const plCell = (r) => {
-    const color = r===1 ? 'var(--gold)' : r===2 ? 'var(--silver)' : r===3 ? 'var(--bronze)' : 'var(--text3)';
-    const bg    = r<=3 ? (r===1?'rgba(255,215,0,.12)':r===2?'rgba(192,192,192,.12)':'rgba(205,127,50,.12)') : '';
-    return `<td style="text-align:center;font-weight:700;color:${color};font-size:.82rem;background:${bg}">${medal(r)}</td>`;
-  };
-
-  // ── Spielsieger (unverändert) ─────────────────────────────────
-  function gameWinner(scoreFn, hb=true) {
-    const ranked = rank(state.players.map(p=>({id:p.id,name:p.name,total:scoreFn(p.id)})), hb);
-    const winners = ranked.filter(r => r.rank===1);
-    if (!winners.length || winners[0].total===0) return null;
-    return { names: winners.map(w=>esc(w.name)).join(' &amp; '), score: winners[0].total };
+  // Spezifischer Sieger für das 6-Tage-Rennen (Team-basiert)
+  function rennenGameWinner() {
+    const teams = state.scores.rennen.teams || [];
+    if (!teams.length) return null;
+    const teamScores = teams.map(t => {
+      const s1 = score_rennen(t.p1);
+      const s2 = score_rennen(t.p2);
+      return { name: t.name, total: s1 + s2 };
+    });
+    const ranked = rank(teamScores, true);
+    const winners = ranked.filter(r => r.rank === 1);
+    if (!winners.length || winners[0].total === 0) return null;
+    return {
+      names: winners.map(w => esc(w.name)).join(' &amp; '),
+      score: winners[0].total
+    };
   }
 
   const gameWinners = [
-    { title:'🏠 Große Hausnummer',  w: gameWinner(scoreGrossHN,  true)  },
-    { title:'🏠 Kleine Hausnummer', w: gameWinner(scoreKleinHN,  false) },
-    { title:'🃏 17 und 4',           w: gameWinner(scoreSv,       true)  },
-    { title:'🚀 6-Tage-Rennen',     w: gameWinner(scoreRennen,   true)  },
-    { title:'🐷 Schweinepartie',     w: gameWinner(scoreSchwein,  true)  },
-    { title:'🤪 Idiotenkegeln',      w: gameWinner(scoreIdiot,    true)  },
-    { title:'🎲 Mensch ä.d.n.',      w: gameWinner(scoreMensch,   true)  },
-    { title:'🦊 Fuchsjagd',          w: gameWinner(scoreFuchs,    true)  },
-    { title:'💰 Einsacken',          w: gameWinner(scoreEinsacken,true)  },
+    { title: '🏠 Große Hausnummer',  w: gameWinner(score_grossHN, true) },
+    { title: '🏠 Kleine Hausnummer', w: gameWinner(score_kleinHN, false) },
+    { title: '🃏 17 und 4',          w: gameWinner(pid => { const t = score_sv(pid); return t === 0 ? -1 : t; }, true) },
+    { title: '🚀 6-Tage-Rennen',     w: rennenGameWinner() }, // Nutzt den Team-Sieger
+    { title: '🐷 Schwein. (höchst)', w: gameWinner(score_schwein, true) },
+    { title: '🤪 Idiotenkegeln',     w: gameWinner(score_idiot, true) },
+    { title: '🎲 Mensch ä.d.n.',     w: gameWinner(score_mensch, true) },
+    { title: '🦊 Fuchs',            w: gameWinner(score_fuchs, true) },
+    { title: '💰 Einsacken',        w: gameWinner(score_einsacken, true) },
   ];
 
-  const tb = state.scores.tannenbaum;
+  // ---- PODIUM TOP 3 ----
+  const sorted3 = overallRanked.slice(0, 3);
+  while (sorted3.length < 3) sorted3.push(null);
+  const podiumOrder = [sorted3[1], sorted3[0], sorted3[2]];
+  const podiumCls   = ['p2', 'p1', 'p3'];
+  const podiumTroph = ['🥈', '🥇', '🥉'];
+
+  function podiumCard(entry, cls, trophy) {
+    if (!entry) {
+      return `<div class="podium-place ${cls}"><div class="podium-block" style="opacity:.3">–</div></div>`;
+    }
+    return `
+      <div class="podium-place ${cls}">
+        <div class="podium-trophy">${trophy}</div>
+        <div class="podium-name">${esc(entry.name)}</div>
+        <div class="podium-score">${entry.total} Pkt</div>
+        <div class="podium-block">${entry.rank}.</div>
+      </div>`;
+  }
+
+  // ---- SPALTEN FÜR DIE TABELLEN-ÜBERSICHT ----
+  const breakCols = ['Gr. HN', 'Kl. HN', '17u4', 'Rennen', 'Idiot', 'Mensch', 'Fuchs', 'Eins.'];
 
   return `
   <div class="page-card">
     <div class="card-header"><h2>🏆 Gesamtauswertung</h2></div>
 
-    <!-- PODIUM -->
     <div class="podium-section">
       ${podiumOrder.map((e,i) => podiumCard(e, podiumCls[i], podiumTroph[i])).join('')}
     </div>
 
-    <!-- ERKLÄRUNG -->
-    <div class="game-rules" style="margin-bottom:14px;font-size:.78rem">
-      📊 <strong>Mehrkampf-Wertung:</strong> Jedes Spiel vergibt Platzierungspunkte
-      (🥇&nbsp;=&nbsp;1&nbsp;Pkt, 🥈&nbsp;=&nbsp;2&nbsp;Pkt&nbsp;…).
-      <strong>Niedrigste Gesamtsumme gewinnt.</strong>
-      Die Hausnummer zählt doppelt — Große HN und Kleine HN werden separat gewertet.
-      Noch nicht gespielte Spiele: alle auf letztem Platz (neutral).
-    </div>
-
-    <!-- GESAMTRANGLISTE -->
     <hr class="sect-divider">
-    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">
-      GESAMTRANGLISTE <span style="font-weight:400;font-size:.75rem">(↓ = besser)</span>
-    </h3>
+    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">GESAMTRANGLISTE (NACH PLATZIERUNGSPUNKTEN)</h3>
     <div class="table-wrapper">
       <table class="score-table">
         <thead>
           <tr>
-            <th rowspan="2" style="vertical-align:bottom">Platz</th>
-            <th rowspan="2" style="vertical-align:bottom">Name</th>
-            <th colspan="2" class="section-header gross" title="Große und Kleine Hausnummer">🏠 Hausnummer</th>
-            <th colspan="7" class="section-header" style="background:rgba(120,80,200,.15);color:#b080ff">🎳 Einzelspiele</th>
-            <th rowspan="2" style="vertical-align:bottom;min-width:52px">Σ&nbsp;Plätze</th>
-          </tr>
-          <tr>
-            ${cols.map(c =>
-              `<th title="${c.title}" style="font-size:.65rem;white-space:nowrap">${c.label}</th>`
-            ).join('')}
+            <th>Platz</th>
+            <th>Name</th>
+            ${breakCols.map(c => `<th style="font-size:.68rem">${c}</th>`).join('')}
+            <th>Gesamt</th>
           </tr>
         </thead>
         <tbody>
           ${overallRanked.map(r => `
-            <tr style="${r.rank<=3 ? 'background:rgba(232,160,32,.06)' : ''}">
+            <tr style="${r.rank <= 3 ? 'background:rgba(232,160,32,.06)' : ''}">
               <td class="rank-cell" style="font-size:1.05rem">${medal(r.rank)}</td>
               <td class="name-cell">${esc(r.name)}</td>
-              ${cols.map(c => plCell(pl[c.key][r.id] || n)).join('')}
-              <td style="text-align:center;font-weight:800;font-size:.95rem;
-                color:${r.rank===1?'var(--gold)':r.rank===2?'var(--silver)':r.rank===3?'var(--bronze)':'var(--accent)'}">
-                ${r.total}
+              <td class="game-points-cell">${placementCell(grossHNData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(kleinHNData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(svData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(rennenData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(idiotData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(menschData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(fuchsData, r.id)}</td>
+              <td class="game-points-cell">${placementCell(einsackenData, r.id)}</td>
+              <td class="sum-cell">
+                <span class="total-placement-badge">${placementLabel(r.rank)}</span>
+                <span>${r.total}</span>
               </td>
             </tr>`).join('')}
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" style="font-size:.7rem;color:var(--text3);padding:6px 8px;text-align:left">
-              ${n} Spieler · ${cols.length} Spiele · max. ${n * cols.length} Platzierungspunkte
-            </td>
-            ${cols.map(() => '<td></td>').join('')}
-            <td></td>
-          </tr>
-        </tfoot>
       </table>
     </div>
 
-    <!-- SPIELSIEGER -->
     <hr class="sect-divider">
-    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">SPIELSIEGER</h3>
+    <h3 style="font-size:.85rem;color:var(--text3);margin-bottom:10px;letter-spacing:1px">SPIELSIEGER (REALE ERGEBNISSE)</h3>
     <div class="game-results-grid">
       ${gameWinners.map(gw => `
         <div class="game-result-card">
           <div class="game-name">${gw.title}</div>
           ${gw.w
             ? `<div class="winner">🥇 ${gw.w.names}</div>
-               <div class="score">${Number.isInteger(gw.w.score) ? gw.w.score : gw.w.score.toFixed(2)} Pkt</div>`
+               <div class="score">${typeof gw.w.score === 'number' ? (Number.isInteger(gw.w.score) ? gw.w.score : gw.w.score.toFixed(2)) : gw.w.score} ${gw.title.includes('Schwein') ? '€' : 'Pkt'}</div>`
             : `<div class="winner" style="color:var(--text3)">– Noch keine Daten –</div>`}
         </div>`).join('')}
       <div class="game-result-card">
         <div class="game-name">🌲 Tannenbaum</div>
         <div class="winner">
-          🔵 Team A: ${tb.g1wins||0} 🌲 &nbsp;|&nbsp; 🟠 Team B: ${tb.g2wins||0} 🌲
+          G1: ${state.scores.tannenbaum.g1wins || 0} 🌲 &nbsp;|&nbsp; G2: ${state.scores.tannenbaum.g2wins || 0} 🌲
         </div>
         <div class="score">
-          ${(tb.g1wins||0)>(tb.g2wins||0) ? '🥇 Team A gewinnt!'
-            : (tb.g2wins||0)>(tb.g1wins||0) ? '🥇 Team B gewinnt!' : 'Unentschieden'}
+          ${(state.scores.tannenbaum.g1wins || 0) > (state.scores.tannenbaum.g2wins || 0) ? '🥇 Gruppe 1 gewinnt!'
+          : (state.scores.tannenbaum.g2wins || 0) > (state.scores.tannenbaum.g1wins || 0) ? '🥇 Gruppe 2 gewinnt!'
+          : 'Unentschieden'}
         </div>
       </div>
     </div>
