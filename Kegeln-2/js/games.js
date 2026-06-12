@@ -574,6 +574,200 @@ function calculateGame() {
             return a.val - b.val;
         });
 
+        // Punktevergabe für die Hausnummer (Groß & Klein getrennt berechnet)
+        [großResults, kleinResults].forEach((resList, listIndex) => {
+            let gueltigeSpieler = resList.filter(item => {
+                if (listIndex === 0) return item.val > 0;
+                return item.val < 999;
+            });
+
+            // NEU: Dynamische Punktevergabe von unten nach oben (Letzter = 1 Punkt, Vorletzter = 2, ...)
+            const totalGueltige = gueltigeSpieler.length;
+            gueltigeSpieler.forEach((item, index) => {
+                const pointsAwarded = totalGueltige - index;
+                grandTotalScores[item.name] += pointsAwarded;
+            });
+        });
+
+        players.forEach(p => {
+            const row = document.getElementById(`row-${p}`); if(!row) return;
+            let istGewinnerGroß = großResults[0] && großResults[0].val > 0 && großResults[0].name === p;
+            let istGewinnerKlein = kleinResults[0] && kleinResults[0].val < 999 && kleinResults[0].name === p;
+            let gueltigeGroß = großResults.filter(item => item.val > 0);
+            let gueltigeKlein = kleinResults.filter(item => item.val < 999);
+            let istVerliererGroß = gueltigeGroß.length > 1 && gueltigeGroß[gueltigeGroß.length - 1].name === p;
+            let istVerliererKlein = gueltigeKlein.length > 1 && gueltigeKlein[gueltigeKlein.length - 1].name === p;
+
+            if(istGewinnerGroß || istGewinnerKlein) row.classList.add("winner-row");
+            if(istVerliererGroß || istVerliererKlein) row.classList.add("loser-row");
+        });
+
+        updateGrandTotalTable();
+        alert("🎉 Beide Hausnummern erfolgreich ausgewertet! Alle Platzierungspunkte wurden gebucht.");
+        
+    } else if (currentGame === "aergere-dich-nicht") {
+        calculateMenschAergereDichNichtGame();
+
+    } else if (currentGame === "fuchsjagd") {
+        // KORREKTUR FUCHSJAGD: Holt die Summen direkt aus den neuen Ergebnis-Zellen
+        const fuchsTotalScore = parseInt(document.getElementById("fuchs-res-total").innerText) || 0;
+        const jaegerTotalScore = parseInt(document.getElementById("jaeger-res-total").innerText) || 0;
+        
+        // Wer ist aktuell der Fuchs? (wird aus den Metadaten ausgelesen)
+        const aktuellerFuchs = activeGamesData.fuchsjagd?.meta?.activeFuchsPlayer || players[0];
+
+        // NEU: Bei der Fuchsjagd richten sich die Punkte jetzt ebenfalls nach der Anzahl aller anwesenden Spieler
+        const totalPlayersCount = players.length;
+
+        // Fuchs gewinnt, wenn er mindestens 31 Punkte hat UND mehr als die Jäger
+        if (fuchsTotalScore >= 31 && fuchsTotalScore > jaegerTotalScore) {
+            
+            // 1. Fuchs belohnen (Er bekommt die maximale Punktzahl entsprechend der Spieleranzahl)
+            grandTotalScores[aktuellerFuchs] += totalPlayersCount;
+            alert(`🦊 Der Fuchs ${aktuellerFuchs} gewinnt die Jagd mit ${fuchsTotalScore} Holz! Er erhält ${totalPlayersCount} Punkte. 🎉 Jäger hatten ${jaegerTotalScore} Holz und erhalten alle Trostpunkte.`);
+            
+            // 2. Alle Jäger erhalten Trostpunkte (von unten nach oben verteilt, da sie verloren haben, kriegt jeder z.B. 1, 2 oder 3 Punkte je nach interner Club-Reihenfolge oder einfach einen festen fairen Basiswert)
+            // Um das Prinzip "Jeder kriegt Punkte" zu wahren, erhalten alle Jäger hier 2 Punkte für den Fleiß
+            players.forEach(p => {
+                if (p !== aktuellerFuchs) {
+                    grandTotalScores[p] += 2; 
+                }
+            });
+        } else {
+            // Die Jäger gewinnen und erlegen den Fuchs
+            alert(`🏹 Die Jäger haben den Fuchs erlegt! Jäger-Gesamt: ${jaegerTotalScore} Holz vs. Fuchs: ${fuchsTotalScore} Holz. Jäger erhalten Höchstpunkte.`);
+            
+            // 1. Fuchs kriegt den letzten Platz (1 Trostpunkt)
+            grandTotalScores[aktuellerFuchs] += 1;
+            
+            // 2. Alle Jäger gewinnen gemeinsam und erhalten die maximale Punktzahl (Anzahl Spieler) auf das Konto gebucht
+            players.forEach(p => {
+                if (p !== aktuellerFuchs) {
+                    grandTotalScores[p] += totalPlayersCount;
+                }
+            });
+        }
+        
+        updateGrandTotalTable();
+        
+    } else {
+        // Logik für die restlichen Spiele (17&4, Rennen, Idiot)
+        players.forEach(p => {
+            const row = document.getElementById(`row-${p}`); if(!row) return;
+            let score = 0;
+            
+            if (currentGame === "siebzehn-vier") {
+                liveCalculateSiebzehnVier();
+                const pts = parseInt(row.querySelector(".sv-res-pts").innerText) || 0;
+                const statusText = row.querySelector(".sv-status").innerText || "";
+                
+                // NEU: Bei 17 und 4 sortieren wir "Überkaufte" (Tote) ganz nach unten, aber sie behalten einen kleinen Wert für die Sortierung
+                if (pts > 21 || statusText.includes("💀") || statusText.toLowerCase().includes("über")) {
+                    score = -100 + pts; // Landet durch den Minuswert ganz unten, behält aber Reihenfolge untereinander
+                } else {
+                    score = pts;
+                }
+            } else if (currentGame === "rennen") {
+                liveCalculate6TageRennen();
+                const teamName = row.getAttribute("data-team");
+                const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
+                score = parseInt(teamCell.innerText) || 0; 
+            } else if (currentGame === "idiot") {
+                score = (parseInt(row.querySelector(".id-l").value) || 0) + (parseInt(row.querySelector(".id-r").value) || 0) + (parseInt(row.querySelector(".id-re").value) || 0);
+                row.querySelector(".id-gesamt").innerText = score;
+            }
+
+            results.push({ name: p, score: score, element: row });
+        });
+
+        // Ränge ermitteln & Sortierung: Höchster Score (Gewinner) steht ganz oben auf Index 0
+        results.sort((a, b) => b.score - a.score);
+        
+        const totalPlayers = results.length;
+        let currentRank = 1;
+
+        results.forEach((item, index) => {
+            const rankCol = item.element.querySelector(".sv-rank") || item.element.querySelector(".rank-col");
+            
+            if (index > 0 && item.score === results[index - 1].score) {
+                // Gleicher Rang bei exakt gleichem Punktestand im Spiel
+            } else {
+                currentRank = index + 1;
+            }
+
+            // Visuelle Zuweisung der Medaillen / Ränge in der Tabelle
+            if (currentRank === 1) { 
+                if(rankCol) rankCol.innerHTML = `🥇`; 
+                item.element.classList.add("winner-row"); 
+            }
+            else if (currentRank === 2) { 
+                if(rankCol) rankCol.innerHTML = `🥈`; 
+            }
+            else if (currentRank === 3) { 
+                if(rankCol) rankCol.innerHTML = `🥉`; 
+            }
+            else {
+                if(rankCol) {
+                    // Sonder-Icon für überkauft bei 17&4 anzeigen, falls erwünscht
+                    if (currentGame === "siebzehn-vier" && item.score < 0) {
+                        rankCol.innerHTML = `<span style="color:#ef4444;">💀</span>`;
+                    } else {
+                        rankCol.innerHTML = `<span class="rank-badge">${currentRank}</span>`;
+                    }
+                }
+            }
+            
+            // NEU: DIE DYNAMISCHE SEITEN-BEWERTUNG FÜR ALLE RESTLICHEN SPIELE
+            // Letzter Platz (Index ganz hinten) bekommt 1 Punkt, Vorletzter 2 Punkte usw.
+            const pointsAwarded = totalPlayers - index;
+            grandTotalScores[item.name] += pointsAwarded;
+            
+            // Letzten Platz rot markieren (loser-row)
+            if (index === totalPlayers - 1 && totalPlayers > 1) { 
+                item.element.classList.add("loser-row"); 
+            }
+        });
+
+        updateGrandTotalTable();
+        alert("🎉 Spiel erfolgreich ausgewertet! Alle Platzierungspunkte wurden gebucht.");
+    }
+
+    // Setze das Flag, dass dieses Spiel für diese Runde gebucht wurde
+    if (!activeGamesData[currentGame]) activeGamesData[currentGame] = {};
+    activeGamesData[currentGame].isBooked = true;
+
+    // Speicher aktualisieren
+    saveCurrentGameFields();
+
+    // Button-Anzeige live aktualisieren
+    updateBookedButtonStatus();   
+}
+
+//************************************************************ 222222
+
+function calculateGame2() {
+    let results = [];
+    players.forEach(p => { const row = document.getElementById(`row-${p}`); if(row) row.className = ""; });
+
+    if (currentGame === "hausnummer") {
+        liveCalculateHausnummer();
+        let großResults = []; 
+        let kleinResults = [];
+
+        players.forEach(p => {
+            const row = document.getElementById(`row-${p}`); if(!row) return;
+            großResults.push({ name: p, val: parseInt(row.querySelector(".hn-g-res").innerText) || 0 });
+            kleinResults.push({ name: p, val: parseInt(row.querySelector(".hn-k-res").innerText) || 999 });
+        });
+
+        // Sortierung (Groß: Höchste Zahl gewinnt; Klein: Niedrigste Zahl gewinnt)
+        großResults.sort((a,b) => b.val - a.val);
+        kleinResults.sort((a,b) => {
+            if (a.val === 999) return 1;
+            if (b.val === 999) return -1;
+            return a.val - b.val;
+        });
+
         // Punktevergabe für die Hausnummer
         [großResults, kleinResults].forEach((resList, listIndex) => {
             let gueltigeSpieler = resList.filter(item => {
@@ -1641,6 +1835,7 @@ function liveCalculateSiebzehnVier() {
 }
 // NEU: Diese Funktion aktualisiert die Anzeige neben oder im Button
 function updateBookedButtonStatus() {
+    // Sucht das Element, in dem der Werten-Button liegt
     const actionContainer = document.querySelector(".game-actions");
     if (!actionContainer) return;
 
@@ -1650,19 +1845,22 @@ function updateBookedButtonStatus() {
         statusLabel = document.createElement("span");
         statusLabel.id = "booking-status-label";
         statusLabel.style.marginLeft = "12px";
+        statusLabel.style.display = "inline-block";
+        statusLabel.style.verticalAlign = "middle";
         statusLabel.style.fontWeight = "bold";
         statusLabel.style.fontSize = "0.95rem";
-        // Füge das Label direkt neben dem Button ein
+        // Fügt das Label direkt neben dem Button ein
         actionContainer.appendChild(statusLabel);
     }
 
+    // Status auslesen
     const isBooked = activeGamesData[currentGame] && activeGamesData[currentGame].isBooked;
 
     if (isBooked) {
         statusLabel.innerHTML = "✅ Bereits gebucht!";
-        statusLabel.style.color = "#22c55e"; // Schönes Grün
+        statusLabel.style.color = "#22c55e"; // Grün
     } else {
         statusLabel.innerHTML = "⏳ Noch nicht gebucht";
-        statusLabel.style.color = "#94a3b8"; // Dezentes Grau
+        statusLabel.style.color = "#94a3b8"; // Grau
     }
 }
