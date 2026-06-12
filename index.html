@@ -5,13 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🎳 Kegel-Spiele Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght=300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app">
 
-  <!-- ===== HEADER ===== -->
+<div id="splash">
+  <div class="glow"></div>
+  <div id="pts"></div>
+  <div class="sc">
+    <div class="sico">🎳</div>
+    <div class="stitle">KEGEL<span class="g">SPIELE</span></div>
+    <div class="ssub">Manager</div>
+    <div class="swel">Willkommen beim Kegeln!</div>
+    <div class="slane-w">
+      <div class="slane" id="lane">
+        <div class="gd" style="left:12%"></div>
+        <div class="gd" style="left:22%"></div>
+        <div class="gd" style="left:32%"></div>
+        <div class="gd" style="left:42%"></div>
+        <div class="gd" style="left:52%"></div>
+        <div class="pins" id="pins">
+          <div class="prow">
+            <div class="p" style="--rot:-118deg;--tx:-11px;--del:0s;--dur:.42s"></div>
+            <div class="p" style="--rot:-82deg;--tx:-3px;--del:.04s;--dur:.36s"></div>
+            <div class="p" style="--rot:-52deg;--tx:9px;--del:.09s;--dur:.39s"></div>
+          </div>
+          <div class="prow">
+            <div class="p" style="--rot:108deg;--tx:-15px;--del:.07s;--dur:.44s"></div>
+            <div class="p" style="--rot:-92deg;--tx:1px;--del:.13s;--dur:.37s"></div>
+            <div class="p" style="--rot:72deg;--tx:15px;--del:.11s;--dur:.41s"></div>
+          </div>
+          <div class="prow">
+            <div class="p" style="--rot:126deg;--tx:-9px;--del:.16s;--dur:.46s"></div>
+            <div class="p" style="--rot:93deg;--tx:6px;--del:.2s;--dur:.39s"></div>
+            <div class="p" style="--rot:62deg;--tx:19px;--del:.26s;--dur:.41s"></div>
+          </div>
+        </div>
+        <div class="flash"></div>
+        <div class="sball"></div>
+      </div>
+    </div>
+    <div class="spw"><div class="sp"></div></div>
+    <div class="sltxt" id="loading-text">Wird geladen …</div>
+  </div>
+</div>
+
+<div id="app">
   <header id="header">
     <div class="header-left">
       <div class="logo-pin">🎳</div>
@@ -19,7 +59,7 @@
         <h1 class="app-title">Kegel<span>Spiele</span></h1>
         <div class="session-name" id="sessionNameDisplay" onclick="editSessionName()" title="Klicken zum Bearbeiten">Kegel-Abend ✏️</div>
       </div>
-      <h4>* JuppiJo - Soft ©️ 2026 V. 1.1 Cl</h4>
+      <h4>* JuppiJo - Soft ©️ 2026 V. 1.12 Cl + G + CGTP</h4>
     </div>
     <div class="header-right">
       <button class="btn-icon" id="themeBtn" onclick="cycleTheme()" title="Theme wechseln">🎨</button>
@@ -28,7 +68,6 @@
     </div>
   </header>
 
-  <!-- ===== NAV ===== -->
   <nav id="mainNav">
     <div class="nav-scroll">
       <button class="nav-btn active" data-page="spieler"    onclick="showPage('spieler')">👥 Spieler</button>
@@ -40,17 +79,15 @@
       <button class="nav-btn"        data-page="idiot"      onclick="showPage('idiot')">🤪 Idiotenkegeln</button>
       <button class="nav-btn"        data-page="mensch"     onclick="showPage('mensch')">🎲 Mensch&nbsp;ä.d.n.</button>
       <button class="nav-btn"        data-page="schwein"    onclick="showPage('schwein')">🐷 Schweinepartie</button>
-      <button class="nav-btn"        data-page="einsacken"  onclick="showPage('einsacken')">💰 Einsacken</button>
+      <button class="nav-btn"  data-page="einsacken"  onclick="showPage('einsacken')">💰 Einsacken</button>
       <button class="nav-btn"        data-page="bus"        onclick="showPage('bus')">🚌 Busfahren</button>
       <button class="nav-btn"        data-page="kegelbuch"  onclick="showPage('kegelbuch')">📖 Kegelbuch</button>
       <button class="nav-btn highlight" data-page="auswertung" onclick="showPage('auswertung')">🏆 Auswertung</button>
     </div>
   </nav>
 
-  <!-- ===== MAIN ===== -->
   <main id="mainContent"></main>
 
-  <!-- ===== FOOTER ===== -->
   <footer id="footer">
     <div class="footer-left">
       <span id="playerCount">0 Spieler</span>
@@ -63,25 +100,53 @@
     </div>
   </footer>
 
-</div><!-- #app -->
-
-<!-- ===== MODAL ===== -->
-<div id="modal" class="modal hidden" role="dialog">
+</div><div id="modal" class="modal hidden" role="dialog">
   <div class="modal-overlay" onclick="closeModal()"></div>
   <div class="modal-box" id="modalBox"></div>
 </div>
 
-<!-- ===== TOAST ===== -->
 <div id="toast" class="toast hidden"></div>
 
-<!-- Hidden file input -->
 <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const splash = document.getElementById('splash');
+    const lane = document.getElementById('lane');
+    const loadingText = document.getElementById('loading-text');
+    
+    // 1. Kugel rollt nach 400ms los
+    setTimeout(() => {
+      lane.classList.add('roll-ball');
+    }, 400);
+
+    // 2. Kugel kommt nach exakt 1000ms Rollzeit an (400ms + 1000ms = 1400ms Gesamtzeit)
+    setTimeout(() => {
+      lane.classList.add('hit');
+    }, 1400);
+
+    // Dynamischer Ladetext passend zur Animation
+    const phrases = ["Bahnen polieren …", "Kegel aufstellen …", "Schuhe schnüren …", "Strike berechnen …"];
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < phrases.length) { 
+        if(loadingText) loadingText.innerText = phrases[i]; 
+        i++; 
+      } else { 
+        clearInterval(interval); 
+      }
+    }, 700);
+
+    // 3. Wenn der Ladebalken fertig ist (nach ca. 3.2 Sekunden), blendet sich der Splash-Screen edel aus
+    setTimeout(() => {
+      if(loadingText) loadingText.innerText = "Bereit!";
+      splash.classList.add('hidden');
+    }, 3200);
+  });
+</script>
 
 <script src="main.js"></script>
 <script src="player.js"></script>
-
-<!-- <script src="spiele.js"></script> -->
-
 <script src="games/hausnummer.js"></script>
 <script src="games/siebzehnundvier.js"></script>
 <script src="games/fuchs.js"></script>
@@ -92,7 +157,6 @@
 <script src="games/idiot.js"></script>
 <script src="games/mensch.js"></script>
 <script src="games/busfahren.js"></script>
-
 <script src="kegelbuch.js"></script>
 
 </body>
