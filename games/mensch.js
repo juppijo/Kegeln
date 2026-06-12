@@ -31,7 +31,10 @@ function renderMensch() {
           ${state.players.map(p => {
             const m = state.scores.mensch[p.id]||{throws:Array(10).fill(0)};
             return `<tr>
-              <td class="name-cell">${esc(p.name)}</td>
+              <td class="name-cell" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <span>${esc(p.name)}</span>
+                <button class="btn-reset-player" title="Rausgeschmissen! (Nullen)" onclick="resetMenschPlayer('${p.id}')">💥</button>
+              </td>
               ${m.throws.map((v,i)=>`<td><input class="score-input" type="number" min="0" max="9" value="${v||0}"
                 data-score data-game="mensch" data-pid="${p.id}" data-field="throw" data-idx="${i}"></td>`).join('')}
               <td class="sum-cell" id="mensch_total_${p.id}">${s(m.throws)}</td>
@@ -42,4 +45,25 @@ function renderMensch() {
       </table>
     </div>
   </div>`;
+}
+
+// ======================================================
+// ACTION: SPIELER ZURÜCKSETZEN (RAUSGESCHMISSEN)
+// ======================================================
+function resetMenschPlayer(playerId) {
+  // Setze die Würfe im State komplett auf 0 zurück
+  if (!state.scores.mensch[playerId]) {
+    state.scores.mensch[playerId] = { throws: Array(10).fill(0) };
+  } else {
+    state.scores.mensch[playerId].throws = Array(10).fill(0);
+  }
+  
+  // Automatisch speichern und die Seite neu rendern, um die UI upzudaten
+  saveData();
+  showPage('mensch');
+  
+  // Optionaler visueller Feedback-Toast (falls die globale Funktion existiert)
+  if (typeof showToast === 'function') {
+    showToast('💥 Spieler wurde rausgeschmissen und genullt!', 'info');
+  }
 }
