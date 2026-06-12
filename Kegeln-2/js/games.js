@@ -428,9 +428,13 @@ else if (currentGame === "tannenbaum") {
             renderTannenbaumSubElements();
         }, 50);
     }
+    updateBookedButtonStatus();
 }    
 
 function resetCurrentGame() {
+    if (activeGamesData[currentGame]) {
+        activeGamesData[currentGame].isBooked = false;
+    }
     if (confirm("Werte für dieses Spiel wirklich löschen und zurücksetzen?")) {
         activeGamesData[currentGame] = {}; 
         localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
@@ -441,6 +445,8 @@ function resetCurrentGame() {
         updateCurrentGameTable();
         return;
     }
+    saveCurrentGameFields(); //
+    updateCurrentGameTable(); //
 }
 
 function liveCalculateHausnummer() {
@@ -715,7 +721,16 @@ function calculateGame() {
         });
         updateGrandTotalTable();
         alert("🎉 Spiel erfolgreich ausgewertet!");
-    }   
+    }
+    // NEU: Setze das Flag, dass dieses Spiel für diese Runde gebucht wurde
+    if (!activeGamesData[currentGame]) activeGamesData[currentGame] = {};
+    activeGamesData[currentGame].isBooked = true;
+
+    // Speicher aktualisieren
+    saveCurrentGameFields(); //
+
+    // Button-Anzeige live aktualisieren
+    updateBookedButtonStatus();   
 }
 
 //*************************************************
@@ -727,7 +742,7 @@ function calculateKegelbuch() {
         const startgeld = parseFloat(row.querySelector(".kb-startgeld").value) || 0;
         const pudel = parseInt(row.querySelector(".kb-pudel").value) || 0;
         const stinas = parseInt(row.querySelector(".kb-stinas").value) || 0;
-        const gesamt = startgeld + (pudel * 0.10) + (stinas * 0.20);
+        const gesamt = startgeld + (pudel * 0.10) - (stinas * 0.20);
         row.querySelector(".kb-total").innerText = gesamt.toFixed(2) + " €";
         kbResults.push({ name: p, score: gesamt, element: row });
     });
@@ -1623,4 +1638,31 @@ function liveCalculateSiebzehnVier() {
             rankCell.innerText = currentRank;
         }
     });
+}
+// NEU: Diese Funktion aktualisiert die Anzeige neben oder im Button
+function updateBookedButtonStatus() {
+    const actionContainer = document.querySelector(".game-actions");
+    if (!actionContainer) return;
+
+    // Prüfen, ob bereits ein Info-Label existiert, ansonsten erstellen
+    let statusLabel = document.getElementById("booking-status-label");
+    if (!statusLabel) {
+        statusLabel = document.createElement("span");
+        statusLabel.id = "booking-status-label";
+        statusLabel.style.marginLeft = "12px";
+        statusLabel.style.fontWeight = "bold";
+        statusLabel.style.fontSize = "0.95rem";
+        // Füge das Label direkt neben dem Button ein
+        actionContainer.appendChild(statusLabel);
+    }
+
+    const isBooked = activeGamesData[currentGame] && activeGamesData[currentGame].isBooked;
+
+    if (isBooked) {
+        statusLabel.innerHTML = "✅ Bereits gebucht!";
+        statusLabel.style.color = "#22c55e"; // Schönes Grün
+    } else {
+        statusLabel.innerHTML = "⏳ Noch nicht gebucht";
+        statusLabel.style.color = "#94a3b8"; // Dezentes Grau
+    }
 }
