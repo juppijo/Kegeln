@@ -118,6 +118,171 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ======================================================
+   SPLASH SCREEN
+   ====================================================== */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(232,160,32,.22), transparent 30%),
+    linear-gradient(145deg, var(--bg), var(--bg2) 48%, var(--bg3));
+  color: var(--text);
+  transition: opacity .45s ease, visibility .45s ease;
+}
+
+.splash-screen::before,
+.splash-screen::after {
+  content: "";
+  position: absolute;
+  width: min(78vw, 520px);
+  height: 220px;
+  border: 1px solid rgba(232,160,32,.18);
+  transform: perspective(360px) rotateX(62deg);
+  pointer-events: none;
+}
+
+.splash-screen::before {
+  bottom: 13%;
+  background: linear-gradient(90deg, transparent 0 10%, rgba(232,160,32,.18) 10% 11%, transparent 11% 89%, rgba(232,160,32,.18) 89% 90%, transparent 90%);
+}
+
+.splash-screen::after {
+  bottom: 10%;
+  width: min(58vw, 390px);
+  border-color: rgba(255,255,255,.08);
+}
+
+.splash-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-lane {
+  position: relative;
+  width: min(78vw, 420px);
+  height: 160px;
+  z-index: 1;
+}
+
+.splash-ball {
+  position: absolute;
+  left: 6%;
+  bottom: 18px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255,255,255,.45), transparent 12%),
+    radial-gradient(circle at 58% 40%, #1b1510 0 5px, transparent 6px),
+    radial-gradient(circle at 44% 56%, #1b1510 0 4px, transparent 5px),
+    linear-gradient(135deg, var(--accent2), var(--accent));
+  box-shadow: 0 12px 26px rgba(0,0,0,.42);
+  animation: splash-roll 2.6s cubic-bezier(.22,.74,.28,1) forwards;
+}
+
+.splash-pins {
+  position: absolute;
+  right: 5%;
+  bottom: 20px;
+  width: 116px;
+  height: 120px;
+}
+
+.splash-pins span {
+  position: absolute;
+  width: 20px;
+  height: 70px;
+  border-radius: 50% 50% 38% 38% / 18% 18% 12% 12%;
+  background:
+    linear-gradient(180deg, #fff8e8 0 28%, var(--accent3) 28% 36%, #fff8e8 36% 100%);
+  box-shadow: 0 10px 18px rgba(0,0,0,.32);
+  transform-origin: 50% 92%;
+}
+
+.splash-pins span:nth-child(1) { left: 48px; top: 0; animation: pin-fall-a .7s ease 1.9s forwards; }
+.splash-pins span:nth-child(2) { left: 28px; top: 42px; animation: pin-fall-b .7s ease 2s forwards; }
+.splash-pins span:nth-child(3) { left: 68px; top: 42px; animation: pin-fall-c .7s ease 2.05s forwards; }
+.splash-pins span:nth-child(4) { left: 8px; top: 78px; animation: pin-fall-b .7s ease 2.1s forwards; }
+.splash-pins span:nth-child(5) { left: 88px; top: 78px; animation: pin-fall-c .7s ease 2.12s forwards; }
+
+.splash-copy {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.splash-copy p {
+  color: var(--text2);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: clamp(.9rem, 2vw, 1rem);
+}
+
+.splash-copy h2 {
+  font-family: var(--font-title);
+  color: var(--accent);
+  font-size: clamp(4rem, 16vw, 8.5rem);
+  line-height: .9;
+  text-shadow: 0 8px 30px rgba(0,0,0,.45);
+}
+
+.splash-loader {
+  position: relative;
+  z-index: 1;
+  width: min(70vw, 260px);
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+}
+
+.splash-loader::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform-origin: left;
+  animation: splash-load 3s linear forwards;
+}
+
+@keyframes splash-roll {
+  0% { transform: translateX(0) rotate(0deg) scale(1); }
+  76% { transform: translateX(min(55vw, 275px)) rotate(760deg) scale(.92); }
+  100% { transform: translateX(min(58vw, 300px)) rotate(840deg) scale(.78); }
+}
+
+@keyframes pin-fall-a {
+  to { transform: translate(8px, 18px) rotate(72deg); opacity: .85; }
+}
+
+@keyframes pin-fall-b {
+  to { transform: translate(-16px, 16px) rotate(-64deg); opacity: .82; }
+}
+
+@keyframes pin-fall-c {
+  to { transform: translate(18px, 16px) rotate(66deg); opacity: .82; }
+}
+
+@keyframes splash-load {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/*---------------------------------*/
+
 #app {
   display: grid;
   grid-template-rows: var(--header-h) var(--nav-h) 1fr var(--footer-h);
@@ -491,6 +656,30 @@ body {
   white-space: nowrap;
 }
 .sum-cell  { font-weight: 700; color: var(--accent); background: rgba(232,160,32,.08) !important; }
+.game-points-cell {
+  color: var(--text2);
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.game-points-cell .game-placement-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  margin-right: 5px;
+  color: var(--text);
+  font-weight: 700;
+}
+.sum-cell .total-placement-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  margin-right: 8px;
+  color: var(--text);
+  font-size: .86rem;
+  font-weight: 700;
+}
 .rank-cell { font-size: 1rem; min-width: 38px; }
 .total-cell { font-weight: 700; color: var(--accent); }
 .total-cell.over-limit { color: var(--danger); }
@@ -583,6 +772,24 @@ body {
 /* ======================================================
    EINSACKEN GAME
    ====================================================== */
+
+   /* ======================================================
+   MENSCH  GAME
+   ====================================================== */
+  .btn-reset-player {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: transform 0.1s ease;
+  }
+  .btn-reset-player:hover {
+    transform: scale(1.2);
+    background-color: rgba(255, 0, 0, 0.1);
+  }
+
 /* ======================================================
    TEAM FARBEN  (Einsacken, Rennen, Tannenbaum)
    ====================================================== */
@@ -977,6 +1184,51 @@ body {
   margin-bottom: 4px;
 }
 
+/* splash-screen  ----------------------------------------*/
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg2);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease-out, visibility 0.5s;
+}
+
+.splash-inner { text-align: center; }
+.splash-inner h1 { font-family: var(--font-title); color: var(--accent); font-size: 2.5rem; margin-bottom: 2rem; }
+
+.bowling-animation { position: relative; width: 300px; height: 100px; margin: 0 auto 2rem; }
+
+.ball {
+  font-size: 2rem;
+  position: absolute;
+  left: -50px;
+  animation: roll 2s forwards ease-in;
+}
+
+.pin-group { position: absolute; right: 20px; display: flex; gap: 5px; }
+.pin { font-size: 4.8rem; animation: pin-fall 0.5s 1.8s forwards; }
+
+@keyframes roll {
+  0% { left: -50px; transform: rotate(0); }
+  90% { left: 200px; transform: rotate(720deg); }
+  100% { left: 220px; transform: rotate(750deg); opacity: 0; }
+}
+
+@keyframes pin-fall {
+  to { transform: translateY(30px) rotate(70deg); opacity: 0; }
+}
+
+.loading-container { width: 250px; height: 10px; background: var(--bg3); border-radius: 5px; margin: 0 auto; overflow: hidden; }
+.loading-bar { width: 0; height: 100%; background: var(--accent); animation: load 3s forwards linear; }
+
+@keyframes load { to { width: 100%; } }
+
+.splash-hidden { opacity: 0; visibility: hidden; }
+
 /* ======================================================
    RESPONSIVE — SMARTPHONE
    ====================================================== */
@@ -984,6 +1236,9 @@ body {
   #header { padding: 0 10px; }
   .app-title { font-size: 1.4rem; }
   .session-name { display: none; }
+  .splash-lane { height: 135px; }
+  .splash-ball { width: 44px; height: 44px; }
+  .splash-pins { transform: scale(.82); transform-origin: right bottom; }
   #mainContent { padding: 10px; }
   .page-card { padding: 14px; }
   .card-header h2 { font-size: 1.2rem; }
