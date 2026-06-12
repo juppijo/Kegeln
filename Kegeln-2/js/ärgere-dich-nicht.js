@@ -23,8 +23,9 @@ function getMenschAergereData() {
         };
     });
 
+    // KORREKTUR: "isBooked" darf nicht gelöscht werden!
     Object.keys(data).forEach(key => {
-        if (key !== "meta" && !players.includes(key)) {
+        if (key !== "meta" && key !== "isBooked" && !players.includes(key)) {
             delete data[key];
         }
     });
@@ -100,6 +101,7 @@ function renderMenschAergereDichNichtGame(tableResponsive) {
     });
 
     updateMenschAergereDichNichtRanks();
+    updateBookedButtonStatus();
 }
 
 function getMenschAergerePlayerStatus(player, playerData) {
@@ -356,6 +358,7 @@ function calculateMenschAergereDichNichtGame() {
         return;
     }
 
+    // Spieler sortieren: Meiste Punkte (Gewinner) ganz oben (Index 0)
     const results = players.map(player => ({
         name: player,
         score: parseInt(data[player].score, 10) || 0,
@@ -366,22 +369,35 @@ function calculateMenschAergereDichNichtGame() {
         if (result.row) result.row.className = "";
     });
 
+    // NEU: Dynamische Punkteverteilung von unten nach oben
+    // Letzter Platz = 1 Punkt, Vorletzter = 2 Punkte, etc.
+    const totalPlayers = results.length;
+    
     results.forEach((result, index) => {
-        if (index === 0) {
-            grandTotalScores[result.name] += 3;
-            if (result.row) result.row.classList.add("winner-row");
-        } else if (index === 1) {
-            grandTotalScores[result.name] += 2;
-        } else if (index === 2) {
-            grandTotalScores[result.name] += 1;
-        }
+        // Formel: Gesamtanzahl der Spieler minus aktueller Index
+        // Beispiel bei 4 Spielern: 
+        // Index 0 (Erster):   4 - 0 = 4 Punkte
+        // Index 1 (Zweiter):  4 - 1 = 3 Punkte
+        // Index 2 (Dritter):  4 - 2 = 2 Punkte
+        // Index 3 (Letzter):  4 - 3 = 1 Punkt
+        const pointsAwarded = totalPlayers - index;
+        
+        grandTotalScores[result.name] += pointsAwarded;
 
-        if (index === results.length - 1 && results.length > 1) {
-            grandTotalScores[result.name] -= 1;
+        // Visuelle Klassen für die Zeilen setzen
+        if (index === 0) {
+            if (result.row) result.row.classList.add("winner-row");
+        } else if (index === totalPlayers - 1 && totalPlayers > 1) {
             if (result.row) result.row.classList.add("loser-row");
         }
     });
 
-    updateGrandTotalTable();
-    alert(`🎉 ${data.meta.winner} gewinnt Mensch ärgere dich nicht!`);
+    // Status auf gebucht setzen und speichern
+    activeGamesData[currentGame].isBooked = true; //
+    saveMenschAergereDichNichtFields(); //
+
+    updateGrandTotalTable(); //
+    updateBookedButtonStatus(); //
+
+    alert(`🎉 ${data.meta.winner} gewinnt Mensch ärgere dich nicht und alle Platzierungspunkte wurden gebucht!`); //
 }
