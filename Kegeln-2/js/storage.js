@@ -39,6 +39,7 @@ function saveCurrentGameFields() {
             };
 
         } else if (currentGame === "aergere-dich-nicht") {
+            
             if (typeof saveMenschAergereDichNichtFields === "function") {
                 saveMenschAergereDichNichtFields();
             }
