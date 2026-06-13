@@ -1,13 +1,12 @@
 // --- SPIEL-RECHNER & LOGIK ---
 // Struktur der Pyramide: Zahl -> benötigte Treffer
+
 const baumStruktur = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 4, 7: 3, 8: 2, 9: 1 };
 
 function updateCurrentGameTable() {
     const tableResponsive = document.querySelector(".table-responsive");
     if (!tableResponsive) return;
 
-    // REPARATUR-BLOCK: Stellt bei jedem Spielwechsel (außer Tannenbaum) 
-    // die saubere Standard-Struktur mit nur EINEM Platzierungsfeld wieder her!
     if (currentGame !== "tannenbaum") {
         tableResponsive.innerHTML = `
             <table>
@@ -27,13 +26,12 @@ function updateCurrentGameTable() {
         ruleText.innerText = gameRules[currentGame] || "";
     }
 
-    // --- AB HIER FOLGEN DIE SPANNDENDEN SPIELE-BLÖCKE ---
+    // --- INNERHALB VON updateCurrentGameTable() ---
     if (currentGame === "hausnummer") {
-        // Die Spaltenüberschriften für die Kombi-Hausnummer (überschreibt thRow mit den 2 Platzierungen)
         thRow.innerHTML = `
             <th>Name</th>
-            <th style="color: #60a5fa; font-size: 0.85rem; text-align: center;">Pl. Groß</th>
-            <th style="color: #fbbf24; font-size: 0.85rem; text-align: center;">Pl. Klein</th>
+            <th style="color: #60a5fa; font-size: 0.85rem;">Pl. Groß</th>
+            <th style="color: #fbbf24; font-size: 0.85rem;">Pl. Klein</th>
             <th style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">📈 W1 (Groß)</th>
             <th style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">📈 W2 (Groß)</th>
             <th style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">📈 W3 (Groß)</th>
@@ -47,25 +45,29 @@ function updateCurrentGameTable() {
         tbody.innerHTML = "";
 
         players.forEach(p => {
-            const d = activeGamesData.hausnummer[p] || { g1: 0, g2: 0, g3: 0, k1: 9, k2: 9, k3: 9 };
-            // HIER GEÄNDERT: Die Platzierungsfelder haben jetzt eine dynamische ID erhalten (id="rank1-${p}" und id="rank2-${p}")
+            // Falls noch keine Daten existieren, starten wir mit leeren Feldern "" statt 0 oder 9
+            const d = activeGamesData.hausnummer[p] || { g1: "", g2: "", g3: "", k1: "", k2: "", k3: "" };
+            
             tbody.innerHTML += `
                 <tr id="row-${p}">
                     <td><strong>${p}</strong></td>
-                    <td id="rank1-${p}" class="rank-col-gross" style="font-weight:bold; color:#60a5fa; text-align:center; font-size:1.1rem;">-</td>
-                    <td id="rank2-${p}" class="rank-col-klein" style="font-weight:bold; color:#fbbf24; text-align:center; font-size:1.1rem;">-</td>
-                    <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g1" min="0" max="9" value="${d.g1}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
-                    <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g2" min="0" max="9" value="${d.g2}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
-                    <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g3" min="0" max="9" value="${d.g3}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
-                    <td class="hn-g-res" style="font-weight:bold; color:#3b82f6; background-color: rgba(59, 130, 246, 0.05);">0</td>
-                    <td style="background-color: rgba(245, 158, 11, 0.03);"><input type="number" class="hn-k1" min="0" max="9" value="${d.k1}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
-                    <td style="background-color: rgba(245, 158, 11, 0.03);"><input type="number" class="hn-k2" min="0" max="9" value="${d.k2}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
-                    <td style="background-color: rgba(245, 158, 11, 0.03);"><input type="number" class="hn-k3" min="0" max="9" value="${d.k3}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
-                    <td class="hn-k-res" style="font-weight:bold; color:#f59e0b; background-color: rgba(245, 158, 11, 0.05);">999</td>
+                    <td class="rank-col-gross" style="font-weight:bold; color:#60a5fa; text-align:center;">-</td>
+                    <td class="rank-col-klein" style="font-weight:bold; color:#fbbf24; text-align:center;">-</td>
+                    <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g1" min="0" max="12" value="${d.g1}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
+                    <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g2" min="0" max="12" value="${d.g2}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
+                    <td style="background-color: rgba(59, 130, 246, 0.03);"><input type="number" class="hn-g3" min="0" max="12" value="${d.g3}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
+                    <td class="hn-g-res" style="font-weight:bold; color:#3b82f6; background-color: rgba(59, 130, 246, 0.05); text-align:center;">-</td>
+                    <td style="background-color: rgba(245, 158, 11, 0.03);"><input type="number" class="hn-k1" min="0" max="12" value="${d.k1}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
+                    <td style="background-color: rgba(245, 158, 11, 0.03);"><input type="number" class="hn-k2" min="0" max="12" value="${d.k2}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
+                    <td style="background-color: rgba(245, 158, 11, 0.03);"><input type="number" class="hn-k3" min="0" max="12" value="${d.k3}" oninput="liveCalculateHausnummer(); saveCurrentGameFields();"></td>
+                    <td class="hn-k-res" style="font-weight:bold; color:#f59e0b; background-color: rgba(245, 158, 11, 0.05); text-align:center;">-</td>
                 </tr>`;
         });
         liveCalculateHausnummer();
     }
+
+    // ... (ab hier folgt unverändert deine "siebzehn-vier" Abfrage)--------------------------------------------------------------------------
+
     else if (currentGame === "siebzehn-vier") {
         // Spaltenüberschriften für W1 bis W9, Status und Platzierung
         thRow.innerHTML = `
@@ -449,107 +451,86 @@ function resetCurrentGame() {
     updateCurrentGameTable(); //
 }
 
+//------------------------------------------------------------------------
+
 function liveCalculateHausnummer() {
     let grossScores = [];
     let kleinScores = [];
 
-    // 1. Durchlauf: Hausnummern bilden und Werte für das Ranking sammeln
-    players.forEach(p => {
-        const row = document.getElementById(`row-${p}`); if(!row) return;
-        
-        // GROSS: Auslesen, absteigend sortieren, anzeigen
-        let g1 = parseInt(row.querySelector(".hn-g1").value) || 0;
-        let g2 = parseInt(row.querySelector(".hn-g2").value) || 0;
-        let g3 = parseInt(row.querySelector(".hn-g3").value) || 0;
-        let grossArr = [g1, g2, g3].sort((a, b) => b - a);
-        let grossNum = parseInt(grossArr.join("")) || 0;
-        row.querySelector(".hn-g-res").innerText = grossNum;
-        grossScores.push({ player: p, score: grossNum });
+    // Hilfsfunktion: Holt den exakten Textwert aus dem Eingabefeld (wichtig für "0" und "12")
+    function getWurfString(inputEl) {
+        if (!inputEl) return null;
+        let valStr = inputEl.value.trim();
+        if (valStr === "") return null; // Wurf wurde noch nicht eingetragen
+        return valStr; 
+    }
 
-        // KLEIN: Auslesen, aufsteigend sortieren, anzeigen
-        let k1 = parseInt(row.querySelector(".hn-k1").value) || 0;
-        let k2 = parseInt(row.querySelector(".hn-k2").value) || 0;
-        let k3 = parseInt(row.querySelector(".hn-k3").value) || 0;
-        let kleinArr = [k1, k2, k3].sort((a, b) => a - b);
-        let kleinNum = parseInt(kleinArr.join("")) || 999;
-        row.querySelector(".hn-k-res").innerText = kleinNum;
-        kleinScores.push({ player: p, score: kleinNum });
+    // 1. Durchlauf: Werte strikt als Text nacheinander aneinanderhängen
+    players.forEach(p => {
+        const row = document.getElementById(`row-${p}`); 
+        if(!row) return;
+        
+        // --- HAUSNUMMER GROSS ---
+        let g1 = getWurfString(row.querySelector(".hn-g1"));
+        let g2 = getWurfString(row.querySelector(".hn-g2"));
+        let g3 = getWurfString(row.querySelector(".hn-g3"));
+
+        let grossNum = 0;
+        let displayGross = "-";
+
+        // Nur wenn alle drei Würfe eingetragen wurden, bauen wir das Endergebnis
+        if (g1 !== null && g2 !== null && g3 !== null) {
+            displayGross = g1 + "" + g2 + "" + g3; // Kombiniert z.B. "5", "12", "0" zu "5120"
+            grossNum = parseInt(displayGross) || 0;
+        } else {
+            // Teilanzeige während des Kegelns (z.B. "5 - -")
+            displayGross = (g1 !== null ? g1 : "-") + " " + (g2 !== null ? g2 : "-") + " " + (g3 !== null ? g3 : "-");
+        }
+        row.querySelector(".hn-g-res").innerText = displayGross;
+        grossScores.push({ player: p, score: grossNum, isDone: (g1 !== null && g2 !== null && g3 !== null) });
+
+
+        // --- HAUSNUMMER KLEIN ---
+        let k1 = getWurfString(row.querySelector(".hn-k1"));
+        let k2 = getWurfString(row.querySelector(".hn-k2"));
+        let k3 = getWurfString(row.querySelector(".hn-k3"));
+
+        let kleinNum = 999999; // Extrem hoch für die Sortierung, wenn unfertig
+        let displayKlein = "-";
+
+        if (k1 !== null && k2 !== null && k3 !== null) {
+            displayKlein = k1 + "" + k2 + "" + k3; 
+            kleinNum = parseInt(displayKlein) || 0;
+        } else {
+            // Teilanzeige während des Kegelns
+            displayKlein = (k1 !== null ? k1 : "-") + " " + (k2 !== null ? k2 : "-") + " " + (k3 !== null ? k3 : "-");
+        }
+        
+        // Wenn fertig geworfen, zeigen wir die fertige Nummer, sonst die Teilanzeige
+        row.querySelector(".hn-k-res").innerText = (k1 !== null && k2 !== null && k3 !== null) ? displayKlein : displayKlein;
+        kleinScores.push({ player: p, score: kleinNum, isDone: (k1 !== null && k2 !== null && k3 !== null) });
     });
 
-    // 2. Platzierung für GROSS ermitteln (Höchste Zahl gewinnt -> Platz 1)
+    // 2. Platzierung für GROSS ermitteln (Höchste Zahl gewinnt)
     grossScores.sort((a, b) => b.score - a.score);
-    
-    let currentRankGross = 1;
     grossScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            const cell = row.querySelector(".rank-col-gross");
-            if (cell) {
-                // Wenn noch 0 Punkte (nicht geworfen), dann kein Rang
-                if (item.score === 0) {
-                    cell.innerText = "-";
-                    return;
-                }
-
-                // Bei Punktegleichstand den gleichen Rang beibehalten
-                if (index > 0 && item.score === grossScores[index - 1].score) {
-                    // gleicher Rang wie Vordermann
-                } else {
-                    currentRankGross = index + 1;
-                }
-
-                // Medaillen oder Text anzeigen
-                if (currentRankGross === 1) {
-                    cell.innerHTML = "🥇";
-                } else if (currentRankGross === 2) {
-                    cell.innerHTML = "🥈";
-                } else if (currentRankGross === 3) {
-                    cell.innerHTML = "🥉";
-                } else {
-                    cell.innerText = currentRankGross + ".";
-                }
-            }
+            row.querySelector(".rank-col-gross").innerText = !item.isDone ? "-" : (index + 1) + ".";
         }
     });
 
-    // 3. Platzierung für KLEIN ermitteln (Niedrigste Zahl gewinnt -> Platz 1)
+    // 3. Platzierung für KLEIN ermitteln (Niedrigste Zahl gewinnt)
     kleinScores.sort((a, b) => a.score - b.score);
-    
-    let currentRankKlein = 1;
     kleinScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            const cell = row.querySelector(".rank-col-klein");
-            if (cell) {
-                // Wenn noch 999 Punkte (nicht geworfen), dann kein Rang
-                if (item.score === 999) {
-                    cell.innerText = "-";
-                    return;
-                }
-
-                // Bei Punktegleichstand den gleichen Rang beibehalten
-                if (index > 0 && item.score === kleinScores[index - 1].score) {
-                    // gleicher Rang wie Vordermann
-                } else {
-                    currentRankKlein = index + 1;
-                }
-
-                // Medaillen oder Text anzeigen
-                if (currentRankKlein === 1) {
-                    cell.innerHTML = "🥇";
-                } else if (currentRankKlein === 2) {
-                    cell.innerHTML = "🥈";
-                } else if (currentRankKlein === 3) {
-                    cell.innerHTML = "🥉";
-                } else {
-                    cell.innerText = currentRankKlein + ".";
-                }
-            }
+            row.querySelector(".rank-col-klein").innerText = !item.isDone ? "-" : (index + 1) + ".";
         }
     });
 }
 
-//*******************************************************
+//********************************************************************
 
 function calculateGame() {
     let results = [];
