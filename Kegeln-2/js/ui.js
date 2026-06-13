@@ -212,10 +212,54 @@ function updateGrandTotalTable() {
 }
 
 function resetGrandTotal() {
-    if (confirm("Möchtest du die Punkte des Gesamtstands wirklich für alle zurücksetzen?")) {
-        players.forEach(p => grandTotalScores[p] = 0);
-        updateGrandTotalTable();
+    if (!confirm("⚠️ Möchtest du wirklich nur die gebuchten Gesamt-Punkte nullen? Die bereits eingetragenen Würfe bleiben stehen, aber alle Spiele springen zurück auf '⏳ Noch nicht gebucht'.")) {
+        return;
     }
+
+    // 1. Das Gesamtstand-Objekt für alle Spieler auf 0 zurücksetzen
+    grandTotalScores = {};
+    players.forEach(p => { grandTotalScores[p] = 0; });
+
+    // 2. DAS WAR DER FEHLER: Das "isBooked"-Flag in ALLEN Spielen im RAM-Speicher löschen
+    if (activeGamesData) {
+        Object.keys(activeGamesData).forEach(gameKey => {
+            if (activeGamesData[gameKey] && typeof activeGamesData[gameKey] === 'object') {
+                // Setzt das Buchungs-Flag des Spiels zurück
+                activeGamesData[gameKey].isBooked = false;
+                activeGamesData[gameKey].booked = false;
+                
+                // Falls Unter-Sperren bei Spielern existieren, diese ebenfalls leeren
+                Object.keys(activeGamesData[gameKey]).forEach(playerKey => {
+                    if (activeGamesData[gameKey][playerKey] && typeof activeGamesData[gameKey][playerKey] === 'object') {
+                        activeGamesData[gameKey][playerKey].isBooked = false;
+                        activeGamesData[gameKey][playerKey].booked = false;
+                    }
+                });
+            }
+        });
+    }
+
+    // 3. Alle "booked-" Sperrmarker aus dem Browser-Speicher (localStorage) löschen
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith("booked-") || key.includes("-booked"))) {
+            keysToRemove.push(key);
+        }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    // 4. Den genullten Zustand im Browser-Speicher sichern (Geworfenes bleibt erhalten!)
+    saveCurrentGameFields(); // Sichert das bereinigte activeGamesData-Objekt
+
+    // 5. Alle Tabellen-Ansichten im UI komplett neu aufbauen
+    updateGrandTotalTable();
+    updateKegelbuchTable();
+    
+    // Aktuelles Spiel neu laden -> Zwingt das Label, von "Bereits gebucht!" auf "Noch nicht gebucht" zu springen!
+    switchGame(currentGame); 
+
+    alert("🔄 Gesamtstand erfolgreich genullt! Alle Spiele stehen jetzt wieder auf '⏳ Noch nicht gebucht', aber deine eingetragenen Zahlen sind noch da.");
 }
 
 // ==========================================
