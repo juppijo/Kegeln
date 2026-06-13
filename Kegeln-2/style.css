@@ -7,6 +7,267 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* ======================================================
+   PRO SPLASH SCREEN (3D-ANZEIGE)
+   ====================================================== */
+#splash {
+    position: fixed;
+    inset: 0;
+    z-index: 99999; /* Überlagert alles, inklusive Navigationen */
+    background: radial-gradient(circle at center, var(--bg-card) 0%, var(--bg-main) 100%);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1), opacity 0.5s ease;
+}
+
+/* Edel-Effekt: Schiebt sich wie ein Vorhang nach oben weg */
+#splash.hidden {
+    transform: translateY(-100vh);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Großer, weicher Neon-Lichtkegel im Hintergrund */
+#splash .glow {
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+    top: 15%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#pts {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.15;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
+    background-size: 24px 24px;
+}
+
+/* Content-Wrapper */
+.sc {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* Schwebendes Haupt-Icon */
+.sico {
+    font-size: 4.5rem;
+    margin-bottom: 5px;
+    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.4));
+    animation: floatIcon 3.5s ease-in-out infinite;
+}
+
+/* Haupt-Titel des Klubs */
+.stitle {
+    font-size: 2.8rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin: 0;
+    line-height: 1.1;
+    color: var(--text-main);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.stitle .g {
+    color: var(--accent);
+    text-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+}
+
+.ssub {
+    font-size: 1.1rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.swel {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 10px;
+    font-style: italic;
+}
+
+/* --- VERGRÖSSERTE 3D-BAHN --- */
+.slane-w {
+    width: 300px;
+    height: 220px; /* Mehr Höhe für eine längere Kugel-Laufzeit */
+    margin: 25px 0;
+    perspective: 250px; /* Erhöhter 3D-Fluchteffekt */
+}
+
+.slane {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Schicker Farbverlauf: Erzeugt edlen Holzeffekt im Dunkeln */
+    background: linear-gradient(to top, #241911 0%, #120c08 100%);
+    border-left: 5px solid var(--accent);
+    border-right: 5px solid var(--accent);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+    transform: rotateX(38deg);
+    transform-origin: bottom center;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gd {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- KEGEL-AUFSTELLUNG --- */
+.pins {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.prow {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.p {
+    width: 11px;
+    height: 28px;
+    background: #ffffff;
+    border-radius: 50% 50% 40% 40% / 40% 40% 60% 60%;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Der rote Halsring der Königskegel */
+.p::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ef4444;
+}
+
+/* --- KUGEL & IMPACT --- */
+.sball {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%) scale(1.4);
+    width: 32px;
+    height: 32px;
+    background: radial-gradient(circle at 35% 35%, #64748b, #0f172a);
+    border-radius: 50%;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+}
+
+.flash {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90px;
+    height: 90px;
+    background: radial-gradient(circle, #ffffff 0%, var(--accent) 45%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* --- TRIGGER-STEUERUNG --- */
+.slane.roll-ball .sball {
+    animation: ballDrive 1s ease-in forwards;
+}
+
+.slane.hit .flash {
+    animation: flashStrike 0.25s ease-out forwards;
+}
+
+.slane.hit .p {
+    animation: pinBlast var(--dur) var(--del) forwards cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+/* --- BOTTOM LOADING PROGRESS --- */
+.spw {
+    width: 220px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.sp {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--text-muted), var(--accent));
+    box-shadow: 0 0 12px var(--accent);
+    border-radius: 10px;
+    animation: loadSystem 3.2s linear forwards;
+}
+
+.sltxt {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+}
+
+/* --- KEYFRAMES --- */
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes ballDrive {
+    0% { bottom: -50px; transform: translateX(-50%) scale(1.4); opacity: 0; }
+    15% { opacity: 1; }
+    90% { opacity: 1; filter: blur(0px); }
+    100% { bottom: 74%; transform: translateX(-50%) scale(0.6); opacity: 0; filter: blur(1px); }
+}
+
+@keyframes flashStrike {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+}
+
+@keyframes pinBlast {
+    0% { transform: rotate(0deg) translate(0, 0); opacity: 1; }
+    100% { transform: rotate(var(--rot)) translate(var(--tx), -60px); opacity: 0; }
+}
+
+@keyframes loadSystem {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
 /* --- FARB-THEMEN VARIABLE DEFINITIONEN --- */
 .theme-turquoise {
     --bg-main: #141b24;
