@@ -259,7 +259,7 @@ function resetGrandTotal() {
     // Aktuelles Spiel neu laden -> Zwingt das Label, von "Bereits gebucht!" auf "Noch nicht gebucht" zu springen!
     switchGame(currentGame); 
 
-    alert("🔄 Gesamtstand erfolgreich genullt! Alle Spiele stehen jetzt wieder auf '⏳ Noch nicht gebucht', aber deine eingetragenen Zahlen sind noch da.");
+    //alert("🔄 Gesamtstand erfolgreich genullt! Alle Spiele stehen jetzt wieder auf '⏳ Noch nicht gebucht', aber deine eingetragenen Zahlen sind noch da.");
 }
 
 // ==========================================
