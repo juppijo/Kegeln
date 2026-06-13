@@ -23,7 +23,6 @@ function saveCurrentGameFields() {
                     };
                 }
             });
-
         } else if (currentGame === "siebzehn-vier") {
             activeGamesData["siebzehn-vier"][p] = {
                 w1: row.querySelector(".sv-w1").value,
