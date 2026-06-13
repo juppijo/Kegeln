@@ -61,6 +61,20 @@
     const splash = document.getElementById('splash');
     const lane = document.getElementById('lane');
     const loadingText = document.getElementById('loading-text');
+
+    // --- ANDROID CHECK ---
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    
+    if (isAndroid) {
+      // Wenn es ein Android-Gerät ist, schalten wir das Intro SOFORT komplett ab
+      if (splash) {
+        splash.style.display = 'none';
+        splash.classList.add('hidden');
+      }
+      return; // Skript hier abbrechen, damit keine Timer laufen
+    }
+
+    // --- REGULÄRER ABLAUF (FÜR PC & ANDERE GERÄTE) ---
     
     // 1. Die schwere Kugel rollt nach 500ms kraftvoll los
     setTimeout(() => {
