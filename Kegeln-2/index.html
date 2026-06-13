@@ -90,11 +90,24 @@
       }
     }, 700);
 
-    // 3. Nach Ablauf des Ladebalkens schiebt sich das Intro majestätisch nach oben weg
+    // 3. NACH DEM LADEBALKEN: Erst Animation starten, dann ausblenden!
     setTimeout(() => {
-      if(loadingText) loadingText.innerText = "Gut Holz!";
-      splash.classList.add('hidden');
+      if (loadingText) loadingText.innerText = "Gut Holz!";
+      
+      if (splash) {
+          // Wir nutzen eine separate Klasse für die flüssige CSS-Animation
+          splash.style.transform = "translateY(-100vh)";
+          splash.style.opacity = "0";
+          splash.style.pointerEvents = "none";
+          
+          // Nach exakt 600ms (Dauer der CSS-Transition) schalten wir es komplett ab
+          setTimeout(() => {
+              splash.classList.add('hidden');
+          }, 600);
+      }
     }, 3500);
+
+    
   });
 </script>
 
