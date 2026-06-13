@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🎳 KegelClub Master Pro</title>
+    <title>🎳 KegelClub Master Pro 🏆</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F3B3;</text></svg>">
 
@@ -11,12 +11,99 @@
 </head>
 <body class="theme-turquoise">
 
+    <div id="splash">
+  <div class="glow"></div>
+  <div id="pts"></div>
+  <div class="sc">
+    <div class="sico">🎳</div>
+    <div class="stitle">KEGELCLUB<br><span class="g">MASTER PRO</span></div>
+    <div class="ssub">Digitale Kegeltafel</div>
+    <div class="swel">Gut Holz! Die Bahn ist bereit...</div>
+    
+    <div class="slane-w">
+      <div class="slane" id="lane">
+        <div class="gd" style="left:16%"></div>
+        <div class="gd" style="left:32%"></div>
+        <div class="gd" style="left:48%"></div>
+        <div class="gd" style="left:64%"></div>
+        <div class="gd" style="left:80%"></div>
+        
+        <div class="pins" id="pins">
+          <div class="prow">
+            <div class="p" style="--rot:-115deg;--tx:-14px;--del:0s;--dur:.4s"></div>
+            <div class="p" style="--rot:-85deg;--tx:-5px;--del:.03s;--dur:.35s"></div>
+            <div class="p" style="--rot:-55deg;--tx:8px;--del:.07s;--dur:.38s"></div>
+          </div>
+          <div class="prow">
+            <div class="p" style="--rot:110deg;--tx:-18px;--del:.05s;--dur:.42s"></div>
+            <div class="p" style="--rot:-90deg;--tx:2px;--del:.11s;--dur:.35s"></div>
+            <div class="p" style="--rot:75deg;--tx:14px;--del:.09s;--dur:.4s"></div>
+          </div>
+          <div class="prow">
+            <div class="p" style="--rot:125deg;--tx:-12px;--del:.14s;--dur:.45s"></div>
+            <div class="p" style="--rot:95deg;--tx:8px;--del:.18s;--dur:.38s"></div>
+            <div class="p" style="--rot:65deg;--tx:22px;--del:.22s;--dur:.4s"></div>
+          </div>
+        </div>
+        
+        <div class="flash"></div>
+        <div class="sball"></div>
+      </div>
+    </div>
+    
+    <div class="spw"><div class="sp"></div></div>
+    <div class="sltxt" id="loading-text">Initialisiere Wertungssystem …</div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const splash = document.getElementById('splash');
+    const lane = document.getElementById('lane');
+    const loadingText = document.getElementById('loading-text');
+    
+    // 1. Die schwere Kugel rollt nach 500ms kraftvoll los
+    setTimeout(() => {
+      lane.classList.add('roll-ball');
+    }, 500);
+
+    // 2. Einschlag im Ziel nach exakt 1000ms Rollzeit (Echtes Physik-Timing)
+    setTimeout(() => {
+      lane.classList.add('hit');
+    }, 1500);
+
+    // Atmosphäre durch wechselnde Ladetexte erzeugen
+    const phrases = [
+      "Kasse wird geprüft …",
+      "Spiele-Module werden geladen …",
+      "Strafgelder für Pudel kalibriert …",
+      "Alle Neune! Gleich geht's los …"
+    ];
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < phrases.length) { 
+        if(loadingText) loadingText.innerText = phrases[i]; 
+        i++; 
+      } else { 
+        clearInterval(interval); 
+      }
+    }, 700);
+
+    // 3. Nach Ablauf des Ladebalkens schiebt sich das Intro majestätisch nach oben weg
+    setTimeout(() => {
+      if(loadingText) loadingText.innerText = "Gut Holz!";
+      splash.classList.add('hidden');
+    }, 3500);
+  });
+</script>
+
     <!-- AB HIER: Der neue umschließende Container für das automatische Wegklappen -->
     <div id="main-header" class="header-collapsible">
 
         <header>
             <div class="header-container">
-                <h1>🎳 KegelClub Master Pro</h1>
+                <h1>🎳 KegelClub Master Pro 🏆</h1>
                 <p>Digitale Kegeltafel & Abrechnung</p>
             </div>
         </header>
