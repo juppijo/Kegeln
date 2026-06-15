@@ -1,0 +1,21 @@
+{
+  "short_name": "KegelMaster",
+  "name": "KegelClub Master Pro",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0d9488",
+  "theme-color": "#0d9488",
+  "display": "standalone",
+  "orientation": "portrait"
+}
