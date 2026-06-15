@@ -123,11 +123,13 @@ function kleinHN(pid) {
   return (k.H||0)*100 + (k.Z||0)*10 + (k.E||0);
 }
 
-// NEU — ersetzen durch:
-function rank(entries,higherBetter=true){
-  const sorted=[...entries].sort((a,b)=>higherBetter?b.total-a.total:a.total-b.total);
-  let r=0;
-  return sorted.map((e,i)=>{if(i===0||e.total!==sorted[i-1].total)r++;return{...e,rank:r};});
+function rank(entries, higherBetter = true) {
+  const sorted = [...entries].sort((a,b) => higherBetter ? b.total - a.total : a.total - b.total);
+  let r = 1;
+  return sorted.map((e,i) => {
+    if (i > 0 && e.total !== sorted[i-1].total) r = i + 1;
+    return {...e, rank: r};
+  });
 }
 
 function medal(r) {
