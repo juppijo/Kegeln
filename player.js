@@ -326,11 +326,36 @@ function refreshRanks(game) {
     });
     rank(entries).forEach(r => setEl(`idiot_rank_${r.id}`, medal(r.rank)));
 
-  } else if (game === 'mensch') {
+} else if (game === 'mensch') {
     const entries = players.map(p => ({
       id: p.id, total: s((state.scores.mensch[p.id]||{throws:[]}).throws)
     }));
-    rank(entries).forEach(r => setEl(`mensch_rank_${r.id}`, medal(r.rank)));
+
+    // --- NEU: Häufigkeit live berechnen ---
+    const totalCounts = {};
+    entries.forEach(e => {
+      totalCounts[e.total] = (totalCounts[e.total] || 0) + 1;
+    });
+
+    rank(entries).forEach(r => {
+      setEl(`mensch_rank_${r.id}`, medal(r.rank));
+      
+      // Live den Hintergrund anpassen
+
+      // Live den Hintergrund anpassen
+      const cell = document.getElementById(`mensch_total_${r.id}`);
+      if (cell) {
+        // HIER GEÄNDERT: r.total > 0 hinzugefügt, damit Nullen ignoriert werden
+        if (r.total > 0 && totalCounts[r.total] > 1) {
+          cell.style.setProperty('background-color', '#ff4d4d', 'important');
+          cell.style.setProperty('color', '#fff', 'important');
+        } else {
+          // Setzt es auf das Standard-Design der App zurück (leicht orange-transparent)
+          cell.style.backgroundColor = 'rgba(232,160,32,.08)';
+          cell.style.color = 'var(--accent)';
+        }
+      }
+    });
   }
 }
 
