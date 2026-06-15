@@ -8,6 +8,10 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F3B3;</text></svg>">
 
     <link rel="stylesheet" href="style.css">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+
 </head>
 <body class="theme-turquoise">
 
@@ -349,5 +353,21 @@
     <script src="js/games.js"></script>
     <script src="js/ärgere-dich-nicht.js"></script>
     <script src="js/main.js"></script>
+
+<!-- ... Dein restlicher HTML Code ... -->
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker bereit!'))
+                    .catch(err => console.error('Fehler beim Service Worker:', err));
+            });
+        }
+    </script>
+
+</body>
+</html>
+
 </body>
 </html>
