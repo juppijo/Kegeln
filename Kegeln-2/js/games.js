@@ -213,19 +213,24 @@ function updateCurrentGameTable() {
         liveCalculate6TageRennen(); // Direkt schick durchrechnen
     }
     else if (currentGame === "idiot") {
-        thRow.innerHTML = "<th>Name</th><th>Platz</th><th>Links</th><th>Rückw.</th><th>Rechts</th><th>Gesamt</th>";
+        thRow.innerHTML = "<th>Platz</th><th>Name</th><th>Links</th><th>Rückw.</th><th>Rechts</th><th>Gesamt</th>";
+        tbody.innerHTML = ""; // Tabelle leeren vor dem Aufbau
+
         players.forEach(p => {
-            const d = activeGamesData.idiot[p] || {l:0, r:0, re:0};
+            const d = activeGamesData.idiot[p] || {l: "", r: "", re: ""};
             tbody.innerHTML += `
                 <tr id="row-${p}">
-                    <td>${p}</td>
-                    <td class="rank-col">-</td>
-                    <td><input type="number" class="id-l" value="${d.l}" min="0" max="9" oninput="saveCurrentGameFields()"></td>
-                    <td><input type="number" class="id-r" value="${d.r}" min="0" max="9" oninput="saveCurrentGameFields()"></td>
-                    <td><input type="number" class="id-re" value="${d.re}" min="0" max="9" oninput="saveCurrentGameFields()"></td>
-                    <td class="id-gesamt" style="font-weight:bold;">0</td>
+                    <td class="id-rank" style="text-align: center; font-weight: bold; font-size: 1.1rem;">-</td>
+                    <td><strong>${p}</strong></td>
+                    <td><input type="number" class="id-l input-klein" value="${d.l}" min="0" max="9" oninput="liveCalculateIdiot(); saveCurrentGameFields();"></td>
+                    <td><input type="number" class="id-r input-klein" value="${d.r}" min="0" max="9" oninput="liveCalculateIdiot(); saveCurrentGameFields();"></td>
+                    <td><input type="number" class="id-re input-klein" value="${d.re}" min="0" max="9" oninput="liveCalculateIdiot(); saveCurrentGameFields();"></td>
+                    <td class="id-gesamt" style="font-weight:bold; text-align: right; color: var(--accent);">0</td>
                 </tr>`;
         });
+        
+        // Direkt nach dem Laden einmal live durchrechnen
+        liveCalculateIdiot();
     }
     else if (currentGame === "fuchsjagd") {
         // Datenstrukturen initialisieren
@@ -653,9 +658,13 @@ function calculateGame() {
                 const teamName = row.getAttribute("data-team");
                 const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
                 score = parseInt(teamCell.innerText) || 0; 
-            } else if (currentGame === "idiot") {
-                score = (parseInt(row.querySelector(".id-l").value) || 0) + (parseInt(row.querySelector(".id-r").value) || 0) + (parseInt(row.querySelector(".id-re").value) || 0);
-                row.querySelector(".id-gesamt").innerText = score;
+            } 
+
+            // Innerhalb von calculateGame() im finalen else-Block:
+            else if (currentGame === "idiot") {
+                liveCalculateIdiot(); // Sicherstellen, dass alles aktuell ist
+                // Holt die Summe direkt aus der berechneten Zelle
+                score = parseInt(row.querySelector(".id-gesamt").innerText) || 0;
             }
 
             results.push({ name: p, score: score, element: row });
@@ -719,190 +728,6 @@ function calculateGame() {
 
     // Speicher aktualisieren
     saveCurrentGameFields();
-
-    // Button-Anzeige live aktualisieren
-    updateBookedButtonStatus();   
-}
-
-//************************************************************ 222222
-
-function calculateGame2() {
-    let results = [];
-    players.forEach(p => { const row = document.getElementById(`row-${p}`); if(row) row.className = ""; });
-
-    if (currentGame === "hausnummer") {
-        liveCalculateHausnummer();
-        let großResults = []; 
-        let kleinResults = [];
-
-        players.forEach(p => {
-            const row = document.getElementById(`row-${p}`); if(!row) return;
-            großResults.push({ name: p, val: parseInt(row.querySelector(".hn-g-res").innerText) || 0 });
-            kleinResults.push({ name: p, val: parseInt(row.querySelector(".hn-k-res").innerText) || 999 });
-        });
-
-        // Sortierung (Groß: Höchste Zahl gewinnt; Klein: Niedrigste Zahl gewinnt)
-        großResults.sort((a,b) => b.val - a.val);
-        kleinResults.sort((a,b) => {
-            if (a.val === 999) return 1;
-            if (b.val === 999) return -1;
-            return a.val - b.val;
-        });
-
-        // Punktevergabe für die Hausnummer
-        [großResults, kleinResults].forEach((resList, listIndex) => {
-            let gueltigeSpieler = resList.filter(item => {
-                if (listIndex === 0) return item.val > 0;
-                return item.val < 999;
-            });
-
-            gueltigeSpieler.forEach((item, index) => {
-                if(index === 0) grandTotalScores[item.name] += 3;
-                else if(index === 1) grandTotalScores[item.name] += 2;
-                else if(index === 2) grandTotalScores[item.name] += 1;
-                
-                if(index === gueltigeSpieler.length - 1 && gueltigeSpieler.length > 1) {
-                    grandTotalScores[item.name] -= 1;
-                }
-            });
-        });
-
-        players.forEach(p => {
-            const row = document.getElementById(`row-${p}`); if(!row) return;
-            let istGewinnerGroß = großResults[0] && großResults[0].val > 0 && großResults[0].name === p;
-            let istGewinnerKlein = kleinResults[0] && kleinResults[0].val < 999 && kleinResults[0].name === p;
-            let gueltigeGroß = großResults.filter(item => item.val > 0);
-            let gueltigeKlein = kleinResults.filter(item => item.val < 999);
-            let istVerliererGroß = gueltigeGroß.length > 1 && gueltigeGroß[gueltigeGroß.length - 1].name === p;
-            let istVerliererKlein = gueltigeKlein.length > 1 && gueltigeKlein[gueltigeKlein.length - 1].name === p;
-
-            if(istGewinnerGroß || istGewinnerKlein) row.classList.add("winner-row");
-            if(istVerliererGroß || istVerliererKlein) row.classList.add("loser-row");
-        });
-
-        updateGrandTotalTable();
-        alert("🎉 Beide Hausnummern erfolgreich ausgewertet!");
-        
-    } else if (currentGame === "aergere-dich-nicht") {
-        calculateMenschAergereDichNichtGame();
-
-    } else if (currentGame === "fuchsjagd") {
-        // KORREKTUR FUCHSJAGD: Holt die Summen direkt aus den neuen Ergebnis-Zellen
-        const fuchsTotalScore = parseInt(document.getElementById("fuchs-res-total").innerText) || 0;
-        const jaegerTotalScore = parseInt(document.getElementById("jaeger-res-total").innerText) || 0;
-        
-        // Wer ist aktuell der Fuchs? (wird aus den Metadaten ausgelesen)
-        const aktuellerFuchs = activeGamesData.fuchsjagd?.meta?.activeFuchsPlayer || players[0];
-
-        // Fuchs gewinnt, wenn er mindestens 31 Punkte hat UND mehr als die Jäger
-        if (fuchsTotalScore >= 31 && fuchsTotalScore > jaegerTotalScore) {
-            
-            // 1. Fuchs belohnen (+3 Clubpunkte)
-            grandTotalScores[aktuellerFuchs] += 3;
-            alert(`🦊 Der Fuchs ${aktuellerFuchs} hat die Jagd mit ${fuchsTotalScore} Holz gewonnen! 🎉 Jäger hatten ${jaegerTotalScore} Holz.`);
-            
-            // 2. Allen Jägern (jeder außer dem Fuchs) einen Strafpunkt geben
-            players.forEach(p => {
-                if (p !== aktuellerFuchs) {
-                    grandTotalScores[p] -= 1;
-                }
-            });
-        } else {
-            // Die Jäger gewinnen und erlegen den Fuchs
-            alert(`🏹 Die Jäger haben den Fuchs erlegt! Jäger-Gesamt: ${jaegerTotalScore} Holz vs. Fuchs: ${fuchsTotalScore} Holz.`);
-            
-            // 1. Fuchs kriegt einen Strafpunkt (-1)
-            grandTotalScores[aktuellerFuchs] -= 1;
-            
-            // 2. Alle Jäger bekommen +2 Punkte auf das Clubkonto
-            players.forEach(p => {
-                if (p !== aktuellerFuchs) {
-                    grandTotalScores[p] += 2;
-                }
-            });
-        }
-        
-        updateGrandTotalTable();
-        
-    } else {
-        // Logik für die restlichen Spiele (17&4, Rennen, Idiot)
-        players.forEach(p => {
-            const row = document.getElementById(`row-${p}`); if(!row) return;
-            let score = 0;
-            
-            if (currentGame === "siebzehn-vier") {
-                liveCalculateSiebzehnVier();
-                const pts = parseInt(row.querySelector(".sv-res-pts").innerText) || 0;
-                const statusText = row.querySelector(".sv-status").innerText || "";
-                
-                if (pts > 21 || statusText.includes("💀") || statusText.toLowerCase().includes("über")) {
-                    score = -1;
-                } else {
-                    score = pts;
-                }
-            } else if (currentGame === "rennen") {
-                liveCalculate6TageRennen();
-                const teamName = row.getAttribute("data-team");
-                const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
-                score = parseInt(teamCell.innerText) || 0; 
-            } else if (currentGame === "idiot") {
-                score = (parseInt(row.querySelector(".id-l").value) || 0) + (parseInt(row.querySelector(".id-r").value) || 0) + (parseInt(row.querySelector(".id-re").value) || 0);
-                row.querySelector(".id-gesamt").innerText = score;
-            }
-
-            results.push({ name: p, score: score, element: row });
-        });
-
-        // Ränge ermitteln ------------------------------------------------------
-        results.sort((a, b) => b.score - a.score);
-        
-        let currentRank = 1;
-        results.forEach((item, index) => {
-            const rankCol = item.element.querySelector(".sv-rank") || item.element.querySelector(".rank-col");
-            
-            if (index > 0 && item.score === results[index - 1].score) {
-                // Gleicher Rang bei Gleichstand
-            } else {
-                currentRank = index + 1;
-            }
-
-            if (currentRank === 1 && item.score >= 0) { 
-                if(rankCol) rankCol.innerHTML = `🥇`; 
-                item.element.classList.add("winner-row"); 
-                grandTotalScores[item.name] += 3; 
-            }
-            else if (currentRank === 2 && item.score >= 0) { 
-                if(rankCol) rankCol.innerHTML = `🥈`; 
-                grandTotalScores[item.name] += 2; 
-            }
-            else if (currentRank === 3 && item.score >= 0) { 
-                if(rankCol) rankCol.innerHTML = `🥉`; 
-                grandTotalScores[item.name] += 1; 
-            }
-            else {
-                if(rankCol) {
-                    if (currentGame === "siebzehn-vier" && item.score === -1) {
-                        rankCol.innerHTML = `<span style="color:#ef4444;">💀</span>`;
-                    } else {
-                        rankCol.innerHTML = `<span class="rank-badge">${currentRank}</span>`;
-                    }
-                }
-            }
-            
-            if (index === results.length - 1 && results.length > 1) { 
-                item.element.classList.add("loser-row"); 
-                grandTotalScores[item.name] -= 1; 
-            }
-        });
-        updateGrandTotalTable();
-        alert("🎉 Spiel erfolgreich ausgewertet!");
-    }
-    // NEU: Setze das Flag, dass dieses Spiel für diese Runde gebucht wurde
-    if (!activeGamesData[currentGame]) activeGamesData[currentGame] = {};
-    activeGamesData[currentGame].isBooked = true;
-
-    // Speicher aktualisieren
-    saveCurrentGameFields(); //
 
     // Button-Anzeige live aktualisieren
     updateBookedButtonStatus();   
@@ -1814,6 +1639,79 @@ function liveCalculateSiebzehnVier() {
         }
     });
 }
+
+function liveCalculateIdiot() {
+    if (currentGame !== "idiot") return;
+
+    let playerResults = [];
+
+    // 1. Summen für jeden Spieler berechnen
+    players.forEach(p => {
+        const row = document.getElementById(`row-${p}`);
+        if (!row) return;
+
+        const l = parseInt(row.querySelector(".id-l").value) || 0;
+        const r = parseInt(row.querySelector(".id-r").value) || 0;
+        const re = parseInt(row.querySelector(".id-re").value) || 0;
+
+        const gesamt = l + r + re;
+        
+        // Live-Anzeige der Summe in der Zeile
+        row.querySelector(".id-gesamt").innerText = gesamt;
+
+        // Prüfen, ob der Spieler überhaupt schon eine Eingabe hat (für die Rang-Anzeige)
+        const hasPlayed = (row.querySelector(".id-l").value !== "" || 
+                           row.querySelector(".id-r").value !== "" || 
+                           row.querySelector(".id-re").value !== "");
+
+        playerResults.push({
+            name: p,
+            score: gesamt,
+            hasPlayed: hasPlayed
+        });
+    });
+
+    // 2. Sortieren (Höchste Holzzahl gewinnt)
+    playerResults.sort((a, b) => {
+        if (!a.hasPlayed && b.hasPlayed) return 1;
+        if (a.hasPlayed && !b.hasPlayed) return -1;
+        return b.score - a.score;
+    });
+
+    // 3. Ränge und Medaillen in der Tabelle live verteilen
+    let currentRank = 1;
+    playerResults.forEach((res, index) => {
+        const row = document.getElementById(`row-${res.name}`);
+        if (!row) return;
+
+        const rankCell = row.querySelector(".id-rank");
+        if (!rankCell) return;
+
+        if (!res.hasPlayed) {
+            rankCell.innerText = "-";
+            return;
+        }
+
+        // Bei exakt gleichem Punktestand denselben Rang vergeben
+        if (index > 0 && res.score === playerResults[index - 1].score) {
+            // Rang bleibt gleich
+        } else {
+            currentRank = index + 1;
+        }
+
+        // Visuelle Medaillen-Zuweisung wie bei den anderen Spielen
+        if (currentRank === 1) {
+            rankCell.innerHTML = "🥇";
+        } else if (currentRank === 2) {
+            rankCell.innerHTML = "🥈";
+        } else if (currentRank === 3) {
+            rankCell.innerHTML = "🥉";
+        } else {
+            rankCell.innerHTML = `<span class="rank-badge">${currentRank}</span>`;
+        }
+    });
+}
+
 // NEU: Diese Funktion aktualisiert die Anzeige neben oder im Button
 function updateBookedButtonStatus() {
     // Sucht das Element, in dem der Werten-Button liegt
