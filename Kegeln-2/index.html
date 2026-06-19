@@ -177,8 +177,23 @@
                         </div>
                     </div>
                     <div class="screen-btn-box" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button id="save-players-btn" class="btn btn-accent">💾 Stand Sichern</button>
-                        <button id="load-players-btn" class="btn btn-info">🔄 Stand Laden</button>
+                        <button id="save-players-btn" class="btn btn-accent">🔄 Stand Browser Sichern</button>
+                        <button id="load-players-btn" class="btn btn-info">🔄 Stand Browser Laden</button>
+
+                        <!-- Button zum Sichern (Exportieren) -->
+                        <button id="save-players-btn" class="btn btn-accent" onclick="exportGesamterSpielstand()">
+                            💾 Stand Datei Sichern
+                        </button>
+
+                        <!-- onchange="importGesamterSpielstand(event)"   -->
+                        <!-- Button zum Laden (Importieren) mit verstecktem Datei-Auswähler -->
+                        <button id="load-players-btn" class="btn btn-info" onclick="document.getElementById('hidden-import-file').click()">
+                            💾 Stand Datei Laden
+                        </button>
+
+                        <!-- Das unsichtbare Input-Feld, das die Datei einliest -->
+                        <input type="file" id="hidden-import-file" accept=".json" onchange="importGesamterSpielstand(event)" style="display: none;">
+
                         <button class="btn" style="background-color: #ef4444; color: white;" onclick="clearAllBrowserData()">🗑️ Cache leeren / Neue Runde</button>
                     </div>
                 </div>
