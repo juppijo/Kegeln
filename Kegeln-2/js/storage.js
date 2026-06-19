@@ -218,3 +218,62 @@ function importGrandTotalJSON(event) {
     reader.readAsText(file);
     event.target.value = "";
 }
+
+// ==========================================
+// ERWEITERUNG: NUR FÜR DEN SPIELESTAND-EXPORT
+// ==========================================
+
+function exportGesamterSpielstand() {
+    // Wir holen uns die Daten genau so, wie deine App sie im LocalStorage speichert
+    const backupData = {
+        exportDate: new Date().toISOString(),
+        // Holt die aktuellen Spieler aus deiner funktionierenden App
+        players: typeof players !== 'undefined' ? players : JSON.parse(localStorage.getItem("kegel_players") || "[]"),
+        // Holt die Live-Spielstände (Punkte, Runden, Kasse) aus deinem LocalStorage
+        grandTotalScores: JSON.parse(localStorage.getItem("kegel_grand_total_scores") || "{}"),
+        activeGamesData: JSON.parse(localStorage.getItem("kegel_active_games_data") || "{}"),
+        savedCurrentGame: localStorage.getItem("kegel_saved_current_game") || "tannenbaum"
+    };
+
+    // Datei-Download erstellen (Kegelclub_Stand.json)
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "Kegelclub_Stand.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function importGesamterSpielstand(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            // Speichert alles exakt so im Browser, wie deine App es erwartet
+            if (importedData.players && importedData.players.length > 0) {
+                localStorage.setItem("kegel_players", JSON.stringify(importedData.players));
+            }
+            if (importedData.grandTotalScores) {
+                localStorage.setItem("kegel_grand_total_scores", JSON.stringify(importedData.grandTotalScores));
+            }
+            if (importedData.activeGamesData) {
+                localStorage.setItem("kegel_active_games_data", JSON.stringify(importedData.activeGamesData));
+            }
+            if (importedData.savedCurrentGame) {
+                localStorage.setItem("kegel_saved_current_game", importedData.savedCurrentGame);
+            }
+
+            alert("🎯 Spielstand erfolgreich geladen! Die App startet neu...");
+            location.reload(); // Lädt die App frisch mit den importierten Daten
+
+        } catch (err) {
+            alert("❌ Fehler beim Importieren: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
