@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="classic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🎳 Kegel-Apps — Startseite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap');
+
+:root{
+  --bg:#0e0905;--bg2:#1a110a;--bg3:#271808;--surface:#2e1d0e;--surface2:#3d2713;
+  --border:#5a3a1a;--border2:#7a5030;--accent:#e8a020;--accent2:#ff6b35;
+  --text:#f5e6c8;--text2:#c8a86a;--text3:#9e7a4a;
+  --danger:#f44336;--success:#4caf50;
+  --radius:8px;--radius-lg:14px;
+  --shadow:0 4px 20px rgba(0,0,0,.5);
+  --font-title:'Bebas Neue','Impact',sans-serif;--font-body:'Barlow','Segoe UI',sans-serif;
+  --transition:.18s ease;
+}
+[data-theme="neon"]{
+  --bg:#050510;--bg2:#0a0a1e;--bg3:#0e0e28;--surface:#121230;--surface2:#1a1a44;
+  --border:#2a2a6a;--border2:#4040a0;--accent:#00e5ff;--accent2:#ff00cc;
+  --text:#e0f0ff;--text2:#80c0ff;--text3:#4080cc;--success:#00ff88;
+}
+[data-theme="light"]{
+  --bg:#f0f4fa;--bg2:#e8eef8;--bg3:#dde5f5;--surface:#ffffff;--surface2:#f5f8ff;
+  --border:#c8d4e8;--border2:#a0b4d0;--accent:#1976d2;--accent2:#e91e63;
+  --text:#1a2640;--text2:#3a5070;--text3:#6080a0;--success:#2e7d32;
+}
+[data-theme="retro"]{
+  --bg:#1a0e00;--bg2:#2a1800;--bg3:#3a2200;--surface:#4a2e00;--surface2:#5a3a08;
+  --border:#8a5a10;--border2:#c08030;--accent:#ff8c00;--accent2:#ffcc00;
+  --text:#fff8e8;--text2:#ffcc88;--text3:#cc9940;--success:#88cc00;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+header{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  padding:18px 24px;background:var(--bg2);border-bottom:2px solid var(--accent);
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.h-left{display:flex;align-items:center;gap:14px;position:relative;z-index:2}
+.h-pin{font-size:2.6rem;animation:swing 3s ease-in-out infinite;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+@keyframes swing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.h-title{font-family:var(--font-title);font-size:2.1rem;letter-spacing:3px;line-height:1;color:var(--text)}
+.h-title span{color:var(--accent)}
+.h-sub{font-size:.78rem;color:var(--text3);letter-spacing:1px;margin-top:2px}
+.h-right{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:2}
+
+/* decorative rolling ball */
+/* decorative rolling ball - Bunt & Feurig */
+.h-ball{
+  position:absolute;top:50%;left:-40px;width:30px;height:30px;border-radius:50%;
+  background: radial-gradient(circle at 33% 28%, #fff 0%, #ff8c00 40%, #ff2a00 75%, #4a0000 100%);
+  animation:hroll 7s linear infinite;opacity:.75;pointer-events:none;
+  filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.5));
+}
+@keyframes hroll{
+  0%{left:-40px;transform:translateY(-50%) rotate(0)}
+  100%{left:110%;transform:translateY(-50%) rotate(720deg)}
+}
+
+.btn-icon{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius);width:40px;height:40px;font-size:1.15rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all var(--transition);
+}
+.btn-icon:hover{background:var(--surface2);border-color:var(--accent);transform:translateY(-1px)}
+.btn-primary{
+  background:var(--accent);border:none;color:#000;font-weight:700;border-radius:var(--radius);
+  padding:9px 16px;cursor:pointer;font-size:.85rem;transition:all var(--transition);
+  display:flex;align-items:center;gap:6px;
+}
+.btn-primary:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn-secondary{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+  border-radius:var(--radius);padding:9px 14px;cursor:pointer;font-size:.85rem;
+  transition:all var(--transition);display:flex;align-items:center;gap:6px;
+}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text)}
+
+/* ===== MAIN ===== */
+main{flex:1;padding:28px 24px 40px;max-width:1180px;margin:0 auto;width:100%}
+
+.welcome{text-align:center;margin-bottom:30px}
+.welcome h2{font-family:var(--font-title);font-size:1.5rem;letter-spacing:2px;color:var(--text2);margin-bottom:6px}
+.welcome p{font-size:.88rem;color:var(--text3)}
+
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;
+}
+
+.card{
+  position:relative;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 18px 16px;cursor:pointer;
+  transition:transform var(--transition),border-color var(--transition),box-shadow var(--transition);
+  display:flex;flex-direction:column;gap:6px;min-height:140px;
+}
+.card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.card.empty{
+  border-style:dashed;opacity:.55;align-items:center;justify-content:center;text-align:center;
+}
+.card.empty:hover{opacity:.9}
+
+.card-actions{
+  position:absolute;top:10px;right:10px;display:flex;gap:4px;opacity:0;
+  transition:opacity var(--transition);
+}
+.card:hover .card-actions{opacity:1}
+.card-act-btn{
+  width:26px;height:26px;border-radius:6px;background:var(--surface2);
+  border:1px solid var(--border);color:var(--text2);font-size:.78rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.card-act-btn:hover{border-color:var(--accent);color:var(--text)}
+.card-act-btn.del:hover{border-color:var(--danger);color:var(--danger)}
+
+.card-emoji{font-size:2.2rem;line-height:1}
+.card-title{font-weight:700;font-size:1.02rem;color:var(--text)}
+.card-desc{font-size:.78rem;color:var(--text3);line-height:1.4;flex:1}
+.card-url{font-size:.68rem;color:var(--text3);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.add-tile{font-size:.85rem;color:var(--text3);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:8px}
+.add-tile .plus{font-size:2rem;color:var(--accent)}
+
+footer{
+  text-align:center;padding:14px;font-size:.72rem;color:var(--text3);
+  border-top:1px solid var(--border);background:var(--bg2);
+}
+
+/* ===== MODAL ===== */
+.modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center}
+.modal.hidden{display:none}
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+.modal-box{
+  position:relative;background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius-lg);padding:26px;min-width:300px;max-width:440px;width:90vw;
+  box-shadow:var(--shadow);animation:modalin .18s ease;
+}
+@keyframes modalin{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-title{font-family:var(--font-title);font-size:1.4rem;margin-bottom:16px;letter-spacing:1px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.72rem;color:var(--text3);margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase}
+.field input,.field textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  padding:9px 12px;border-radius:var(--radius);font-family:var(--font-body);font-size:.9rem;
+  transition:border-color var(--transition);
+}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field-row{display:flex;gap:10px}
+.field-row .field:first-child{flex:0 0 70px}
+.field-row .field:last-child{flex:1}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.btn-modal-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:.88rem}
+.btn-modal-ok{background:var(--accent);border:none;color:#000;font-weight:700;padding:8px 20px;border-radius:var(--radius);cursor:pointer;font-size:.88rem}
+.btn-modal-danger{background:var(--danger);border:none;color:#fff;font-weight:700;padding:8px 18px;border-radius:var(--radius);cursor:pointer;font-size:.88rem}
+
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  padding:10px 22px;border-radius:24px;font-size:.85rem;font-weight:600;z-index:2000;
+  box-shadow:var(--shadow);opacity:0;transition:all .25s ease;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:480px){
+  .h-title{font-size:1.5rem}
+  main{padding:20px 14px 30px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-ball"></div>
+  <div class="h-left">
+    <div class="h-pin">🎳</div>
+    <div>
+      <div class="h-title">KEGEL<span>APPS</span></div>
+      <div class="h-sub">Startseite &amp; Übersicht</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <button class="btn-icon" id="themeBtn" onclick="cycleTheme()" title="Theme wechseln">🎨</button>
+    <button class="btn-icon" id="fsBtn" onclick="toggleFullscreen()" title="Vollbild">⛶</button>
+    <button class="btn-secondary" onclick="exportJson()">📤 Speichern</button>
+    <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📥 Laden</button>
+    <button class="btn-primary" onclick="openAddModal()">➕ Neue App</button>
+  </div>
+</header>
+
+<main>
+  <div class="welcome">
+    <h2>Willkommen beim Kegeln! 🎳</h2>
+    <p>Wähle eine App aus oder füge eigene Links hinzu — alles bleibt lokal gespeichert.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer id="footerInfo">0 Apps verlinkt</footer>
+
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<div id="modal" class="modal hidden">
+  <div class="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal-box" id="modalBox"></div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+
+const THEMES = ['classic','neon','light','retro'];
+const THEME_ICON = {classic:'🎳',neon:'💡',light:'☀️',retro:'🕹️'};
+let themeIdx = 0;
+
+let _uidSeq = 0;
+function genId(){ return 'lnk'+Date.now()+'_'+(++_uidSeq); }
+
+function defaultLinks(){
+  return [
+    {id:genId(), emoji:'🎳', title:'Kegeln 1', desc:'GitHub Desktop Linux Client', url:'https://juppijo.github.io/Kegeln/Kegeln-1/'},
+    {id:genId(), emoji:'🎲', title:'Kegeln 2', desc:'Kegel-Spiele Manager', url:'https://juppijo.github.io/Kegeln/Kegeln-2/'},
+    {id:genId(), emoji:'📖', title:'Gebrauchsanweisung', desc:'Anleitung zu Kegeln 2', url:'https://juppijo.github.io/Kegeln/Kegeln-2/gebrauchsanweisung.html'},
+    {id:genId(), emoji:'➕', title:'Platzhalter 1', desc:'Klicke auf ✏️ um zu bearbeiten', url:''},
+    {id:genId(), emoji:'➕', title:'Platzhalter 2', desc:'Klicke auf ✏️ um zu bearbeiten', url:''},
+    {id:genId(), emoji:'➕', title:'Platzhalter 3', desc:'Klicke auf ✏️ um zu bearbeiten', url:''},
+    {id:genId(), emoji:'➕', title:'Platzhalter 4', desc:'Klicke auf ✏️ um zu bearbeiten', url:''},
+    {id:genId(), emoji:'➕', title:'Platzhalter 5', desc:'Klicke auf ✏️ um zu bearbeiten', url:''},
+    {id:genId(), emoji:'➕', title:'Platzhalter 6', desc:'Klicke auf ✏️ um zu bearbeiten', url:''},
+    {id:genId(), emoji:'➕', title:'Platzhalter 7', desc:'Klicke auf ✏️ um zu bearbeiten', url:''}
+  ];
+}
+
+// State wird erst nach Definition der Hilfsfunktionen initialisiert
+let state = { theme:'classic', links: [] };
+
+function saveData(){
+  localStorage.setItem('kegel_hub_v1', JSON.stringify(state));
+}
+
+function loadData(){
+  const raw = localStorage.getItem('kegel_hub_v1');
+  if(!raw) {
+    // Falls keine Daten vorhanden, Defaults laden
+    state.links = defaultLinks();
+    state.theme = 'classic';
+    return;
+  }
+  try{
+    const parsed = JSON.parse(raw);
+    if(parsed && Array.isArray(parsed.links)) {
+      state = parsed;
+    } else {
+      state.links = defaultLinks();
+    }
+  }catch(e){ 
+    console.warn('Load error', e); 
+    state.links = defaultLinks();
+  }
+}
+
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('themeBtn');
+  if(btn) btn.textContent = THEME_ICON[t] || '🎨';
+}
+
+function cycleTheme(){
+  themeIdx = (themeIdx + 1) % THEMES.length;
+  state.theme = THEMES[themeIdx];
+  applyTheme(state.theme);
+  saveData();
+}
+
+function toggleFullscreen(){
+  const btn = document.getElementById('fsBtn');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+    if(btn) btn.textContent = '⊡';
+  } else {
+    document.exitFullscreen().catch(()=>{});
+    if(btn) btn.textContent = '⛶';
+  }
+}
+
+function esc(s){
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  if(!grid) return;
+  
+  grid.innerHTML = state.links.map(l => `
+    <div class="card" onclick="openLink('${l.id}')">
+      <div class="card-actions">
+        <button class="card-act-btn" onclick="event.stopPropagation();openEditModal('${l.id}')" title="Bearbeiten">✏️</button>
+        <button class="card-act-btn del" onclick="event.stopPropagation();deleteLink('${l.id}')" title="Löschen">🗑️</button>
+      </div>
+      <div class="card-emoji">${esc(l.emoji||'🔗')}</div>
+      <div class="card-title">${esc(l.title||'Ohne Titel')}</div>
+      <div class="card-desc">${esc(l.desc||'')}</div>
+      <div class="card-url">${l.url ? esc(l.url) : '— kein Link gesetzt —'}</div>
+    </div>
+  `).join('') + `
+    <div class="card empty add-tile" onclick="openAddModal()">
+      <div class="plus">➕</div>
+      <div>Neue App hinzufügen</div>
+    </div>
+  `;
+  
+  const footer = document.getElementById('footerInfo');
+  if(footer) {
+    footer.textContent = state.links.filter(l=>l.url).length + ' App(s) verlinkt · ' + state.links.length + ' Karten gesamt';
+  }
+}
+
+function openLink(id){
+  const l = state.links.find(x=>x.id===id);
+  if(!l) return;
+  if(l.url){
+    window.open(l.url, '_blank', 'noopener');
+  } else {
+    openEditModal(id);
+    showToast('Bitte zuerst eine URL eintragen', '');
+  }
+}
+
+function openAddModal(){
+  renderFormModal({emoji:'🎳',title:'',desc:'',url:''}, null);
+}
+
+function openEditModal(id){
+  const l = state.links.find(x=>x.id===id);
+  if(!l) return;
+  renderFormModal(l, id);
+}
+
+function renderFormModal(data, editId){
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <div class="modal-title">${editId ? 'App bearbeiten' : 'Neue App hinzufügen'}</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Icon</label>
+        <input id="f_emoji" type="text" maxlength="4" value="${esc(data.emoji||'🎳')}">
+      </div>
+      <div class="field">
+        <label>Titel</label>
+        <input id="f_title" type="text" maxlength="40" value="${esc(data.title||'')}" placeholder="z. B. Kegeln 3">
+      </div>
+    </div>
+    <div class="field">
+      <label>Beschreibung</label>
+      <input id="f_desc" type="text" maxlength="80" value="${esc(data.desc||'')}" placeholder="Kurze Beschreibung">
+    </div>
+    <div class="field">
+      <label>URL</label>
+      <input id="f_url" type="text" value="${esc(data.url||'')}" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      ${editId ? `<button class="btn-modal-danger" onclick="deleteLink('${editId}');closeModal()">🗑️ Löschen</button>` : ''}
+      <button class="btn-modal-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-modal-ok" onclick="saveForm('${editId||''}')">💾 Speichern</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.remove('hidden');
+  
+  // Sicherer Timeout für den Fokus, damit das Element bereit ist
+  setTimeout(()=>{
+    const inputTitle = document.getElementById('f_title');
+    if(inputTitle) inputTitle.focus();
+  }, 60);
+}
+
+function saveForm(editId){
+  const emoji = document.getElementById('f_emoji').value.trim() || '🔗';
+  const title = document.getElementById('f_title').value.trim();
+  const desc  = document.getElementById('f_desc').value.trim();
+  const url   = document.getElementById('f_url').value.trim();
+
+  if(!title){ showToast('Bitte einen Titel eingeben!', 'error'); return; }
+
+  if(editId){
+    const l = state.links.find(x=>x.id===editId);
+    if(l){ l.emoji=emoji; l.title=title; l.desc=desc; l.url=url; }
+  } else {
+    state.links.push({ id:genId(), emoji, title, desc, url });
+  }
+  saveData();
+  renderGrid();
+  closeModal();
+  showToast('💾 Gespeichert!', 'success');
+}
+
+function deleteLink(id){
+  renderConfirmModal('App entfernen?', 'Dieser Link wird endgültig gelöscht.', ()=>{
+    state.links = state.links.filter(x=>x.id!==id);
+    saveData();
+    renderGrid();
+    closeModal();
+    showToast('Gelöscht.', 'error');
+  });
+}
+
+function renderConfirmModal(title, msg, onConfirm){
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <div class="modal-title">${esc(title)}</div>
+    <div style="font-size:.85rem;color:var(--text2);margin-bottom:18px">${esc(msg)}</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-modal-danger" id="confirmBtn">Bestätigen</button>
+    </div>
+  `;
+  document.getElementById('confirmBtn').onclick = onConfirm;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.add('hidden');
+}
+
+function exportJson(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kegel-apps-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 Export erfolgreich!', 'success');
+}
+
+function handleImport(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      const links = Array.isArray(parsed) ? parsed : parsed.links;
+      if(!Array.isArray(links)) throw new Error('Ungültiges Format');
+      renderConfirmModal('Import bestätigen', 'Alle aktuellen Links werden durch die importierte Datei ersetzt.', ()=>{
+        state.links = links.map(l => ({
+          id: l.id || genId(),
+          emoji: l.emoji || '🔗',
+          title: l.title || 'Ohne Titel',
+          desc: l.desc || '',
+          url: l.url || ''
+        }));
+        if(parsed.theme) { state.theme = parsed.theme; applyTheme(state.theme); themeIdx = THEMES.indexOf(state.theme); }
+        saveData();
+        renderGrid();
+        closeModal();
+        showToast('✅ Import erfolgreich!', 'success');
+      });
+    }catch(err){
+      showToast('❌ Import fehlgeschlagen!', 'error');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+let _toastTimer = null;
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 2200);
+}
+
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+// Initialisierung beim Laden der Seite
+loadData();
+themeIdx = THEMES.indexOf(state.theme);
+if(themeIdx === -1) themeIdx = 0;
+applyTheme(state.theme);
+renderGrid();
+</script>
+</body>
+</html>
