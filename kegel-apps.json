@@ -1,0 +1,75 @@
+{
+  "theme": "retro",
+  "links": [
+    {
+      "id": "lnk1781947621660_1",
+      "emoji": "🎳",
+      "title": "Kegeln 1",
+      "desc": "GitHub Desktop Linux Client",
+      "url": "https://juppijo.github.io/Kegeln/Kegeln-1/"
+    },
+    {
+      "id": "lnk1781947621660_2",
+      "emoji": "🎲",
+      "title": "Kegeln 2",
+      "desc": "Kegel-Spiele Manager",
+      "url": "https://juppijo.github.io/Kegeln/Kegeln-2/"
+    },
+    {
+      "id": "lnk1781947621660_3",
+      "emoji": "📖",
+      "title": "Gebrauchsanweisung",
+      "desc": "Anleitung zu Kegeln 2",
+      "url": "https://juppijo.github.io/Kegeln/Kegeln-2/gebrauchsanweisung.html"
+    },
+    {
+      "id": "lnk1781947621660_4",
+      "emoji": "➕",
+      "title": "Platzhalter 1",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    },
+    {
+      "id": "lnk1781947621660_5",
+      "emoji": "➕",
+      "title": "Platzhalter 2",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    },
+    {
+      "id": "lnk1781947621660_6",
+      "emoji": "➕",
+      "title": "Platzhalter 3",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    },
+    {
+      "id": "lnk1781947621660_7",
+      "emoji": "➕",
+      "title": "Platzhalter 4",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    },
+    {
+      "id": "lnk1781947621660_8",
+      "emoji": "➕",
+      "title": "Platzhalter 5",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    },
+    {
+      "id": "lnk1781947621660_9",
+      "emoji": "➕",
+      "title": "Platzhalter 6",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    },
+    {
+      "id": "lnk1781947621660_10",
+      "emoji": "➕",
+      "title": "Platzhalter 7",
+      "desc": "Klicke auf ✏️ um zu bearbeiten",
+      "url": ""
+    }
+  ]
+}
