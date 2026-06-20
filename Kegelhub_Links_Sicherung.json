@@ -1,0 +1,62 @@
+[
+  {
+    "icon": "🎳",
+    "title": "Kegeln App 1",
+    "url": "https://juppijo.github.io/Kegeln/Kegeln-1/",
+    "desc": "Die Haupt-Kegel-App für die digitale Tafel."
+  },
+  {
+    "icon": "🔢",
+    "title": "Kegeln App 2",
+    "url": "https://juppijo.github.io/Kegeln/Kegeln-2/",
+    "desc": "Erweiterte Punktezählung und Spielvarianten."
+  },
+  {
+    "icon": "📖",
+    "title": "Gebrauchsanweisung",
+    "url": "https://juppijo.github.io/Kegeln/Kegeln-2/gebrauchsanweisung.html",
+    "desc": "Anleitung, Spielregeln und Tipps für die Bedienung."
+  },
+  {
+    "icon": "🏠",
+    "title": "Hausnummer-Rechner",
+    "url": "#",
+    "desc": "Direkter Einstieg für das Auswürfeln hoher Hausnummern."
+  },
+  {
+    "icon": "🃏",
+    "title": "17 und 4 Karte",
+    "url": "#",
+    "desc": "Das klassische Kartenspiel auf die Kegelbahn übersetzt."
+  },
+  {
+    "icon": "🏎️",
+    "title": "6-Tage-Rennen",
+    "url": "#",
+    "desc": "Ausdauerspiel mit ansteigender Multiplikator-Wertung."
+  },
+  {
+    "icon": "🤪",
+    "title": "Idiotenkegeln",
+    "url": "#",
+    "desc": "Spaßturnier mit Würfen rückwärts durch die Beine oder links."
+  },
+  {
+    "icon": "🦊",
+    "title": "Fuchsjagd",
+    "url": "#",
+    "desc": "Ein Spieler flieht, alle anderen jagen mit Holz-Treffern hinterher."
+  },
+  {
+    "icon": "🎄",
+    "title": "Tannenbaum",
+    "url": "#",
+    "desc": "Teambasiertes Abwerfen der exakten Pyramidenstruktur."
+  },
+  {
+    "icon": "📊",
+    "title": "Club-Kasse & Abrechnung",
+    "url": "#",
+    "desc": "Die integrierte Gesamtliste für Strafgelder, Pudel und Stinas."
+  }
+]
