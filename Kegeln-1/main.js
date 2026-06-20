@@ -58,7 +58,17 @@ let state = defaultState();
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   showPage('spieler');
+  initSplashScreen();
 });
+
+function initSplashScreen() {
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+  window.setTimeout(() => {
+    splash.classList.add('hidden');
+    window.setTimeout(() => splash.remove(), 500);
+  }, 3000);
+}
 
 // ======================================================
 // PERSISTENCE
@@ -259,12 +269,3 @@ function editSessionName() {
     saveData();
   });
 }
-
-//  splash-screen  ----------------------------------------
-
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const splash = document.getElementById('splash-screen');
-    if (splash) splash.classList.add('splash-hidden');
-  }, 3000); // 3 Sekunden
-});
