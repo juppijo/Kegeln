@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎳 KegelClub Master Pro 🏆</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F3B3;</text></svg>">
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+
+</head>
+<body class="theme-turquoise">
+
+    <div id="splash">
+  <div class="glow"></div>
+  <div id="pts"></div>
+  <div class="sc">
+    <div class="sico">🎳</div>
+    <div class="stitle">KEGELCLUB<br><span class="g">MASTER PRO</span></div>
+    <div class="ssub">Digitale Kegeltafel 🏆</div>
+    <div class="swel">Gut Holz! Die Bahn ist bereit...</div>
+    
+    <div class="slane-w">
+      <div class="slane" id="lane">
+        <div class="gd" style="left:16%"></div>
+        <div class="gd" style="left:32%"></div>
+        <div class="gd" style="left:48%"></div>
+        <div class="gd" style="left:64%"></div>
+        <div class="gd" style="left:80%"></div>
+        
+        <div class="pins" id="pins">
+          <div class="prow">
+            <div class="p" style="--rot:-115deg;--tx:-14px;--del:0s;--dur:.4s"></div>
+            <div class="p" style="--rot:-85deg;--tx:-5px;--del:.03s;--dur:.35s"></div>
+            <div class="p" style="--rot:-55deg;--tx:8px;--del:.07s;--dur:.38s"></div>
+          </div>
+          <div class="prow">
+            <div class="p" style="--rot:110deg;--tx:-18px;--del:.05s;--dur:.42s"></div>
+            <div class="p" style="--rot:-90deg;--tx:2px;--del:.11s;--dur:.35s"></div>
+            <div class="p" style="--rot:75deg;--tx:14px;--del:.09s;--dur:.4s"></div>
+          </div>
+          <div class="prow">
+            <div class="p" style="--rot:125deg;--tx:-12px;--del:.14s;--dur:.45s"></div>
+            <div class="p" style="--rot:95deg;--tx:8px;--del:.18s;--dur:.38s"></div>
+            <div class="p" style="--rot:65deg;--tx:22px;--del:.22s;--dur:.4s"></div>
+          </div>
+        </div>
+        
+        <div class="flash"></div>
+        <div class="sball"></div>
+      </div>
+    </div>
+    
+    <div class="spw"><div class="sp"></div></div>
+    <div class="sltxt" id="loading-text">Initialisiere Wertungssystem …</div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const splash = document.getElementById('splash');
+    const lane = document.getElementById('lane');
+    const loadingText = document.getElementById('loading-text');
+
+    // --- ANDROID CHECK ---
+    //const isAndroid = /Android/i.test(navigator.userAgent);
+    const isAndroid = false;
+    
+    if (isAndroid) {
+      // Wenn es ein Android-Gerät ist, schalten wir das Intro SOFORT komplett ab
+      if (splash) {
+        splash.style.display = 'none';
+        splash.classList.add('hidden');
+      }
+      return; // Skript hier abbrechen, damit keine Timer laufen
+    }
+
+    // --- REGULÄRER ABLAUF (FÜR PC & ANDERE GERÄTE) ---
+    
+    // 1. Die schwere Kugel rollt nach 500ms kraftvoll los
+    setTimeout(() => {
+      lane.classList.add('roll-ball');
+    }, 500);
+
+    // 2. Einschlag im Ziel nach exakt 1000ms Rollzeit (Echtes Physik-Timing)
+    setTimeout(() => {
+      lane.classList.add('hit');
+    }, 1500);
+
+    // Atmosphäre durch wechselnde Ladetexte erzeugen
+    const phrases = [
+      "Kasse wird geprüft …",
+      "Spiele-Module werden geladen …",
+      "Strafgelder für Pudel kalibriert …",
+      "Alle Neune! Gleich geht's los …"
+    ];
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < phrases.length) { 
+        if(loadingText) loadingText.innerText = phrases[i]; 
+        i++; 
+      } else { 
+        clearInterval(interval); 
+      }
+    }, 700);
+
+    // 3. NACH DEM LADEBALKEN: Erst Animation starten, dann ausblenden!
+    setTimeout(() => {
+      if (loadingText) loadingText.innerText = "Gut Holz!";
+      
+      if (splash) {
+          // Wir nutzen eine separate Klasse für die flüssige CSS-Animation
+          splash.style.transform = "translateY(-100vh)";
+          splash.style.opacity = "0";
+          splash.style.pointerEvents = "none";
+          
+          // Nach exakt 600ms (Dauer der CSS-Transition) schalten wir es komplett ab
+          setTimeout(() => {
+              splash.classList.add('hidden');
+          }, 600);
+      }
+    }, 3500);
+
+    
+  });
+</script>
+
+    <!-- AB HIER: Der neue umschließende Container für das automatische Wegklappen -->
+    <div id="main-header" class="header-collapsible">
+
+        <header>
+            <div class="header-container">
+                <h1>🎳 KegelClub Master Pro 🏆</h1>
+                <p>Digitale Kegeltafel & Abrechnung</p>
+            </div>
+        </header>
+
+        <nav class="menu-bar">
+            <button class="menu-tab active" onclick="switchTab('tab-setup', this)">👥 Club-Setup</button>
+            <button class="menu-tab" onclick="switchTab('tab-games', this)">🎯 Kegelspiele</button>
+            <button class="menu-tab" onclick="switchTab('tab-grand-total', this)">🏆 Gesamtstand</button>
+            <button class="menu-tab" onclick="switchTab('tab-kegelbuch', this)">📊 Kasse / Ende</button>
+        </nav>
+
+    </div> <!-- / Ende von #main-header -->   
+    
+    <!-- DER NEUE SCHWEBENDE PFEIL-BUTTON (direkt unter dem einklappbaren Header) -->
+    <button id="toggle-menu-btn" onclick="toggleFullscreenMenu()">🔽 Menü einblenden</button> 
+
+    <main class="container">
+        
+        <div id="tab-setup" class="tab-content">
+            <section class="card">
+                <div class="card-header collapsible" onclick="toggleCard('system-controls-content', this)">
+                    <h2>🎨 System & Design-Einstellungen</h2>
+                    <span class="toggle-icon">🔽</span>
+                </div>
+                <div id="system-controls-content" class="card-body">
+                    <div class="control-grid">
+                        <div class="control-item">
+                            <label>Farb-Design wählen:</label>
+                            <select onchange="changeTheme(this.value)">
+                                <option value="theme-turquoise">Modernes Türkis (Dunkel)</option>
+                                <option value="theme-classic">Klassisches Holz-Braun</option>
+                                <option value="theme-neon">Neon Club (Cyberpunk)</option>
+                                <option value="theme-light">Klassisch Hell</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label>Anzeige-Modus:</label>
+                            <button id="fullscreen-btn" class="btn btn-info" onclick="toggleFullscreen()">📺 Vollbildmodus einschalten</button>
+                        </div>
+                    </div>
+                    <div class="screen-btn-box" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="save-players-btn" class="btn btn-accent">🔄 Stand Browser Sichern</button>
+                        <button id="load-players-btn" class="btn btn-info">🔄 Stand Browser Laden</button>
+
+                        <!-- Button zum Sichern (Exportieren) -->
+                        <button id="save-players-btn" class="btn btn-accent" onclick="exportGesamterSpielstand()">
+                            💾 Stand Datei Sichern
+                        </button>
+
+                        <!-- onchange="importGesamterSpielstand(event)"   -->
+                        <!-- Button zum Laden (Importieren) mit verstecktem Datei-Auswähler -->
+                        <button id="load-players-btn" class="btn btn-info" onclick="document.getElementById('hidden-import-file').click()">
+                            💾 Stand Datei Laden
+                        </button>
+
+                        <!-- Das unsichtbare Input-Feld, das die Datei einliest -->
+                        <input type="file" id="hidden-import-file" accept=".json" onchange="importGesamterSpielstand(event)" style="display: none;">
+
+                        <button class="btn" style="background-color: #ef4444; color: white;" onclick="clearAllBrowserData()">🗑️ Cache leeren / Neue Runde</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>👥 Spieler-Verwaltung &amp; Reihenfolge</h2>
+                </div>
+                <div class="card-body">
+                    <div class="add-player-box">
+                        <input type="text" id="new-player-name" placeholder="Name des Keglers..." maxlength="15">
+                        <button id="add-player-btn" class="btn btn-accent">➕ Hinzufügen</button>
+                    </div>
+                    
+                    <div id="player-badges" class="badge-container">
+                        </div>
+
+                    <div class="danger-zone" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+                        <button id="clear-players-btn" class="btn" style="background-color:#b91c1c; color:white;">❌ Alle Spieler löschen</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header collapsible collapsed" onclick="toggleCard('backup-controls-content', this)">
+                    <h2>💾 Datensicherung (Datei Export/Import)</h2>
+                    <span class="toggle-icon">🔼</span>
+                </div>
+                <div id="backup-controls-content" class="card-body collapsed">
+                    <p class="hint">Hier kannst du die Spielerliste und den Gesamtstand als Datei auf deinem Gerät sichern oder wieder laden.</p>
+                    <div class="screen-btn-box" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="btn btn-info" onclick="exportToJSON()">📥 Setup exportieren (.json)</button>
+                        <button class="btn btn-info" onclick="document.getElementById('import-file-input').click()">📤 Setup importieren</button>
+                        <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importFromJSON(event)">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header collapsible collapsed" onclick="toggleCard('version-history-content', this)">
+                    <h2>📜 Versionsverlauf (Changelog)</h2>
+                    <span class="toggle-icon">🔼</span>
+                </div>
+                <div id="version-history-content" class="card-body collapsed">
+                    <div class="version-item" style="margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                        <h4 style="color: var(--accent);">v2026.1 — "Tannenbaum & Automation Update"</h4>
+                        <ul class="hint" style="list-style: disc; margin-left: 20px; margin-top: 5px;">
+                            <li>NEU: Spiel "Tannenbaum (Teams)" mit interaktivem Canvas-Baum hinzugefügt.</li>
+                            <li>NEU: Automatisches Sieger-Vollbild-Overlay bei Spielende.</li>
+                            <li>Verbesserte Live-Rangberechnung für 17 und 4 sowie das 6-Tage-Rennen.</li>
+                            <li>Optimierte mobile Navigation mit einklappbarem Header.</li>
+                        </ul>
+                    </div>
+                    <div class="version-item">
+                        <h4 style="color: var(--text-muted);">v2025.4 — "Design & Storage"</h4>
+                        <ul class="hint" style="list-style: disc; margin-left: 20px; margin-top: 5px;">
+                            <li>Einführung der 5 verschiedenen Farb-Themes.</li>
+                            <li>Lokale Speicherung (LocalStorage) für Spielerlisten implementiert.</li>
+                            <li>Vollbildmodus für Smartphones hinzugefügt.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-games" class="tab-content hidden">
+            <div id="game-selector-container" class="game-nav-bar">
+                </div>
+
+            <section class="card">
+                <div class="game-header-row">
+                    <h2 id="current-game-title">🏠 Große/Kleine Hausnummer</h2>
+                    <div class="game-header-buttons">
+                        <button class="btn-help" onclick="showRules()">💡 Regeln</button>
+                        <button class="btn-reset" onclick="resetCurrentGame()">🔄 Zurücksetzen</button>
+                    </div>
+                </div>
+
+                <div id="rules-box" class="rules-card hidden">
+                    <h4 id="rules-title">Regeln</h4>
+                    <p id="rules-text"></p>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr id="th-row">
+                                </tr>
+                        </thead>
+                        <tbody id="game-tbody">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="game-actions">
+                    <button class="btn btn-accent" onclick="calculateGame()">🏆 Dieses Spiel werten &amp; Punkte buchen</button>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-grand-total" class="tab-content hidden">
+            <section class="card">
+                <div class="game-header-row">
+                    <h2>🏆 König des Abends (Gesamt-Turnierstand)</h2>
+                    <button class="btn-reset" onclick="resetGrandTotal()">🔄 Punkte Nullen</button>
+                </div>
+                <p class="hint">Platz 1 = 3 Pkt, Platz 2 = 2 Pkt, Platz 3 = 1 Pkt. Letzter Platz = -1 Pkt.</p>
+                
+                <div class="table-responsive">
+                    <table class="static-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Aktueller Rang</th>
+                                <th>Gesamtpunkte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grand-total-tbody">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="card-body" style="border-top: 1px solid var(--border); margin-top:20px; padding-top:15px;">
+                    <h4>Turnierstand sichern:</h4>
+                    <div class="screen-btn-box" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="btn btn-info" onclick="exportGrandTotalJSON()">📥 Punkte exportieren</button>
+                        <button class="btn btn-info" onclick="document.getElementById('import-total-input').click()">📤 Punkte importieren</button>
+                        <input type="file" id="import-total-input" class="hidden" accept=".json" onchange="importGrandTotalJSON(event)">
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-kegelbuch" class="tab-content hidden">
+            <section id="kegelbuch-area" class="card">
+                <div class="game-header-row">
+                    <h2>📊 Kegelbuch / Kasse (Abend-Abrechnung)</h2>
+                </div>
+                <p class="hint">Trage hier Startgeld sowie Strafen für Pudel (0) und Stinas ein. Wird unabhängig vom Spielstand berechnet.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Platz</th>
+                                <th>Startgeld €</th>
+                                <th>Pudel</th>
+                                <th>Stinas</th>
+                                <th>Summe zu zahlen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kegelbuch-tbody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="game-actions">
+                    <button class="btn btn-accent" onclick="calculateKegelbuch()">📊 Kasse abrechnen</button>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 KegelClub Master Pro &bull; Optimiert für alle Touch-Smartphones</p>
+    </footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/games.js"></script>
+    <script src="js/ärgere-dich-nicht.js"></script>
+    <script src="js/main.js"></script>
+
+<!-- ... Dein restlicher HTML Code ... -->
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker bereit!'))
+                    .catch(err => console.error('Fehler beim Service Worker:', err));
+            });
+        }
+    </script>
+
+</body>
+</html>
+
+</body>
+</html>

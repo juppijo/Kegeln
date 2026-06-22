@@ -1,0 +1,853 @@
+/* --- BASIS-SETUP --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ======================================================
+   PRO SPLASH SCREEN (3D-ANZEIGE)
+   ====================================================== */
+#splash {
+    position: fixed;
+    inset: 0;
+    z-index: 99999; /* Überlagert alles, inklusive Navigationen */
+    background: radial-gradient(circle at center, var(--bg-card) 0%, var(--bg-main) 100%);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1), opacity 0.5s ease;
+}
+
+/* Edel-Effekt: Schiebt sich wie ein Vorhang nach oben weg */
+#splash.hidden {
+    transform: translateY(-100vh);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Großer, weicher Neon-Lichtkegel im Hintergrund */
+#splash .glow {
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+    top: 15%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#pts {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.15;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
+    background-size: 24px 24px;
+}
+
+/* Content-Wrapper */
+.sc {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* Schwebendes Haupt-Icon */
+.sico {
+    font-size: 4.5rem;
+    margin-bottom: 5px;
+    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.4));
+    animation: floatIcon 3.5s ease-in-out infinite;
+}
+
+/* Haupt-Titel des Klubs */
+.stitle {
+    font-size: 2.8rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin: 0;
+    line-height: 1.1;
+    color: var(--text-main);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.stitle .g {
+    color: var(--accent);
+    text-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+}
+
+.ssub {
+    font-size: 1.1rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.swel {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 10px;
+    font-style: italic;
+}
+
+/* --- VERGRÖSSERTE 3D-BAHN --- */
+.slane-w {
+    width: 300px;
+    height: 220px; /* Mehr Höhe für eine längere Kugel-Laufzeit */
+    margin: 25px 0;
+    perspective: 250px; /* Erhöhter 3D-Fluchteffekt */
+}
+
+.slane {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Schicker Farbverlauf: Erzeugt edlen Holzeffekt im Dunkeln */
+    background: linear-gradient(to top, #241911 0%, #120c08 100%);
+    border-left: 5px solid var(--accent);
+    border-right: 5px solid var(--accent);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+    transform: rotateX(38deg);
+    transform-origin: bottom center;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gd {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- KEGEL-AUFSTELLUNG --- */
+.pins {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.prow {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.p {
+    width: 11px;
+    height: 28px;
+    background: #ffffff;
+    border-radius: 50% 50% 40% 40% / 40% 40% 60% 60%;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Der rote Halsring der Königskegel */
+.p::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ef4444;
+}
+
+/* --- KUGEL & IMPACT --- */
+.sball {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%) scale(1.4);
+    width: 32px;
+    height: 32px;
+    background: radial-gradient(circle at 35% 35%, #64748b, #0f172a);
+    border-radius: 50%;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+}
+
+.flash {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90px;
+    height: 90px;
+    background: radial-gradient(circle, #ffffff 0%, var(--accent) 45%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* --- TRIGGER-STEUERUNG --- */
+.slane.roll-ball .sball {
+    animation: ballDrive 1s ease-in forwards;
+}
+
+.slane.hit .flash {
+    animation: flashStrike 0.25s ease-out forwards;
+}
+
+.slane.hit .p {
+    animation: pinBlast var(--dur) var(--del) forwards cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+/* --- BOTTOM LOADING PROGRESS --- */
+.spw {
+    width: 220px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.sp {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--text-muted), var(--accent));
+    box-shadow: 0 0 12px var(--accent);
+    border-radius: 10px;
+    animation: loadSystem 3.2s linear forwards;
+}
+
+.sltxt {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+}
+
+/* --- KEYFRAMES --- */
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes ballDrive {
+    0% { bottom: -50px; transform: translateX(-50%) scale(1.4); opacity: 0; }
+    15% { opacity: 1; }
+    90% { opacity: 1; filter: blur(0px); }
+    100% { bottom: 74%; transform: translateX(-50%) scale(0.6); opacity: 0; filter: blur(1px); }
+}
+
+@keyframes flashStrike {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+}
+
+@keyframes pinBlast {
+    0% { transform: rotate(0deg) translate(0, 0); opacity: 1; }
+    100% { transform: rotate(var(--rot)) translate(var(--tx), -60px); opacity: 0; }
+}
+
+@keyframes loadSystem {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+/* --- FARB-THEMEN VARIABLE DEFINITIONEN --- */
+.theme-turquoise {
+    --bg-main: #141b24;
+    --bg-card: #1f2a38;
+    --bg-input: #17202a;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #06b6d4;
+    --accent-hover: #22d3ee;
+    --border: #334155;
+    --header-gradient: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+}
+
+.theme-classic {
+    --bg-main: #2c1d11;
+    --bg-card: #3e2a18;
+    --bg-input: #23160b;
+    --text-main: #fef3c7;
+    --text-muted: #d97706;
+    --accent: #f59e0b;
+    --accent-hover: #fbbf24;
+    --border: #5f3f23;
+    --header-gradient: linear-gradient(135deg, #1c1107 0%, #7c2d12 100%);
+}
+
+.theme-neon {
+    --bg-main: #09090b;
+    --bg-card: #18181b;
+    --bg-input: #27272a;
+    --text-main: #fafafa;
+    --text-muted: #a1a1aa;
+    --accent: #ec4899;
+    --accent-hover: #f472b6;
+    --border: #3f3f46;
+    --header-gradient: linear-gradient(135deg, #000000 0%, #db2777 100%);
+}
+
+.theme-light {
+    --bg-main: #b8bafc;
+    --bg-card: #ffffff;
+    --bg-input: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --accent: #0284c7;
+    --accent-hover: #0369a1;
+    --border: #cbd5e1;
+    --header-gradient: linear-gradient(135deg, #0284c7 0%, #0f172a 100%);
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color 0.3s, color 0.3s;
+    padding-bottom: 60px;
+}
+
+header {
+    background: var(--header-gradient);
+    color: white;
+    padding: 20px 15px;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+}
+
+.header-container h1 {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+}
+
+.header-container p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* --- REITER / NAVIGATION --- */
+.menu-bar {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.2);
+    overflow-x: auto;
+    sticky: top;
+    z-index: 100;
+    border-bottom: 2px solid var(--border);
+}
+
+.menu-tab {
+    flex: 1;
+    min-width: 100px;
+    padding: 14px 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.menu-tab:hover {
+    color: var(--text-main);
+    background-color: rgba(255,255,255,0.05);
+}
+
+.menu-tab.active {
+    color: var(--accent);
+    background-color: var(--bg-card);
+    border-bottom: 3px solid var(--accent);
+}
+
+/* --- CONTAINER & CARDS --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+.card {
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.card-header.collapsible {
+    cursor: pointer;
+}
+
+.card-body.collapsed {
+    display: none !important;
+}
+
+/* --- BUTTONS & SELECTION --- */
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn:active { opacity: 0.7; }
+.btn-accent { background-color: var(--accent); color: #000; }
+.btn-info { background-color: var(--border); color: var(--text-main); }
+
+.control-grid {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.control-item {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+label { font-size: 0.85rem; color: var(--text-muted); font-weight: bold; }
+
+select, input[type="text"] {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100%;
+}
+
+/* --- SPIELER- badges --- */
+.add-player-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.badge-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.badge {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 6px;
+}
+
+.badge-name-box { font-weight: bold; }
+
+.order-btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-order {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 1.1rem;
+}
+
+/* --- SPIEL-NAVIGATION --- */
+.game-nav-bar {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+}
+
+.game-nav-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.game-nav-item.active {
+    border-color: var(--accent);
+    background-color: rgba(6, 182, 212, 0.1);
+}
+
+.game-nav-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    padding: 10px 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- SPIEL-KARTEN-DETAILS --- */
+.game-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.game-header-buttons { display: flex; gap: 8px; }
+.btn-help, .btn-reset {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.btn-reset:hover { background-color: #ef4444; color: white; }
+
+.rules-card {
+    background-color: var(--bg-input);
+    border-left: 4px solid var(--accent);
+    padding: 12px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 15px;
+}
+
+/* --- TABELLEN --- */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--bg-input);
+    font-size: 0.95rem;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+th {
+    background-color: rgba(0,0,0,0.2);
+    color: var(--accent);
+}
+
+td:first-child, th:first-child {
+    text-align: left;
+    font-weight: bold;
+}
+
+table input[type="number"], table select {
+    width: 65px;
+    padding: 6px;
+    text-align: center;
+    font-weight: bold;
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.header-highlight-1 { background-color: rgba(6, 182, 212, 0.15) !important; color: var(--accent) !important; }
+.header-highlight-2 { background-color: rgba(245, 158, 11, 0.1) !important; color: #f59e0b !important; }
+.border-left-divider { border-left: 2px solid var(--border); }
+
+/* Gewinner / Verlierer Farbmarkierung */
+.winner-row { background-color: rgba(16, 185, 129, 0.15) !important; }
+.loser-row { background-color: rgba(239, 68, 68, 0.1) !important; }
+
+/* Platzierungs-Abzeichen */
+.rank-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: bold;
+    min-width: 28px;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.rank-badge.rank-1 { background-color: #f59e0b; color: #000; border-color: #fbbf24; }
+.rank-badge.rank-2 { background-color: #cbd5e1; color: #000; border-color: #94a3b8; }
+.rank-badge.rank-3 { background-color: #b45309; color: #fff; border-color: #d97706; }
+
+.hidden { display: none !important; }
+
+.hint { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+
+footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border);
+    padding: 10px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    z-index: 90;
+}
+
+@media (max-width: 768px) {
+    body { font-size: 14px; }
+    .container { padding: 8px; }
+    .card { padding: 12px; margin-bottom: 10px; }
+    .control-grid { flex-direction: column; align-items: stretch; }
+    .screen-btn-box button { width: 100%; }
+    th, td { padding: 8px 4px; font-size: 0.85rem; }
+    table input[type="number"] { width: 50px; padding: 4px; }
+
+    .tannenbaum-layout {
+        grid-template-columns: 1fr;
+    }
+    .trees-display-container {
+        justify-content: center;
+    }
+}
+
+/* --- ZUSATZ FÜR FUCHSJAGD --- */
+.fuchs-role {
+    padding: 6px;
+    border-radius: 4px;
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+input:disabled {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: var(--text-muted) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    cursor: not-allowed;
+}
+
+/* --- ZUSATZ FÜR TANNENBAUM SPIEL --- */
+.tannenbaum-layout {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 15px;
+    align-items: start;
+    margin-top: 15px;
+}
+
+.team-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.tannenbaum-player-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tannenbaum-input {
+    width: 55px;
+    padding: 6px;
+    text-align: center;
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.trees-display-container {
+    display: flex;
+    gap: 20px;
+    background-color: #12181f;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.tree-wrapper {
+    text-align: center;
+}
+
+.tree-grid-visual {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.tannenbaum-node {
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    background-color: #2c3e50;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #95a5a6;
+    text-align: center;
+}
+
+/* Leuchtende Blöcke bei Treffern */
+.tannenbaum-node.node-active-t1 {
+    background-color: #2ecc71;
+    color: white;
+    box-shadow: 0 0 8px #2ecc71;
+}
+
+.tannenbaum-node.node-active-t2 {
+    background-color: #f1c40f;
+    color: #12181f;
+    box-shadow: 0 0 8px #f1c40f;
+}
+
+.tannenbaum-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+/* --- OPTIK-UPGRADE FÜR 6-TAGE-RENNEN --- */
+
+/* Größeres, komfortableres Dropdown-Kästchen */
+.ren-team-select {
+    width: 130px; /* Schön breit, damit nichts abgeschnitten wird */
+    padding: 8px 10px !important;
+    font-size: 0.95rem !important;
+    font-weight: bold;
+    border-radius: 6px;
+    background-color: #1e293b !important; /* Dunkler Kontrast */
+    color: #f8fafc !important;
+    border: 1px solid #475569 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ren-team-select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+/* Dezent unterschiedliche Zeilenfarben für die Teams */
+tr[data-team="Team A"] { background-color: rgba(59, 130, 246, 0.08) !important; }  /* Blau */
+tr[data-team="Team B"] { background-color: rgba(16, 185, 129, 0.08) !important; }  /* Grüntreffer */
+tr[data-team="Team C"] { background-color: rgba(245, 158, 11, 0.08) !important; }  /* Orange */
+tr[data-team="Team D"] { background-color: rgba(139, 92, 246, 0.08) !important; }  /* Lila */
+tr[data-team="Team E"] { background-color: rgba(236, 72, 153, 0.08) !important; }  /* Pink */
+tr[data-team="Team F"] { background-color: rgba(20, 184, 166, 0.08) !important; }  /* Türkis */
+tr[data-team="Team G"] { background-color: rgba(239, 68, 68, 0.08) !important; }   /* Rot */
+tr[data-team="Team H"] { background-color: rgba(234, 179, 8, 0.08) !important; }   /* Gelb */
+
+/* Hover-Effekt anpassen, damit die Team-Farbe erhalten bleibt */
+tr[data-team]:hover td {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+.rank-col-gross, .rank-col-klein {
+    width: 50px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+/* Vollbild-Modus Optimierungen für den Header */
+.header-collapsible {
+    transition: all 0.4s ease-in-out;
+    max-height: 500px; /* Genug Platz für das normale Menü */
+    overflow: hidden;
+    position: relative;
+}
+
+/* Wenn der Vollbildmodus aktiv ist, klappt der Header weg */
+body.fullscreen-active .header-collapsible {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border: none;
+    opacity: 0;
+    pointer-events: none; /* Verhindert versehentliches Klicken im unsichtbaren Bereich */
+}
+
+/* Der kleine schwebende Button zum manuellen Auf-/Zuklappen im Vollbild */
+#toggle-menu-btn {
+    display: none; /* Normalerweise unsichtbar */
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 4px 15px;
+    border-radius: 0 0 8px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: background 0.2s;
+}
+
+#toggle-menu-btn:hover {
+    background: #2563eb;
+}
+
+/* Im Vollbildmodus zeigen wir den Klapp-Pfeil an */
+body.fullscreen-active #toggle-menu-btn {
+    display: block;
+}
+
+/* Klasse, um das Menü im Vollbildmodus temporär doch einzublenden */
+body.fullscreen-active .header-collapsible.menu-forced-open {
+    max-height: 500px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-bottom: 15px;
+}
