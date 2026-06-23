@@ -35,5 +35,5 @@ app.post('/api/data', (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`📡 Robuster Kegel-Server (3-Sekunden-Takt) läuft auf Port ${PORT}!`);
+    console.log(`📡 Robuster Kegel-Server (3-Sekunden-Takt) läuft auf IP: http://192.168.129.26:3000/ Port ${PORT}!`);
 });

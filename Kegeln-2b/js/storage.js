@@ -4,8 +4,15 @@ let isUploading = false;
 // Hilfsvariable, um zu prüfen, ob sich die Spielerliste geändert hat
 let lastPlayersCount = 0; 
 
-// 1. SERVER-FUNKTION: Daten aus dem gemeinsamen Server-Speicher abrufen
+// =========================================================================
+// 🔥 VERBESSERTE SYNC-LOGIK: AKTUALISIERT AUCH IM HINTERGRUND SOFORT 🔥
+// =========================================================================
+
+// Hilfsvariable, um den letzten Stand der Daten als Text zu merken
+let letzterDatenStandAlsText = "";
+
 async function fetchDatenVomServer() {
+
     if (isUploading) return; 
     
     try {
@@ -13,25 +20,70 @@ async function fetchDatenVomServer() {
         if (!response.ok) return;
         const data = await response.json();
         
-        // Nur aktualisieren, wenn der gemeinsame Speicher bereits Spieler enthält
         if (data.players && data.players.length > 0) {
             
-            // Prüfen, ob neue Spieler hinzugekommen sind oder sich die Liste geändert hat
-            const playersChanged = !players || players.length !== data.players.length || JSON.stringify(players) !== JSON.stringify(data.players);
+            // 🔥 DER BLINK-SCHUTZ: Wir machen den Text-Vergleich der Daten!
+            const aktuellerDatenStandAlsText = JSON.stringify({
+                players: data.players,
+                activeGamesData: data.activeGamesData,
+                grandTotalScores: data.grandTotalScores
+            });
 
+            // Wenn sich SEIT DEM LETZTEN MAL ABSOLUT NICHTS GEÄNDERT HAT -> ABBRECHEN!
+            if (letzterDatenStandAlsText === aktuellerDatenStandAlsText) {
+                return; // Keine Aktion, kein Flackern, der Browser bleibt völlig ruhig!
+            }
+
+            // Wenn wir hier ankommen, gibt es WIRKLICH neue Zahlen vom Server!
+            letzterDatenStandAlsText = aktuellerDatenStandAlsText;
+
+            // Prüfen, ob sich strukturell das Spiel oder die Spielerliste geändert hat
+            const playersChanged = !players || players.length !== data.players.length || JSON.stringify(players) !== JSON.stringify(data.players);
+            const gameChanged = currentGame !== data.activeGamesData?.savedCurrentGame;
+
+            // Daten lokal in der App speichern
             activeGamesData = data.activeGamesData || activeGamesData;
             players = data.players || players;
             grandTotalScores = data.grandTotalScores || grandTotalScores;
             
-            // Wenn sich die Spieler geändert haben, bauen wir die Tabellen-Struktur komplett neu auf
-            if (playersChanged) {
-                console.log("Spielerliste hat sich geändert. Zeichne Oberflächen neu...");
-                if (typeof renderPlayerBadges === "function") renderPlayerBadges();
-                if (typeof updateCurrentGameTable === "function") updateCurrentGameTable();
+            if (data.activeGamesData && data.activeGamesData.savedCurrentGame) {
+                currentGame = data.activeGamesData.savedCurrentGame;
             }
 
-            // UI AKTUALISIERUNG: Schreibt die Punkte live in die Felder
+            // Nur wenn das Spiel wechselt oder Spieler dazu kommen, bauen wir das HTML neu
+            if (playersChanged || gameChanged) {
+                console.log("Synchronisation: Strukturwechsel. Zeichne neu...");
+                if (typeof renderPlayerBadges === "function") renderPlayerBadges();
+                if (typeof updateCurrentGameTable === "function") updateCurrentGameTable();
+                
+                setTimeout(toggleEingabemodus, 50); 
+            }
+
+            // 1. Felder mit neuen Werten füttern
             aktualisiereSichtbareFelder();
+
+            // 2. 🔥 DIREKT HIER RECHNEN! Nicht auf das Klicken des Nutzers warten!
+            if (currentGame === "hausnummer" && typeof calculateHausnummer === "function") {
+                calculateHausnummer();
+            } else if (currentGame === "siebzehn-vier" && typeof calculateSiebzehnVier === "function") {
+                calculateSiebzehnVier();
+            } else if (currentGame === "rennen" && typeof liveCalculate6TageRennen === "function") {
+                liveCalculate6TageRennen();
+            } else if (currentGame === "idiot" && typeof calculateIdiot === "function") {
+                calculateIdiot();
+            } else if (currentGame === "fuchsjagd" && typeof calculateFuchsjagd === "function") {
+                calculateFuchsjagd();
+            } else if (currentGame === "aergere-dich-nicht" && typeof getMenschAergereData === "function") {
+                // Falls Mensch ärgere dich nicht aktiv ist, Tabelle ebenfalls triggern
+                if (typeof renderMenschAergereDichNichtGame === "function") {
+                    const container = document.querySelector(".table-responsive");
+                    if (container) renderMenschAergereDichNichtGame(container);
+                }
+            }
+
+            // Kasse und Gesamtliste sofort berechnen
+            if (typeof updateKegelbuchTable === "function") updateKegelbuchTable();
+            if (typeof updateGrandTotalTable === "function") updateGrandTotalTable();
         }
     } catch (err) {
         console.error("Fehler beim Daten-Abrufen vom PC-Server:", err);
@@ -72,72 +124,115 @@ document.addEventListener('change', (event) => {
 
 function saveCurrentGameFields() {
     if (players.length === 0) return;
+    if (!currentGame) return;
     if (!activeGamesData[currentGame]) activeGamesData[currentGame] = {};
 
-    players.forEach(p => {
-        const row = document.getElementById(`row-${p}`);
-        if (!row) return;
-
-        if (currentGame === "hausnummer") {
-            activeGamesData.hausnummer = activeGamesData.hausnummer || {};
-            players.forEach(p => {
-                const row = document.getElementById(`row-${p}`);
-                if (row) {
-                    activeGamesData.hausnummer[p] = {
-                        g1: row.querySelector(".hn-g1").value,
-                        g2: row.querySelector(".hn-g2").value,
-                        g3: row.querySelector(".hn-g3").value,
-                        k1: row.querySelector(".hn-k1").value,
-                        k2: row.querySelector(".hn-k2").value,
-                        k3: row.querySelector(".hn-k3").value
-                    };
-                }
-            });
-        } else if (currentGame === "siebzehn-vier") {
-            activeGamesData["siebzehn-vier"][p] = {
-                w1: row.querySelector(".sv-w1").value,
-                w2: row.querySelector(".sv-w2").value,
-                w3: row.querySelector(".sv-w3").value,
-                w4: row.querySelector(".sv-w4").value,
-                w5: row.querySelector(".sv-w5").value,
-                w6: row.querySelector(".sv-w6").value,
-                w7: row.querySelector(".sv-w7").value,
-                w8: row.querySelector(".sv-w8").value,
-                w9: row.querySelector(".sv-w9").value,
-                card: row.querySelector(".sv-card").value
-            };
-        } else if (currentGame === "rennen") {
-            activeGamesData.rennen = activeGamesData.rennen || {};
-            activeGamesData.rennen[p] = {
-                t1: row.querySelector(".ren-t1").value,
-                t2: row.querySelector(".ren-t2").value,
-                t3: row.querySelector(".ren-t3").value,
-                t4: row.querySelector(".ren-t4").value,
-                t5: row.querySelector(".ren-t5").value,
-                t6: row.querySelector(".ren-t6").value
-            };
-            const gastRow = document.getElementById("row-rennen-Gast");
-            if (gastRow) {
-                activeGamesData.rennen["Gast"] = {
-                    t1: gastRow.querySelector(".ren-g-t1").value,
-                    t2: gastRow.querySelector(".ren-g-t2").value,
-                    t3: gastRow.querySelector(".ren-g-t3").value,
-                    t4: gastRow.querySelector(".ren-g-t4").value,
-                    t5: gastRow.querySelector(".ren-g-t5").value,
-                    t6: gastRow.querySelector(".ren-g-t6").value
+    if (currentGame === "hausnummer") {
+        activeGamesData.hausnummer = activeGamesData.hausnummer || {};
+        players.forEach(p => {
+            const row = document.getElementById(`row-${p}`);
+            if (row) {
+                activeGamesData.hausnummer[p] = {
+                    g1: row.querySelector(".hn-g1").value,
+                    g2: row.querySelector(".hn-g2").value,
+                    g3: row.querySelector(".hn-g3").value,
+                    k1: row.querySelector(".hn-k1").value,
+                    k2: row.querySelector(".hn-k2").value,
+                    k3: row.querySelector(".hn-k3").value
                 };
             }
-        } else if (currentGame === "idiot") {
-            activeGamesData.idiot = activeGamesData.idiot || {};
-            activeGamesData.idiot[p] = {
-                l: row.querySelector(".id-l").value,
-                r: row.querySelector(".id-r").value,
-                re: row.querySelector(".id-re").value
-            };
-        }
-    });
+        });
+    } else if (currentGame === "siebzehn-vier") {
+        players.forEach(p => {
+            const row = document.getElementById(`row-${p}`);
+            if (row) {
+                activeGamesData["siebzehn-vier"][p] = {
+                    w1: row.querySelector(".sv-w1").value,
+                    w2: row.querySelector(".sv-w2").value,
+                    w3: row.querySelector(".sv-w3").value,
+                    w4: row.querySelector(".sv-w4").value,
+                    w5: row.querySelector(".sv-w5").value,
+                    w6: row.querySelector(".sv-w6").value,
+                    w7: row.querySelector(".sv-w7").value,
+                    w8: row.querySelector(".sv-w8").value,
+                    w9: row.querySelector(".sv-w9").value,
+                    card: row.querySelector(".sv-card").value
+                };
+            }
+        });
+    } 
 
-    if (currentGame === "fuchsjagd") {
+    else if (currentGame === "rennen22") {
+        let alleTeams = [];
+        players.forEach(p => {
+            let t = activeGamesData["rennen"]?.[p]?.team || "Team A";
+            if (!alleTeams.includes(t)) alleTeams.push(t);
+        });
+
+        alleTeams.forEach(teamName => {
+            let teamKlasse = teamName.replace(' ', '');
+            
+            let t1 = parseInt(document.querySelector(`.ren-${teamKlasse}-t1`)?.value, 10) || 0;
+            let t2 = parseInt(document.querySelector(`.ren-${teamKlasse}-t2`)?.value, 10) || 0;
+            let t3 = parseInt(document.querySelector(`.ren-${teamKlasse}-t3`)?.value, 10) || 0;
+            let t4 = parseInt(document.querySelector(`.ren-${teamKlasse}-t4`)?.value, 10) || 0;
+            let t5 = parseInt(document.querySelector(`.ren-${teamKlasse}-t5`)?.value, 10) || 0;
+            let t6 = parseInt(document.querySelector(`.ren-${teamKlasse}-t6`)?.value, 10) || 0;
+
+            players.forEach(p => {
+                if ((activeGamesData["rennen"][p]?.team || "Team A") === teamName) {
+                    activeGamesData["rennen"][p].t1 = t1;
+                    activeGamesData["rennen"][p].t2 = t2;
+                    activeGamesData["rennen"][p].t3 = t3;
+                    activeGamesData["rennen"][p].t4 = t4;
+                    activeGamesData["rennen"][p].t5 = t5;
+                    activeGamesData["rennen"][p].t6 = t6;
+                }
+            });
+        });
+    } 
+
+    // --- NEU: 6 TAGE RENNEN (Auf Teambasis aktualisieren) ---
+    if (currentGame === "rennen" && activeGamesData.rennen) {
+        let alleTeams = [];
+        players.forEach(p => {
+            let t = activeGamesData["rennen"]?.[p]?.team || "Team A";
+            if (!alleTeams.includes(t)) alleTeams.push(t);
+        });
+
+        alleTeams.forEach(teamName => {
+            let teamKlasse = teamName.replace(' ', '');
+            let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+            if (teamMitglieder.length === 0) return;
+
+            let refPlayer = teamMitglieder[0];
+            const d = activeGamesData.rennen[refPlayer];
+
+            if (d) {
+                for(let i = 1; i <= 6; i++) {
+                    const field = document.querySelector(`.ren-${teamKlasse}-t${i}`);
+                    if (field && document.activeElement !== field) {
+                        let wert = (d[`t${i}`] !== undefined) ? d[`t${i}`] : 0;
+                        updateVal(field, wert);
+                    }
+                }
+            }
+        });
+    }
+
+    else if (currentGame === "idiot") {
+        activeGamesData.idiot = activeGamesData.idiot || {};
+        players.forEach(p => {
+            const row = document.getElementById(`row-${p}`);
+            if (row) {
+                activeGamesData.idiot[p] = {
+                    l: row.querySelector(".id-l").value,
+                    r: row.querySelector(".id-r").value,
+                    re: row.querySelector(".id-re").value
+                };
+            }
+        });
+    } else if (currentGame === "fuchsjagd") {
         activeGamesData.fuchsjagd = activeGamesData.fuchsjagd || {};
         const rowFuchs = document.getElementById("row-fuchs");
         const rowJaeger = document.getElementById("row-jaeger");
@@ -175,10 +270,14 @@ function saveCurrentGameFields() {
 function aktualisiereSichtbareFelder() {
     if (!players || players.length === 0) return;
 
+    let datenHabenSichGeaendert = true;
+
+    // 1. Spiele aktualisieren, die auf Einzelspielern basieren
     players.forEach(p => {
         const row = document.getElementById(`row-${p}`);
         if (!row) return;
 
+        // --- HAUSNUMMER ---
         if (currentGame === "hausnummer" && activeGamesData.hausnummer && activeGamesData.hausnummer[p]) {
             const d = activeGamesData.hausnummer[p];
             if (document.activeElement !== row.querySelector(".hn-g1")) updateVal(row.querySelector(".hn-g1"), d.g1);
@@ -188,6 +287,7 @@ function aktualisiereSichtbareFelder() {
             if (document.activeElement !== row.querySelector(".hn-k2")) updateVal(row.querySelector(".hn-k2"), d.k2);
             if (document.activeElement !== row.querySelector(".hn-k3")) updateVal(row.querySelector(".hn-k3"), d.k3);
         } 
+        // --- 17 UND 4 ---
         else if (currentGame === "siebzehn-vier" && activeGamesData["siebzehn-vier"] && activeGamesData["siebzehn-vier"][p]) {
             const d = activeGamesData["siebzehn-vier"][p];
             for(let i = 1; i <= 9; i++) {
@@ -196,23 +296,7 @@ function aktualisiereSichtbareFelder() {
             }
             if (document.activeElement !== row.querySelector(".sv-card")) updateVal(row.querySelector(".sv-card"), d.card);
         } 
-        else if (currentGame === "rennen" && activeGamesData.rennen) {
-            if (activeGamesData.rennen[p]) {
-                const d = activeGamesData.rennen[p];
-                for(let i = 1; i <= 6; i++) {
-                    const field = row.querySelector(`.ren-t${i}`);
-                    if (document.activeElement !== field) updateVal(field, d[`t${i}`]);
-                }
-            }
-            const gastRow = document.getElementById("row-rennen-Gast");
-            if (gastRow && activeGamesData.rennen["Gast"]) {
-                const gd = activeGamesData.rennen["Gast"];
-                for(let i = 1; i <= 6; i++) {
-                    const field = gastRow.querySelector(`.ren-g-t${i}`);
-                    if (document.activeElement !== field) updateVal(field, gd[`t${i}`]);
-                }
-            }
-        } 
+        // --- IDIOTENKEGELN ---
         else if (currentGame === "idiot" && activeGamesData.idiot && activeGamesData.idiot[p]) {
             const d = activeGamesData.idiot[p];
             if (document.activeElement !== row.querySelector(".id-l")) updateVal(row.querySelector(".id-l"), d.l);
@@ -221,6 +305,34 @@ function aktualisiereSichtbareFelder() {
         }
     });
 
+    // --- NEU: 6 TAGE RENNEN (Auf Teambasis aktualisieren) ---
+    if (currentGame === "rennen" && activeGamesData.rennen) {
+        let alleTeams = [];
+        players.forEach(p => {
+            let t = activeGamesData["rennen"]?.[p]?.team || "Team A";
+            if (!alleTeams.includes(t)) alleTeams.push(t);
+        });
+
+        alleTeams.forEach(teamName => {
+            let teamKlasse = teamName.replace(' ', '');
+            let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+            if (teamMitglieder.length === 0) return;
+
+            let refPlayer = teamMitglieder[0];
+            const d = activeGamesData.rennen[refPlayer];
+
+            if (d) {
+                for(let i = 1; i <= 6; i++) {
+                    const field = document.querySelector(`.ren-${teamKlasse}-t${i}`);
+                    if (field && document.activeElement !== field) {
+                        updateVal(field, d[`t${i}`] || 0);
+                    }
+                }
+            }
+        });
+    }
+
+    // --- FUCHSJAGD ---
     if (currentGame === "fuchsjagd" && activeGamesData.fuchsjagd) {
         const rowFuchs = document.getElementById("row-fuchs");
         const rowJaeger = document.getElementById("row-jaeger");
@@ -242,13 +354,40 @@ function aktualisiereSichtbareFelder() {
         }
     }
 
-    // Rufe deine Rechner-Funktionen auf, um Platzierungen und Berechnungen live zu aktualisieren!
+    // =========================================================================
+    // 🔥 DIE ERZWUNGENE RECHEN-MASCHINE 🔥
+    // =========================================================================
+    if (datenHabenSichGeaendert) {
+        if (currentGame === "hausnummer" && typeof calculateHausnummer === "function") {
+            calculateHausnummer(); 
+        } 
+        else if (currentGame === "siebzehn-vier" && typeof calculateSiebzehnVier === "function") {
+            calculateSiebzehnVier();
+        } 
+        else if (currentGame === "rennen" && typeof liveCalculate6TageRennen === "function") {
+            liveCalculate6TageRennen();
+        } 
+        else if (currentGame === "idiot" && typeof calculateIdiot === "function") {
+            calculateIdiot();
+        } 
+        else if (currentGame === "fuchsjagd" && typeof calculateFuchsjagd === "function") {
+            calculateFuchsjagd();
+        }
+    }
+
     if (typeof updateKegelbuchTable === "function") updateKegelbuchTable();
     if (typeof updateGrandTotalTable === "function") updateGrandTotalTable();
 }
 
 function updateVal(el, val) {
-    if (el && val !== undefined) el.value = val;
+    if (el && val !== undefined) {
+        const aktuellerWert = el.value.toString();
+        const neuerWert = val.toString();
+        
+        if (aktuellerWert !== neuerWert) {
+            el.value = val;
+        }
+    }
 }
 
 function savePlayersToStorage(showAlert = true) {
@@ -340,4 +479,43 @@ function importGesamterSpielstand(event) {
         }
     };
     reader.readAsText(file);
+}
+
+// --- LOGIK FÜR DEN EINGABEMODUS (SCHREIBRECHTE-SCHUTZ) ---
+
+function toggleEingabemodus() {
+    const schalter = document.getElementById("eingabemodus-schalter");
+    if (!schalter) return;
+
+    const istAktiv = schalter.checked;
+    
+    const alleInputs = document.querySelectorAll("table input, .table input, #row-fuchs input, #row-jaeger input");
+    
+    alleInputs.forEach(input => {
+        if (istAktiv) {
+            input.removeAttribute("disabled");
+            input.style.backgroundColor = ""; 
+            input.style.cursor = "text";
+        } else {
+            input.setAttribute("disabled", "true");
+            input.style.backgroundColor = "#1e1e1e"; 
+            input.style.color = "#ffffff"; 
+            input.style.cursor = "not-allowed";
+        }
+    });
+}
+
+function syncAndCalculateRennen(teamName, tag, value) {
+    let intVal = parseInt(value, 10) || 0;
+    let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+    
+    teamMitglieder.forEach(p => {
+        if (!activeGamesData["rennen"][p]) activeGamesData["rennen"][p] = { team: teamName, t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
+        activeGamesData["rennen"][p][`t${tag}`] = intVal;
+    });
+    
+    if (typeof liveCalculate6TageRennen === "function") {
+        liveCalculate6TageRennen();
+    }
+    saveCurrentGameFields();
 }

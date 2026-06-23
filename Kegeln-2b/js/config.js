@@ -1,5 +1,5 @@
 // --- GLOBALE VARIABLEN & KONFIGURATION ---
-let players = ["Michael", "Hilde", "Peter", "Brigitte", "Elke", "Gerhard", "Helga", "Guido", "Anette", "Birgit", "Jo", "Melissa", "Svenja", "Marius"];
+let players = ["Michael", "Hilde", "Peter", "Brigitte", "Hanni", "Elke", "Gerhard", "Helga", "Guido", "Anette", "Birgit", "Jo", "Svenja", "Marius", "Melissa"];
 let currentGame = "hausnummer";
 let grandTotalScores = {};
 
