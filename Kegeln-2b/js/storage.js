@@ -264,6 +264,9 @@ function saveCurrentGameFields() {
     }
 
     localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
+    localStorage.setItem("kegel_players", JSON.stringify(players));
+    localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
+
     sendeDatenZumServer();
 }
 

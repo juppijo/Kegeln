@@ -5,6 +5,15 @@ function switchTab(tabId, buttonElement) {
     document.querySelectorAll('.menu-tab').forEach(btn => btn.classList.remove('active'));
     document.getElementById(tabId).classList.remove('hidden');
     buttonElement.classList.add('active');
+
+    // Sicherstellen, dass die Tabellen die aktuellsten Daten rendern
+    if (tabId === 'tab-games') {
+        updateCurrentGameTable();
+    } else if (tabId === 'tab-grand-total') {
+        updateGrandTotalTable();
+    } else if (tabId === 'tab-kegelbuch') {
+        if (typeof calculateKegelbuch === "function") calculateKegelbuch();
+    }
 }
 
 function changeTheme(themeName) { document.body.className = themeName; }

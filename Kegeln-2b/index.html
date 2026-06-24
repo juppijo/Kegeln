@@ -61,7 +61,54 @@
 </div>
 
 <script>
+
+// Robuste Ladefunktion, die prüft, ob wirklich Daten vorhanden sind
+  function loadSavedData() {
+    try {
+      const savedPlayers = localStorage.getItem("kegel_players");
+      const savedScores = localStorage.getItem("kegel_grand_total_scores");
+      const savedGamesData = localStorage.getItem("kegel_active_games_data");
+
+      // Nur parsen, wenn im Speicher überhaupt etwas existiert!
+      if (savedPlayers && typeof players !== "undefined") {
+        players = JSON.parse(savedPlayers);
+      }
+      
+      if (savedScores && typeof grandTotalScores !== "undefined") {
+        grandTotalScores = JSON.parse(savedScores);
+      } else if (typeof initGrandTotalScores === "function" && (!savedScores || savedScores === "[]")) {
+        initGrandTotalScores();
+      }
+
+      if (savedGamesData && typeof activeGamesData !== "undefined") {
+        activeGamesData = JSON.parse(savedGamesData);
+        if (typeof ensureDefaultGamesAvailable === "function") {
+          ensureDefaultGamesAvailable();
+        }
+      }
+
+      // UI sofort neu zeichnen
+      if (typeof renderPlayerBadges === "function") renderPlayerBadges();
+      if (typeof updateCurrentGameTable === "function") updateCurrentGameTable();
+      if (typeof updateGrandTotalTable === "function") updateGrandTotalTable();
+      
+      console.log("Daten erfolgreich geladen.");
+    } catch (e) {
+      console.error("Fehler beim Laden:", e);
+    }
+  }
+
+  // WICHTIG: Sobald alles bereit ist (auch nach Cache/Service Worker) Daten erzwingen
+  window.addEventListener("load", () => {
+    loadSavedData();
+    
+    // Kleiner Trick für Smartphones: Nach 300ms nochmal prüfen, 
+    // falls der Service Worker verzögert geladen hat.
+    setTimeout(loadSavedData, 300);
+  });
+
   document.addEventListener("DOMContentLoaded", () => {
+
     const splash = document.getElementById('splash');
     const lane = document.getElementById('lane');
     const loadingText = document.getElementById('loading-text');
