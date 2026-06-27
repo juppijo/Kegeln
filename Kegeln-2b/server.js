@@ -1,6 +1,8 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const os = require('os'); // <-- WICHTIG: Das 'os'-Modul wird für die IP-Abfrage benötigt
+
 
 const app = express();
 const server = http.createServer(app);
@@ -34,6 +36,26 @@ app.post('/api/data', (req, res) => {
     res.json({ status: "success" });
 });
 
+// Funktion, um die aktuelle lokale IP-Adresse des PCs herauszufinden
+function getLocalIpAddress() {
+    const interfaces = os.networkInterfaces();
+    for (const interfaceName in interfaces) {
+        for (const iface of interfaces[interfaceName]) {
+            // Wir suchen nach einer IPv4-Adresse, die nicht "internal" (wie 127.0.0.1) ist
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return '127.0.0.1'; // Fallback, falls keine IP gefunden wird
+}
+
+// Server starten
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`📡 Robuster Kegel-Server (3-Sekunden-Takt) läuft auf IP: http://192.168.129.26:3000/ Port ${PORT}!`);
+    const currentIp = getLocalIpAddress();
+    console.log(`=== 🎳 KEGEL APP SERVER (3-Sekunden-Takt) ===`);
+    console.log(`📡 Wlan: Kegelklub_Gut_Holz - PW: 1234:4321`);
+    console.log(`📡 Server läuft im Netzwerk unter:`);
+    console.log(`👉 http://${currentIp}:${PORT}`);
+    console.log(`===========================`);
 });
