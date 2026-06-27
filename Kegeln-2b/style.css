@@ -851,3 +851,24 @@ body.fullscreen-active .header-collapsible.menu-forced-open {
     pointer-events: auto;
     margin-bottom: 15px;
 }
+
+/* ======================================================
+   GEBRAUCHSANWEISUNG (DETAILS / SUMMARY) STYLING
+   ====================================================== */
+summary {
+    list-style: none; /* Versteckt das Standard-Dreieck in modernen Browsern */
+}
+
+summary::-webkit-details-marker {
+    display: none; /* Versteckt das Standard-Dreieck in Safari / älteren Browsern */
+}
+
+/* Steuert die Drehung des kleinen Custom-Dreiecks (▶) beim Aufklappen */
+details[open] summary span {
+    transform: rotate(90deg);
+}
+
+/* Optional: Verhindert unschöne blaue Rahmen beim Anklicken auf Smartphones */
+summary:focus {
+    outline: none;
+}

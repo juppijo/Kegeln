@@ -271,6 +271,66 @@
                 </div>
             </section>
 
+            <!-- ======================================================
+            GEBRAUCHSANWEISUNG FÜR DIE MITGLIEDER (AUSKLAPPBAR)
+            ====================================================== -->
+            <section class="card" style="margin-top: 30px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <details style="cursor: pointer;">
+                    <summary style="color: var(--accent); font-weight: bold; font-size: 1.1rem; list-style: none; display: flex; align-items: center; gap: 8px;">
+                        <span style="transition: transform 0.2s; display: inline-block;">▶️</span> 📲 Anleitung: App öffnen & Installieren  . . . . . . .
+                        <span style="transition: transform 0.2s; display: inline-block;">▶️</span>
+                    </summary>
+            
+                    <div style="margin-top: 15px; cursor: default;">
+                        <p style="margin-bottom: 15px; font-size: 0.95rem; opacity: 0.9;">
+                            Damit alle Clubmitglieder gleichzeitig live die Punkte eintragen und sehen können, folgt einfach diesen Schritten:
+                        </p>
+
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            
+                            <!-- Schritt 1 -->
+                            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #60a5fa;">
+                                <strong style="display: block; font-size: 1rem; color: #60a5fa; margin-bottom: 4px;">
+                                    1. 📡 Im Vereins-WLAN anmelden
+                                </strong>
+                                <span style="font-size: 0.9rem;">
+                                    Verbinde dein Smartphone mit dem WLAN:<br>
+                                    • <strong>Netzwerkname (SSID):</strong> Kegelklub_Gut_Holz<br>
+                                    • <strong>Passwort (PW):</strong> <code style="background: #111; padding: 2px 6px; border-radius: 4px;">1234:4321</code>
+                                </span>
+                            </div>
+
+                            <!-- Schritt 2 -->
+                            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #fbbf24;">
+                                <strong style="display: block; font-size: 1rem; color: #fbbf24; margin-bottom: 4px;">
+                                    2. 🌐 App im Browser öffnen
+                                </strong>
+                                <span style="font-size: 0.9rem;">
+                                    Öffne deinen Internet-Browser und tippe folgende Adresse ein:<br>
+                                    👉 <a href="http://192.168.137.1:3000/" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: underline;">http://192.168.137.1:3000/</a>
+                                </span>
+                            </div>
+
+                            <!-- Schritt 3 -->
+                            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #34d399;">
+                                <strong style="display: block; font-size: 1rem; color: #34d399; margin-bottom: 4px;">
+                                    3. 📥 Auf dem Startbildschirm installieren
+                                </strong>
+                                <span style="font-size: 0.85rem; line-height: 1.4;">
+                                    • <strong>Android / Chrome:</strong> Klicke oben rechts auf die 3 Punkte ➔ <span style="color: #34d399;">"Zum Startbildschirm hinzufügen"</span>.<br>
+                                    • <strong>iPhone / Safari:</strong> Klicke unten auf das Teilen-Symbol ➔ <span style="color: #34d399;">"Zum Home-Bildschirm"</span>.
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <div style="margin-top: 15px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            ⚠️ <strong>Wichtig:</strong> Beim Öffnen lädt die App automatisch den aktuellen Spielstand vom Server. Es gehen keine Daten verloren!
+                        </div>
+                    </div>
+                </details>
+            </section>
+
             <section class="card">
                 <div class="card-header collapsible collapsed" onclick="toggleCard('backup-controls-content', this)">
                     <h2>💾 Datensicherung (Datei Export/Import)</h2>
@@ -312,6 +372,8 @@
                 </div>
             </section>
         </div>
+
+
 
         <div id="tab-games" class="tab-content hidden">
             <div id="game-selector-container" class="game-nav-bar">

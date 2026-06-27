@@ -1,0 +1,19 @@
+🎳 *KegelClub Master Pro – Kurzanleitung* 🎳
+
+Hallo Jungs, hier ist die kurze Anleitung, wie ihr euch heute Abend auf euren Handys in unsere Kegel-App einwählt, damit wir alle live die Punkte eintragen und sehen können!
+
+*1. 📡 Im Vereins-WLAN anmelden*
+Verbinde dein Smartphone zuerst mit dem WLAN auf der Kegelbahn:
+• Netzname (SSID): Kegelklub_Gut_Holz
+• Passwort (PW): 1234:4321
+
+*2. 🌐 App im Webbrowser öffnen*
+Öffne auf deinem Handy den normalen Internet-Browser (Chrome, Safari, Firefox...) und tippe oben in die Adresszeile ein:
+👉 http://192.168.137.1:3000/
+
+*3. 📥 Auf dem Startbildschirm speichern (Sehr empfohlen!)*
+Damit es aussieht wie eine echte App (ohne die Browserleiste):
+• Android / Chrome: Klicke oben rechts auf die 3 Punkte und wähle "Zum Startbildschirm hinzufügen" oder "App installieren".
+• iPhone / Safari: Klicke unten auf das "Teilen"-Symbol (Viereck mit Pfeil nach oben) und wähle "Zum Home-Bildschirm".
+
+⚠️ *Wichtig:* Wenn du die App öffnest, lädt sie automatisch den aktuellen Spielstand live vom Server. Es geht also nichts verloren, wenn jemand später dazustößt oder die App zwischendurch schließt!
