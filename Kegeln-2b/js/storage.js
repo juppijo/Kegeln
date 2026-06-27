@@ -123,9 +123,31 @@ document.addEventListener('change', (event) => {
 
 
 function saveCurrentGameFields() {
-    if (players.length === 0) return;
+    if (!players || players.length === 0) return;
     if (!currentGame) return;
+
+    // === NEU: SCHUTZ VOR DATENVERLUST AUF SMARTPHONES ===
+    // Prüft, ob die Eingabefelder im HTML überhaupt existieren. 
+    // Falls das Smartphone die Seite frisch lädt, bricht die Funktion hier ab und löscht nichts.
+    if (currentGame === "hausnummer" && !document.querySelector(".hn-g1")) return;
+    if (currentGame === "siebzehn-vier" && !document.querySelector(".sv-w1")) return;
+    if (currentGame === "rennen22" && !document.querySelector("[class*='ren-']")) return;
+    if (currentGame === "idiot" && !document.querySelector(".id-l")) return;
+    if (currentGame === "fuchsjagd" && !document.getElementById("row-fuchs")) return;
+    // ====================================================
+
     if (!activeGamesData[currentGame]) activeGamesData[currentGame] = {};
+
+    // 1. Lokal im Browser sichern
+    localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
+    localStorage.setItem("kegel_players", JSON.stringify(players));
+    localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
+
+    // 2. HIER STEHT DEIN CLOUD-UPSTREAM (z.B. fetch, socket.emit, db.update oder ähnlich)
+    // Dieser Teil darf nur laufen, wenn die obige if-Bedingung erfüllt ist!
+    if (typeof sendDataToServer === "function") { 
+        sendDataToServer(); 
+    }
 
     if (currentGame === "hausnummer") {
         activeGamesData.hausnummer = activeGamesData.hausnummer || {};
@@ -408,16 +430,29 @@ function loadPlayersFromStorage(showAlert = true) {
     const savedGame = localStorage.getItem("kegel_saved_current_game");
     const savedData = localStorage.getItem("kegel_active_games_data");
 
-    if (savedPlayers) players = JSON.parse(savedPlayers);
-    if (savedScores) grandTotalScores = JSON.parse(savedScores);
-    if (savedGame) currentGame = savedGame;
-    if (savedData) activeGamesData = JSON.parse(savedData);
+    // Falls lokale Daten existieren, laden und Server aktualisieren
+    if (savedPlayers) {
+        players = JSON.parse(savedPlayers);
+        if (savedScores) grandTotalScores = JSON.parse(savedScores);
+        if (savedGame) currentGame = savedGame;
+        if (savedData) activeGamesData = JSON.parse(savedData);
 
-    sendeDatenZumServer();
+        // Nur an den Server senden, wenn wir auch wirklich echte Daten geladen haben!
+        sendeDatenZumServer();
 
-    if (showAlert) {
-        if (savedPlayers) alert("♻️ Letzten Spielstand erfolgreich geladen!");
-        else alert("ℹ️ Keine gespeicherte Sitzung gefunden. Standard-Spieler geladen.");
+        if (showAlert) {
+            alert("♻️ Letzten Spielstand erfolgreich aus lokalem Speicher geladen!");
+        }
+    } else {
+        // WICHTIG: Wenn KEINE lokalen Daten existieren (neues Handy), 
+        // holen wir uns sofort den aktuellen Stand vom Server, anstatt leere Daten hochzuladen!
+        if (typeof fetchDatenVomServer === "function") {
+            fetchDatenVomServer();
+        }
+        
+        if (showAlert) {
+            alert("ℹ️ Keine lokale Sitzung gefunden. Aktuelle Spieldaten werden vom Server geladen...");
+        }
     }
 }
 
