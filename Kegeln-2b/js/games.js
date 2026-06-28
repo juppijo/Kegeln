@@ -332,7 +332,7 @@ else if (currentGame === "tannenbaum") {
                 <details open id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer;">
                     <summary style="font-weight: bold; color: var(--accent); font-size: 1.1rem; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none;">
                         <span>👥 Teams für den Tannenbaum aufteilen</span>
-                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">(Klicken zum Ein-/Ausklappen)</span>
+                        <span style="font-size: 1.85rem; color: var(--text-muted); font-weight: normal;">▶️</span>
                     </summary>
                     
                     <div style="margin-top: 15px; cursor: default;" onclick="event.stopPropagation();">
@@ -467,6 +467,7 @@ function liveCalculateHausnummer() {
         grossScores.push({ player: p, score: grossNum, isDone: (g1 !== null && g2 !== null && g3 !== null) });
 
 
+
         // --- HAUSNUMMER KLEIN ---
         let k1 = getWurfString(row.querySelector(".hn-k1"));
         let k2 = getWurfString(row.querySelector(".hn-k2"));
@@ -493,7 +494,19 @@ function liveCalculateHausnummer() {
     grossScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            row.querySelector(".rank-col-gross").innerText = !item.isDone ? "-" : (index + 1) + ".";
+            if (!item.isDone) {
+                row.querySelector(".rank-col-gross").innerText = "-";
+            } else {
+                let platz = index + 1;
+                let rankDisplay = "";
+                if (platz === 1) rankDisplay = "🥇";
+                else if (platz === 2) rankDisplay = "🥈";
+                else if (platz === 3) rankDisplay = "🥉";
+                else rankDisplay = platz + ".";
+                
+                // .innerHTML nutzen, falls du Formatierungen/Klassen übergeben willst
+                row.querySelector(".rank-col-gross").innerHTML = rankDisplay;
+            }
         }
     });
 
@@ -502,7 +515,18 @@ function liveCalculateHausnummer() {
     kleinScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            row.querySelector(".rank-col-klein").innerText = !item.isDone ? "-" : (index + 1) + ".";
+            if (!item.isDone) {
+                row.querySelector(".rank-col-klein").innerText = "-";
+            } else {
+                let platz = index + 1;
+                let rankDisplay = "";
+                if (platz === 1) rankDisplay = "🥇";
+                else if (platz === 2) rankDisplay = "🥈";
+                else if (platz === 3) rankDisplay = "🥉";
+                else rankDisplay = platz + ".";
+                
+                row.querySelector(".rank-col-klein").innerHTML = rankDisplay;
+            }
         }
     });
 }
