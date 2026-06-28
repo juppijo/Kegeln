@@ -872,3 +872,59 @@ details[open] summary span {
 summary:focus {
     outline: none;
 }
+
+/* --- MEDAILLEN-UPGRADE --- 
+.madn-rank, .sv-rank, .rank-col-gross, .rank-col-klein {
+    font-size: 1.8rem !important;
+    line-height: 2;
+    vertical-align: middle;
+    display: inline-block;
+    animation: medalPop 0.2s ease-out;
+}
+
+@keyframes medalPop {
+    0% { transform: scale(0.5); }
+    100% { transform: scale(1); }
+}
+*/
+
+.madn-rank, 
+.sv-rank, 
+.id-rank,
+.rank-col-gross, 
+.rank-col-klein , 
+.team-rank-TeamA, 
+.team-rank-TeamB, 
+.team-rank-TeamC, 
+.team-rank-TeamD, 
+.team-rank-TeamE, 
+.team-rank-TeamF, 
+.team-rank-TeamG, 
+.team-rank-TeamH,
+.team-rank-TeamI, 
+.team-rank-TeamJ{
+    font-size: 1.6rem !important;
+}    
+
+/* Erwirkt, dass in jeder geraden Tabellenzeile die Zellen leicht abgedunkelt werden */
+.table-responsive table tbody tr:nth-child(even) td {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Optional: In jeder ungeraden Zeile die Zellen leicht aufhellen, um den Kontrast zu stärken */
+.table-responsive table tbody tr:nth-child(odd) td {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* 1. Der Text-Span bleibt stabil und dreht sich NICHT */
+details[open]#tannenbaum-setup summary span:not(:last-child) {
+    transform: none !important;
+    display: inline-block;
+}
+
+/* 2. Nur der letzte Span (das rote Dreieck) dreht sich um 90 Grad (oder 180°, je nach Wunsch) */
+details[open]#tannenbaum-setup summary span:last-child {
+    transform: rotate(270deg) !important; /* Dreht das Dreieck auf den Kopf */
+    display: inline-block;
+    transition: transform 0.2s ease; /* Macht die Drehung geschmeidig */
+}
