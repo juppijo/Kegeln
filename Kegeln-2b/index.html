@@ -337,11 +337,12 @@
                     <span class="toggle-icon">🔼</span>
                 </div>
                 <div id="backup-controls-content" class="card-body collapsed">
-                    <p class="hint">Hier kannst du die Spielerliste und den Gesamtstand als Datei auf deinem Gerät sichern oder wieder laden.</p>
+                    <p class="hint">Hier kannst du die Spielernamen, die Reihenfolge der Spiele und das ausgewählte Design, als Datei auf deinem Gerät sichern oder wieder laden.</p>
+                    
                     <div class="screen-btn-box" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                        <button class="btn btn-info" onclick="exportToJSON()">📥 Setup exportieren (.json)</button>
+                        <button class="btn btn-info" onclick="exportToJSON_N(event)">📥 Setup exportieren (.json)</button>
                         <button class="btn btn-info" onclick="document.getElementById('import-file-input').click()">📤 Setup importieren</button>
-                        <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importFromJSON(event)">
+                        <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importFromJSON_N(event)">
                     </div>
                 </div>
             </section>
