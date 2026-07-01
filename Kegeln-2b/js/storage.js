@@ -138,16 +138,7 @@ function saveCurrentGameFields() {
 
     if (!activeGamesData[currentGame]) activeGamesData[currentGame] = {};
 
-    // 1. Lokal im Browser sichern
-    localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
-    localStorage.setItem("kegel_players", JSON.stringify(players));
-    localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
-
-    // 2. HIER STEHT DEIN CLOUD-UPSTREAM (z.B. fetch, socket.emit, db.update oder ähnlich)
-    // Dieser Teil darf nur laufen, wenn die obige if-Bedingung erfüllt ist!
-    if (typeof sendDataToServer === "function") { 
-        sendDataToServer(); 
-    }
+    // 🔥 SCHRITT 1: ERST DIE DATEN AUS DEN INPUTS IN DIE VARIABLEN EINLESEN!
 
     if (currentGame === "hausnummer") {
         activeGamesData.hausnummer = activeGamesData.hausnummer || {};
@@ -164,7 +155,10 @@ function saveCurrentGameFields() {
                 };
             }
         });
-    } else if (currentGame === "siebzehn-vier") {
+    } 
+
+    else if (currentGame === "siebzehn-vier") {
+        activeGamesData["siebzehn-vier"] = activeGamesData["siebzehn-vier"] || {}; // ***********
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`);
             if (row) {
@@ -184,38 +178,8 @@ function saveCurrentGameFields() {
         });
     } 
 
-    else if (currentGame === "rennen22") {
-        let alleTeams = [];
-        players.forEach(p => {
-            let t = activeGamesData["rennen"]?.[p]?.team || "Team A";
-            if (!alleTeams.includes(t)) alleTeams.push(t);
-        });
-
-        alleTeams.forEach(teamName => {
-            let teamKlasse = teamName.replace(' ', '');
-            
-            let t1 = parseInt(document.querySelector(`.ren-${teamKlasse}-t1`)?.value, 10) || 0;
-            let t2 = parseInt(document.querySelector(`.ren-${teamKlasse}-t2`)?.value, 10) || 0;
-            let t3 = parseInt(document.querySelector(`.ren-${teamKlasse}-t3`)?.value, 10) || 0;
-            let t4 = parseInt(document.querySelector(`.ren-${teamKlasse}-t4`)?.value, 10) || 0;
-            let t5 = parseInt(document.querySelector(`.ren-${teamKlasse}-t5`)?.value, 10) || 0;
-            let t6 = parseInt(document.querySelector(`.ren-${teamKlasse}-t6`)?.value, 10) || 0;
-
-            players.forEach(p => {
-                if ((activeGamesData["rennen"][p]?.team || "Team A") === teamName) {
-                    activeGamesData["rennen"][p].t1 = t1;
-                    activeGamesData["rennen"][p].t2 = t2;
-                    activeGamesData["rennen"][p].t3 = t3;
-                    activeGamesData["rennen"][p].t4 = t4;
-                    activeGamesData["rennen"][p].t5 = t5;
-                    activeGamesData["rennen"][p].t6 = t6;
-                }
-            });
-        });
-    } 
-
-    // --- NEU: 6 TAGE RENNEN (Auf Teambasis aktualisieren) ---
-    if (currentGame === "rennen" && activeGamesData.rennen) {
+    else if (currentGame === "rennen" && activeGamesData.rennen) {
+        activeGamesData["rennen"] = activeGamesData["rennen"] || {};
         let alleTeams = [];
         players.forEach(p => {
             let t = activeGamesData["rennen"]?.[p]?.team || "Team A";
@@ -254,7 +218,9 @@ function saveCurrentGameFields() {
                 };
             }
         });
-    } else if (currentGame === "fuchsjagd") {
+    } 
+
+    else if (currentGame === "fuchsjagd") {
         activeGamesData.fuchsjagd = activeGamesData.fuchsjagd || {};
         const rowFuchs = document.getElementById("row-fuchs");
         const rowJaeger = document.getElementById("row-jaeger");
@@ -285,11 +251,19 @@ function saveCurrentGameFields() {
         }
     }
 
+    // 🔥 SCHRITT 2: JETZT ERST DIE AKTUALISIERTEN DATEN SICHERN!
     localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
     localStorage.setItem("kegel_players", JSON.stringify(players));
     localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
 
-    sendeDatenZumServer();
+    // Fix für Funktions-Namensdreher (sendeDatenZumServer vs sendDataToServer)
+    if (typeof sendeDatenZumServer === "function") { 
+        sendeDatenZumServer(); 
+    } 
+
+    /*else if (typeof sendDataToServer === "function") {
+        sendDataToServer();
+    }*/
 }
 
 function aktualisiereSichtbareFelder() {
@@ -402,6 +376,7 @@ function aktualisiereSichtbareFelder() {
 
     if (typeof updateKegelbuchTable === "function") updateKegelbuchTable();
     if (typeof updateGrandTotalTable === "function") updateGrandTotalTable();
+
 }
 
 function updateVal(el, val) {
@@ -446,6 +421,7 @@ function loadPlayersFromStorage(showAlert = true) {
     } else {
         // WICHTIG: Wenn KEINE lokalen Daten existieren (neues Handy), 
         // holen wir uns sofort den aktuellen Stand vom Server, anstatt leere Daten hochzuladen!
+        
         if (typeof fetchDatenVomServer === "function") {
             fetchDatenVomServer();
         }
@@ -470,7 +446,7 @@ function clearAllPlayers() {
     }
 }
 
-function exportGesamterSpielstand() {
+function exportGesamterSpielstand2() {
     const exportObject = {
         players: players,
         grandTotalScores: grandTotalScores,
@@ -485,6 +461,37 @@ function exportGesamterSpielstand() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+}
+
+function exportGesamterSpielstand() {
+    try {
+        const exportObject = {
+            players: players || [],
+            grandTotalScores: grandTotalScores || {},
+            activeGamesData: activeGamesData || {},
+            savedCurrentGame: currentGame || "hausnummer",
+            exportDate: new Date().toISOString()
+        };
+        
+        // Erstellt eine echte Datei im Speicher statt eines langen Text-Links
+        const jsonString = JSON.stringify(exportObject, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const downloadUrl = URL.createObjectURL(blob);
+        
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", downloadUrl);
+        downloadAnchor.setAttribute("download", "Kegelclub_Stand.json");
+        
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        
+        // Aufräumen
+        document.body.removeChild(downloadAnchor);
+        URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+        console.error("Export fehlgeschlagen:", error);
+        alert("❌ Export fehlgeschlagen: " + error.message);
+    }
 }
 
 function importGesamterSpielstand(event) {
@@ -556,4 +563,188 @@ function syncAndCalculateRennen(teamName, tag, value) {
         liveCalculate6TageRennen();
     }
     saveCurrentGameFields();
+}
+
+// =========================================================================
+// 💾 SPEZIAL-SETUP EXPORT & IMPORT (NUR NAMEN, REIHENFOLGE & DESIGN)
+// =========================================================================
+
+// Brücke für den Button "Setup exportieren (.json)" im HTML
+function exportToJSON_N(event) {
+    if (event) event.preventDefault();
+    
+    try {
+        // Wir holen das aktuell ausgewählte Design direkt aus dem Body,
+        // falls es nicht im LocalStorage steht.
+        const aktuellesDesign = localStorage.getItem("kegel_theme") || document.body.className || "theme-turquoise";
+
+        // Wir bauen das Export-Objekt NUR mit den gewünschten Daten zusammen:
+        const setupExportObject = {
+            typ: "KegelApp_Reines_Setup",
+            players: players || [],                       // Die Spielernamen
+            gameOrder: defaultGameOrder || [],           // Die Spielreihenfolge
+            theme: aktuellesDesign,                       // Das Design/Theme
+            exportDate: new Date().toLocaleString("de-DE") // Export-Datum zur Info
+        };
+        
+        // Blob-Methode für fehlerfreien Download auf Handys & PCs
+        const jsonString = JSON.stringify(setupExportObject, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const downloadUrl = URL.createObjectURL(blob);
+        
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", downloadUrl);
+        downloadAnchor.setAttribute("download", "Kegelclub_Setup.json");
+        
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        
+        // Speicher wieder freigeben
+        document.body.removeChild(downloadAnchor);
+        URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+        console.error("Setup-Export fehlgeschlagen:", error);
+        alert("❌ Setup-Export fehlgeschlagen: " + error.message);
+    }
+}
+
+// Brücke für das Datei-Auswahlfeld "Setup importieren" im HTML
+function importFromJSON_N(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            // Sicherheits-Check: Ist es unsere reine Setup-Datei?
+            if (!importedData.players) {
+                alert("❌ Fehler: Keine Spielerliste in der Datei gefunden.");
+                return;
+            }
+
+            // 1. Spieler übernehmen
+            players = importedData.players;
+            localStorage.setItem("kegel_players", JSON.stringify(players));
+
+            // Gesamtstände für die geladenen Spieler auf 0 zurücksetzen (da reines Setup)
+            grandTotalScores = {};
+            players.forEach(p => { grandTotalScores[p] = 0; });
+            localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
+
+            // Alle laufenden Spiele leeren
+            activeGamesData = { hausnummer: {}, "siebzehn-vier": {}, "aergere-dich-nicht": {}, rennen: {}, idiot: {}, fuchsjagd: {}, tannenbaum: {} };
+            localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
+            localStorage.setItem("kegel_saved_current_game", "hausnummer");
+
+            // 2. Spielreihenfolge übernehmen (falls in der Datei vorhanden)
+            if (importedData.gameOrder && importedData.gameOrder.length > 0) {
+                localStorage.setItem("kegel_game_order", JSON.stringify(importedData.gameOrder));
+            }
+
+            // 3. Design übernehmen
+            if (importedData.theme) {
+                localStorage.setItem("kegel_theme", importedData.theme);
+            }
+
+            // Daten direkt hochladen, damit alle anderen Club-Handys sofort synchron sind
+            if (typeof sendeDatenZumServer === "function") {
+                sendeDatenZumServer();
+            }
+
+            alert("🎯 Setup (Namen, Reihenfolge & Design) erfolgreich geladen!\nDie App startet neu, um das neue Design anzuwenden.");
+            location.reload();
+
+        } catch (err) {
+            alert("❌ Fehler beim Import: Datei beschädigt oder falsches Format.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+// =========================================================================
+// 🏆 TURNIERSTAND-LOGIK (NUR NAMEN & GESAMT-PUNKTESTAND SICHERN)
+// =========================================================================
+
+// Wird aufgerufen beim Klick auf "📥 Punkte exportieren"
+function exportGrandTotalJSON() {
+    try {
+        // Wir nehmen nur die Spieler und ihre Gesamt-Ergebnisse mit
+        const turnierStandExport = {
+            typ: "KegelApp_Turnierstand",
+            players: players || [],
+            grandTotalScores: grandTotalScores || {},
+            exportDate: new Date().toLocaleString("de-DE")
+        };
+        
+        // JSON-Datei im Speicher vorbereiten (Blob)
+        const jsonString = JSON.stringify(turnierStandExport, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const downloadUrl = URL.createObjectURL(blob);
+        
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", downloadUrl);
+        downloadAnchor.setAttribute("download", "Kegelclub_Turnierstand.json");
+        
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        
+        // Aufräumen
+        document.body.removeChild(downloadAnchor);
+        URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+        console.error("Turnierstand-Export fehlgeschlagen:", error);
+        alert("❌ Punkte-Export fehlgeschlagen: " + error.message);
+    }
+}
+
+// Wird aufgerufen bei Dateiauswahl von "📤 Punkte importieren"
+function importGrandTotalJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            // Prüfen, ob die Mindestdaten (Spieler) enthalten sind
+            if (!importedData.players) {
+                alert("❌ Fehler: Ungültige Datei. Keine Spielerdaten gefunden.");
+                return;
+            }
+
+            // 1. Spieler und deren Gesamtpunkte wiederherstellen
+            players = importedData.players;
+            localStorage.setItem("kegel_players", JSON.stringify(players));
+
+            // Falls in der Datei Punkte existieren, laden. Falls nicht, auf 0 setzen
+            grandTotalScores = importedData.grandTotalScores || {};
+            players.forEach(p => {
+                if (grandTotalScores[p] === undefined) {
+                    grandTotalScores[p] = 0;
+                }
+            });
+            localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
+
+            // 2. Die aktuellen Live-Spiele auf der Bahn werden hierbei geleert,
+            // da wir ja einen gesicherten Endstand/Zwischenstand importieren.
+            activeGamesData = { hausnummer: {}, "siebzehn-vier": {}, "aergere-dich-nicht": {}, rennen: {}, idiot: {}, fuchsjagd: {}, tannenbaum: {} };
+            localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
+            localStorage.setItem("kegel_saved_current_game", "hausnummer");
+
+            // Synchronisation zum Server anstoßen, falls vorhanden
+            if (typeof sendeDatenZumServer === "function") {
+                sendeDatenZumServer();
+            }
+
+            alert("🏆 Turnierstand erfolgreich geladen!\nAlle Gesamtpunkte wurden wiederhergestellt.");
+            location.reload();
+
+        } catch (err) {
+            alert("❌ Fehler beim Import: Datei beschädigt oder falsches Format.");
+        }
+    };
+    reader.readAsText(file);
 }
