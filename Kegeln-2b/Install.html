@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gebrauchsanweisung: Kegel-Server & Hotspot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+        }
+        .step-number {
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        code {
+            background-color: #f8f9fa;
+            border: 1px solid #eaeded;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e74c3c;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .note {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .important {
+            background-color: #fadbd8;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        ol, ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gebrauchsanweisung: Kegel-Server &amp; Hotspot</h1>
+    <p>Diese Anleitung beschreibt die einmalige Einrichtung und den täglichen Start des Node.js Kegel-Servers in Kombination mit dem Windows-WLAN-Hotspot für die Smartphones.</p>
+
+    <div class="note">
+        <strong>Voraussetzung:</strong> Auf dem Computer muss <strong>Node.js</strong> installiert sein. Falls nicht, lade es zuerst von der offiziellen Website herunter und installiere es.
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+    <h2><span class="step-number">1</span> Einmalige Windows-Hotspot Vorbereitung</h2>
+    <p>Damit die Smartphones sich korrekt verbinden können, müssen Name und Passwort im Windows-System hinterlegt sein:</p>
+    <ol>
+        <li>Öffne die Windows-Einstellungen (Tastenkombination: <code>Windows-Taste + I</code>).</li>
+        <li>Navigiere zu <strong>Netzwerk und Internet</strong> &rarr; <strong>Mobiler Hotspot</strong>.</li>
+        <li>Klicke auf <strong>Bearbeiten</strong> und vergebe den gewünschten Netzwerknamen (SSID) und ein sicheres Netzwerkkennwort.</li>
+        <li>Stelle sicher, dass die Freigabe über WLAN konfiguriert ist. Du kannst den Hotspot danach wieder ausschalten – das Skript übernimmt das zukünftig automatisch.</li>
+    </ol>
+
+    <h2><span class="step-number">2</span> Projekt-Abhängigkeiten installieren</h2>
+    <p>Bevor der Server das erste Mal starten kann, müssen die benötigten Node-Module geladen und die Start-Hilfe installiert werden:</p>
+    <ol>
+        <li>Öffne die Windows-Eingabeaufforderung (CMD).</li>
+        <li>Installiere <code>nodemon</code> global, damit das Skript automatische Neustarts bei Code-Änderungen durchführen kann:
+            <pre>npm install -g nodemon</pre>
+        </li>
+        <li>Wechsle in deinen Projektordner:
+            <pre>cd C:\Users\juppi\Documents\KEGEL_APPS\Kegeln-2b</pre>
+        </li>
+        <li>Installiere alle für die Kegel-App notwendigen Pakete:
+            <pre>npm install</pre>
+        </li>
+    </ol>
+
+    <h2><span class="step-number">3</span> Den Server &amp; Hotspot starten</h2>
+    <p>Für den täglichen Betrieb nutzt du die Datei <code>kegel_hotspot_starten.bat</code>:</p>
+    <ul>
+        <li>Führe die Datei einfach per <strong>Doppelklick</strong> aus.</li>
+        <li><strong>Wichtig:</strong> Bestätige die Windows-Abfrage nach Administratorrechten (UAC) mit "Ja". Diese Rechte werden benötigt, um den Hotspot im Hintergrund per PowerShell zu aktivieren.</li>
+        <li>Das Skript startet nun selbstständig den WLAN-Hotspot und fährt direkt im Anschluss den Node.js Server hoch.</li>
+    </ul>
+
+    <div class="important">
+        <strong>Achtung beim Beenden:</strong> Schließe das schwarze Konsolenfenster erst, wenn das Kegeln beendet ist. Sobald das Fenster geschlossen wird, stoppt auch der Server. Der Windows-Hotspot bleibt in der Regel aktiv, bis Windows heruntergefahren wird oder du ihn manuell in den Einstellungen deaktivierst.
+    </div>
+
+    <h2><span class="step-number">4</span> Smartphones verbinden</h2>
+    <ol>
+        <li>Aktiviere WLAN auf den Smartphones der Spieler.</li>
+        <li>Verbinde die Smartphones mit dem in Schritt 1 festgelegten WLAN-Hotspot.</li>
+        <li>Öffne den Browser auf dem Smartphone und gib die IP-Adresse des Server-PCs gefolgt vom Port der Kegel-App ein (z. B. <code>http://192.168.137.1:3000</code>).</li>
+    </ol>
+</div>
+
+</body>
+</html>
