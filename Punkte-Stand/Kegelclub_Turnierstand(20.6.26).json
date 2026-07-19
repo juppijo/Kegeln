@@ -1,0 +1,26 @@
+{
+  "typ": "KegelApp_Turnierstand",
+  "players": [
+    "Michael",
+    "Hanni",
+    "Hilde",
+    "Gerhard",
+    "Elke",
+    "Brigitte",
+    "Peter",
+    "Birgit",
+    "Jo"
+  ],
+  "grandTotalScores": {
+    "Michael": 28,
+    "Hanni": 13,
+    "Hilde": 11,
+    "Gerhard": 20,
+    "Elke": 26,
+    "Brigitte": 18,
+    "Peter": 17,
+    "Birgit": 12,
+    "Jo": 26
+  },
+  "exportDate": "20.6.2026, 20:58:14"
+}

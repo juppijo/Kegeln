@@ -1,0 +1,588 @@
+{
+  "players": [
+    "Michael",
+    "Hanni",
+    "Hilde",
+    "Gerhard",
+    "Elke",
+    "Brigitte",
+    "Peter",
+    "Birgit",
+    "Jo"
+  ],
+  "grandTotalScores": {
+    "Michael": 28,
+    "Hanni": 13,
+    "Hilde": 11,
+    "Gerhard": 20,
+    "Elke": 26,
+    "Brigitte": 18,
+    "Peter": 17,
+    "Birgit": 12,
+    "Jo": 26
+  },
+  "activeGamesData": {
+    "hausnummer": {
+      "Michael": {
+        "g1": "5",
+        "g2": "4",
+        "g3": "6",
+        "k1": "2",
+        "k2": "3",
+        "k3": "5"
+      },
+      "Hanni": {
+        "g1": "5",
+        "g2": "5",
+        "g3": "3",
+        "k1": "9",
+        "k2": "9",
+        "k3": "9"
+      },
+      "Hilde": {
+        "g1": "0",
+        "g2": "4",
+        "g3": "0",
+        "k1": "9",
+        "k2": "4",
+        "k3": "9"
+      },
+      "Gerhard": {
+        "g1": "7",
+        "g2": "7",
+        "g3": "4",
+        "k1": "5",
+        "k2": "5",
+        "k3": "6"
+      },
+      "Elke": {
+        "g1": "5",
+        "g2": "5",
+        "g3": "0",
+        "k1": "2",
+        "k2": "3",
+        "k3": "9"
+      },
+      "Brigitte": {
+        "g1": "2",
+        "g2": "6",
+        "g3": "0",
+        "k1": "2",
+        "k2": "5",
+        "k3": "9"
+      },
+      "Peter": {
+        "g1": "4",
+        "g2": "7",
+        "g3": "5",
+        "k1": "3",
+        "k2": "3",
+        "k3": "5"
+      },
+      "Birgit": {
+        "g1": "5",
+        "g2": "6",
+        "g3": "4",
+        "k1": "9",
+        "k2": "3",
+        "k3": "4"
+      },
+      "Jo": {
+        "g1": "8",
+        "g2": "5",
+        "g3": "6",
+        "k1": "2",
+        "k2": "5",
+        "k3": "7"
+      },
+      "isBooked": true,
+      "booked": false
+    },
+    "siebzehn-vier": {
+      "Michael": {
+        "w1": "5",
+        "w2": "7",
+        "w3": "3",
+        "w4": "",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "6"
+      },
+      "Hanni": {
+        "w1": "4",
+        "w2": "3",
+        "w3": "3",
+        "w4": "",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "10"
+      },
+      "Hilde": {
+        "w1": "4",
+        "w2": "4",
+        "w3": "5",
+        "w4": "5",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "4"
+      },
+      "Gerhard": {
+        "w1": "5",
+        "w2": "4",
+        "w3": "4",
+        "w4": "7",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "3"
+      },
+      "Elke": {
+        "w1": "5",
+        "w2": "5",
+        "w3": "5",
+        "w4": "2",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "3"
+      },
+      "Brigitte": {
+        "w1": "6",
+        "w2": "4",
+        "w3": "4",
+        "w4": "4",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "3"
+      },
+      "Peter": {
+        "w1": "7",
+        "w2": "3",
+        "w3": "3",
+        "w4": "5",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "9"
+      },
+      "Birgit": {
+        "w1": "6",
+        "w2": "2",
+        "w3": "2",
+        "w4": "6",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "7"
+      },
+      "Jo": {
+        "w1": "5",
+        "w2": "5",
+        "w3": "7",
+        "w4": "1",
+        "w5": "",
+        "w6": "",
+        "w7": "",
+        "w8": "",
+        "w9": "",
+        "card": "3"
+      },
+      "isBooked": true,
+      "booked": false
+    },
+    "aergere-dich-nicht": {
+      "meta": {
+        "target": 31,
+        "winner": "",
+        "finished": false,
+        "message": "",
+        "events": [],
+        "isBooked": false,
+        "booked": false
+      },
+      "Michael": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Hanni": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Hilde": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Gerhard": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Elke": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Brigitte": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Peter": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Birgit": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "Jo": {
+        "score": 0,
+        "throws": [],
+        "knockedOutBy": "",
+        "status": "",
+        "isBooked": false,
+        "booked": false
+      },
+      "isBooked": false,
+      "booked": false
+    },
+    "rennen": {
+      "Michael": {
+        "team": "Team D",
+        "t1": "11",
+        "t2": "15",
+        "t3": "7",
+        "t4": "7",
+        "t5": "7",
+        "t6": "5",
+        "isBooked": false,
+        "booked": false
+      },
+      "Hanni": {
+        "team": "Team C",
+        "t1": "4",
+        "t2": "8",
+        "t3": "5",
+        "t4": "8",
+        "t5": "6",
+        "t6": "8",
+        "isBooked": false,
+        "booked": false
+      },
+      "Hilde": {
+        "team": "Team B",
+        "t1": "16",
+        "t2": "9",
+        "t3": "8",
+        "t4": "7",
+        "t5": "16",
+        "t6": "9",
+        "isBooked": false,
+        "booked": false
+      },
+      "Gerhard": {
+        "team": "Team C",
+        "t1": "0",
+        "t2": "0",
+        "t3": "0",
+        "t4": "0",
+        "t5": "0",
+        "t6": "0",
+        "isBooked": false,
+        "booked": false
+      },
+      "Elke": {
+        "team": "Team E",
+        "t1": "8",
+        "t2": "8",
+        "t3": "8",
+        "t4": "5",
+        "t5": "6",
+        "t6": "6",
+        "isBooked": false,
+        "booked": false
+      },
+      "Brigitte": {
+        "team": "Team A",
+        "t1": "7",
+        "t2": "7",
+        "t3": "7",
+        "t4": "8",
+        "t5": "8",
+        "t6": "8",
+        "isBooked": false,
+        "booked": false
+      },
+      "Peter": {
+        "team": "Team A",
+        "t1": "0",
+        "t2": "0",
+        "t3": "0",
+        "t4": "0",
+        "t5": "0",
+        "t6": "0",
+        "isBooked": false,
+        "booked": false
+      },
+      "Birgit": {
+        "team": "Team D",
+        "t1": "0",
+        "t2": "0",
+        "t3": "0",
+        "t4": "0",
+        "t5": "0",
+        "t6": "0",
+        "isBooked": false,
+        "booked": false
+      },
+      "Jo": {
+        "team": "Team B",
+        "t1": "0",
+        "t2": "0",
+        "t3": "0",
+        "t4": "0",
+        "t5": "0",
+        "t6": "0",
+        "isBooked": false,
+        "booked": false
+      },
+      "Gast": {
+        "team": "Team E",
+        "t1": "0",
+        "t2": "0",
+        "t3": "0",
+        "t4": "0",
+        "t5": "0",
+        "t6": "0",
+        "isBooked": false,
+        "booked": false
+      },
+      "isBooked": true,
+      "booked": false
+    },
+    "idiot": {
+      "Michael": {
+        "l": "5",
+        "r": "6",
+        "re": "4"
+      },
+      "Hanni": {
+        "l": "0",
+        "r": "3",
+        "re": "0"
+      },
+      "Hilde": {
+        "l": "0",
+        "r": "7",
+        "re": "5"
+      },
+      "Gerhard": {
+        "l": "2",
+        "r": "6",
+        "re": "7"
+      },
+      "Elke": {
+        "l": "2",
+        "r": "7",
+        "re": "7"
+      },
+      "Brigitte": {
+        "l": "2",
+        "r": "3",
+        "re": "5"
+      },
+      "Peter": {
+        "l": "7",
+        "r": "4",
+        "re": "5"
+      },
+      "Birgit": {
+        "l": "0",
+        "r": "4",
+        "re": "3"
+      },
+      "Jo": {
+        "l": "0",
+        "r": "5",
+        "re": "7"
+      },
+      "isBooked": true,
+      "booked": false
+    },
+    "fuchsjagd": {
+      "Fuchs": {
+        "vl": 0,
+        "w1": 0,
+        "w2": 0,
+        "w3": 0,
+        "w4": 0,
+        "w5": 0,
+        "w6": 0,
+        "w7": 0,
+        "w8": 0,
+        "isBooked": false,
+        "booked": false
+      },
+      "Jaeger": {
+        "vl": 0,
+        "w1": 0,
+        "w2": 0,
+        "w3": 0,
+        "w4": 0,
+        "w5": 0,
+        "w6": 0,
+        "w7": 0,
+        "w8": 0,
+        "isBooked": false,
+        "booked": false
+      },
+      "meta": {
+        "activeFuchsPlayer": "Michael",
+        "activeJaegerPlayer": "Hanni",
+        "isBooked": false,
+        "booked": false
+      },
+      "Michael": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Hanni": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Hilde": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Gerhard": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Elke": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Brigitte": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Peter": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Birgit": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "Jo": {
+        "status": "offen",
+        "isBooked": false,
+        "booked": false
+      },
+      "isBooked": false,
+      "booked": false
+    },
+    "tannenbaum": {
+      "wuerfe": {
+        "Michael": [],
+        "Hanni": [],
+        "Hilde": [],
+        "Gerhard": [],
+        "Elke": [],
+        "Brigitte": [],
+        "Peter": [],
+        "Birgit": [],
+        "Jo": [],
+        "isBooked": false,
+        "booked": false
+      },
+      "historie": {
+        "Michael": [],
+        "Hanni": [],
+        "Hilde": [],
+        "Gerhard": [],
+        "Elke": [],
+        "Brigitte": [],
+        "Peter": [],
+        "Birgit": [],
+        "Jo": [],
+        "isBooked": false,
+        "booked": false
+      },
+      "team1": [
+        "Michael",
+        "Hanni",
+        "Hilde",
+        "Gerhard",
+        "Elke"
+      ],
+      "team2": [
+        "Brigitte",
+        "Peter",
+        "Birgit",
+        "Jo"
+      ],
+      "isBooked": false,
+      "booked": false
+    }
+  },
+  "savedCurrentGame": "idiot",
+  "exportDate": "2026-06-20T20:58:14.427Z"
+}

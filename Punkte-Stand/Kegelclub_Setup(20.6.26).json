@@ -1,0 +1,46 @@
+{
+  "typ": "KegelApp_Reines_Setup",
+  "players": [
+    "Michael",
+    "Hanni",
+    "Hilde",
+    "Gerhard",
+    "Elke",
+    "Brigitte",
+    "Peter",
+    "Birgit",
+    "Jo"
+  ],
+  "gameOrder": [
+    {
+      "key": "hausnummer",
+      "title": "🏠 Große/Kleine Hausnummer"
+    },
+    {
+      "key": "siebzehn-vier",
+      "title": "🃏 17 und 4"
+    },
+    {
+      "key": "aergere-dich-nicht",
+      "title": "Mensch ärgere dich nicht"
+    },
+    {
+      "key": "rennen",
+      "title": "🏎️ 6 Tage Rennen"
+    },
+    {
+      "key": "idiot",
+      "title": "🤪 Idiotenkegeln"
+    },
+    {
+      "key": "fuchsjagd",
+      "title": "🦊 Fuchsjagd"
+    },
+    {
+      "key": "tannenbaum",
+      "title": "🎄 Tannenbaum (Teams)"
+    }
+  ],
+  "theme": "theme-turquoise",
+  "exportDate": "20.6.2026, 20:58:14"
+}
