@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Installationsanleitung – 🎳 Kegel App Server</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm 15mm;
+            background-color: #fafbfc;
+        }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.5;
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
+        }
+        .header-banner {
+            background: linear-gradient(135deg, #0f4c81, #1d7a8c);
+            color: #ffffff;
+            padding: 24px 20px;
+            margin: -18mm -15mm 25px -15mm;
+            text-align: center;
+            border-bottom: 4px solid #0a3356;
+        }
+        .header-banner h1 {
+            margin: 0;
+            font-size: 20pt;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .header-banner p {
+            margin: 6px 0 0 0;
+            font-size: 11pt;
+            opacity: 0.9;
+        }
+        h2 {
+            font-size: 13.5pt;
+            color: #0f4c81;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eef2f5;
+            page-break-after: avoid;
+        }
+        h3 {
+            font-size: 11.5pt;
+            color: #1d7a8c;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            page-break-after: avoid;
+        }
+        p {
+            margin: 0 0 10px 0;
+        }
+        ol, ul {
+            margin: 0 0 15px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #f0f4f8;
+            color: #b30000;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 9.5pt;
+        }
+        pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 9.5pt;
+            overflow: hidden;
+            margin: 8px 0 15px 0;
+            border-left: 4px solid #1d7a8c;
+            page-break-inside: avoid;
+        }
+        .info-box {
+            background-color: #e6f4ea;
+            border-left: 4px solid #24b47e;
+            padding: 12px;
+            border-radius: 0 6px 6px 0;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        .info-box p {
+            margin: 0;
+            color: #137333;
+        }
+        .warning-box {
+            background-color: #fef7e0;
+            border-left: 4px solid #f4b400;
+            padding: 12px;
+            border-radius: 0 6px 6px 0;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        .warning-box p {
+            margin: 0;
+            color: #b06000;
+        }
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid #eef2f5;
+            padding-top: 10px;
+            font-size: 8.5pt;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-banner">
+        <h1>🎳 Installations-Anweisung</h1>
+        <p>Einrichtung des Kegel App Servers & WLAN-Hotspots unter Linux</p>
+    </div>
+
+    <p>Diese Dokumentation führt dich Schritt für Schritt durch die komplette Installation des Express-Servers auf einem Linux-System sowie die Bereitstellung des lokalen Netzwerks via WLAN-Hotspot für die Smartphones im Klub.</p>
+
+    <h2>Teil 1: Vorbereitung des Linux-Systems</h2>
+    <ol>
+        <li><strong>Node.js & npm installieren:</strong> Öffne das Terminal und installiere die Laufzeitumgebung.
+            <pre>sudo apt update && sudo apt install nodejs npm</pre>
+        </li>
+        <li><strong>Server-Verzeichnis erstellen:</strong> Lege den Hauptordner für das Projekt an.
+            <pre>mkdir -p ~/Kegel-Server && cd ~/Kegel-Server</pre>
+        </li>
+        <li><strong>Webseiten-Dateien hinterlegen:</strong> Kopiere deinen vollständigen Frontend-Ordner <code>Kegeln-2b</code> (der die <code>index.html</code>, Styles und Skripte enthält) direkt in dieses neue Verzeichnis.</li>
+    </ol>
+
+    <h2>Teil 2: Projekt & Abhängigkeiten einrichten</h2>
+    <ol>
+        <li><strong>Projekt initialisieren:</strong> Erstelle im Ordner <code>~/Kegel-Server</code> die Konfigurationsdatei.
+            <pre>npm init -y</pre>
+        </li>
+        <li><strong>Express & Nodemon installieren:</strong> Installiere das Web-Framework und das Entwicklungswerkzeug.
+            <pre>npm install express && npm install --save-dev nodemon</pre>
+        </li>
+        <li><strong>Start-Skript konfigurieren:</strong> Öffne die Datei <code>package.json</code> mit einem Editor (z.B. <code>nano package.json</code>) und trage unter <code>"scripts"</code> die dev-Zeile ein:
+            <pre>"scripts": {
+  "dev": "nodemon -L index.js"
+}</pre>
+        </li>
+    </ol>
+
+    <h2>Teil 3: Die Server-Datei erstellen</h2>
+    <p>Erstelle im Ordner <code>~/Kegel-Server</code> eine Datei namens <code>index.js</code> und füge folgenden Code ein. Dieser bedient die statischen Dateien aus <code>Kegeln-2b</code> und stellt die Daten-API bereit:</p>
+
+    <pre>const express = require('express');
+const http = require('http');
+const path = require('path');
+const os = require('os');
+
+const app = express();
+const server = http.createServer(app);
+const PORT = 3000;
+
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    next();
+});
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'Kegeln-2b')));
+
+let globalKegelData = { players: [], activeGamesData: {}, grandTotalScores: {} };
+
+app.get('/api/data', (req, res) => res.json(globalKegelData));
+app.post('/api/data', (req, res) => {
+    const incomingData = req.body;
+    if (incomingData.activeGamesData) globalKegelData.activeGamesData = incomingData.activeGamesData;
+    if (incomingData.players && incomingData.players.length > 0) globalKegelData.players = incomingData.players;
+    if (incomingData.grandTotalScores) globalKegelData.grandTotalScores = incomingData.grandTotalScores;
+    res.json({ status: "success" });
+});
+
+function getLocalIpAddress() {
+    const interfaces = os.networkInterfaces();
+    for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            if ((iface.family === 'IPv4' || iface.family === 4) && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return '127.0.0.1';
+}
+
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`=== 🎳 KEGEL APP SERVER läuft unter: http://${getLocalIpAddress()}:${PORT} ===`);
+});</pre>
+
+    <h2>Teil 4: Netzwerk-Hotspot via Terminal einrichten</h2>
+    <p>Falls in deiner Desktop-Oberfläche kein Hotspot-Button existiert, nutze die Linux-Netzwerksteuerung (<code>nmcli</code>):</p>
+    
+    <ol>
+        <li><strong>Namen des WLAN-Geräts ermitteln:</strong>
+            <pre>nmcli device</pre>
+            Suche in der Spalte <em>TYP</em> nach <code>wifi</code> und notiere den Namen aus der Spalte <em>GERÄT</em> (z.B. <code>wlp3s0</code>).
+        </li>
+        <li><strong>Hotspot aktivieren:</strong> Ersetze <code>DEIN_GERÄT</code> durch den ermittelten Namen:
+            <pre>sudo nmcli device wifi hotspot ssid Kegelklub_Gut_Holz password 12344321 ifname DEIN_GERÄT</pre>
+        </li>
+        <li><strong>Hotspot-IP-Adresse überprüfen:</strong>
+            <pre>ip addr show DEIN_GERÄT</pre>
+            Suche nach <code>inet</code> (meistens lautet die Adresse <code>10.42.0.1</code>).
+        </li>
+    </ol>
+
+    <div class="info-box">
+        <p><strong>Start im Klub:</strong> Starte den Server im Projektordner mit <code>npm run dev</code>. Die Mitglieder verbinden ihre Smartphones mit dem WLAN <em>Kegelklub_Gut_Holz</em> und rufen im Browser <code>http://10.42.0.1:3000</code> auf.</p>
+    </div>
+
+    <div class="warning-box">
+        <p><strong>Hotspot beenden:</strong> Nach dem Kegeln schaltest du den Hotspot mit <code>sudo nmcli device disconnect DEIN_GERÄT</code> wieder ab, um das normale WLAN zu nutzen.</p>
+    </div>
+
+    <div class="footer">
+        🎳 Kegel App Server • Dokumentation generiert • Lokaler Netzwerk-Modus
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotspot Steuerung</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #2c3e50;
+            color: white;
+            padding: 50px 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #34495e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        h1 { margin-bottom: 30px; }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-on { background: #2ecc71; color: white; }
+        .btn-on:hover { background: #27ae60; }
+        .btn-off { background: #e74c3c; color: white; }
+        .btn-off:hover { background: #c0392b; }
+        #status {
+            margin-top: 25px;
+            font-style: italic;
+            color: #bdc3c7;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎳 Hotspot Steuerung</h1>
+    <button class="btn-on" onclick="toggleHotspot('on')">Hotspot EINschalten</button>
+    <button class="btn-off" onclick="toggleHotspot('off')">Hotspot AUSschalten</button>
+    <div id="status">Bereit.</div>
+</div>
+
+<script>
+    function toggleHotspot(action) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = `Führe Befehl aus... Bitte warten...`;
+        
+        fetch(`/api/hotspot/${action}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    statusDiv.innerHTML = `<span style="color: #2ecc71;">${data.message}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #e74c3c;">Fehler: ${data.error}</span>`;
+                }
+            })
+            .catch(err => {
+                statusDiv.innerHTML = `<span style="color: #e74c3c;">Verbindungsfehler zum Server.</span>`;
+            });
+    }
+</script>
+
+</body>
+</html>

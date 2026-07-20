@@ -105,6 +105,19 @@
             .stitle { font-size: 2rem; }
             .sico { font-size: 3.5rem; }
         }
+
+        .qr-placeholder {
+            width: 290px;
+            height: 290px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.05);
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
     </style>
 </head>
 <body class="theme-turquoise">
@@ -132,6 +145,13 @@
                 • <strong>Netzwerkname (SSID):</strong> Kegelklub_Gut_Holz<br>
                 • <strong>Passwort (PW):</strong> <code style="background: #111; padding: 2px 6px; border-radius: 4px; color: #fff;">1234:4321</code>
             </span>
+            <div class="qr-placeholder">
+            <!-- Platzhalter für hotspot.png -->
+            <img src="Hotspot.png" alt="QR-Code Hotspot" onerror="this.style.display='none'; document.getElementById('qr-text').style.display='block';">
+            <div id="qr-text" style="display: none; color: var(--text-muted); padding: 10px; font-size: 0.85rem;">
+                [ Hotspot.png fehlt ]
+            </div>
+        </div>
         </div>
 
         <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #fbbf24;">
@@ -140,13 +160,13 @@
             </strong>
             <span style="font-size: 0.95rem; line-height: 1.4;">
                 Öffne deinen Internet-Browser (Safari, Chrome, Firefox) und tippe folgende Adresse in die Adresszeile ein:<br>
-                👉 <a href="http://192.168.129.40:3000/" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: underline;">http://192.168.129.40:3000/</a>
+                👉 <a href="http://10.42.0.1:3000/" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: underline;">http://10.42.0.1:3000/</a>
             </span>
         </div>
 
         <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #34d399;">
             <strong style="display: block; font-size: 1.1rem; color: #34d399; margin-bottom: 4px;">
-                3. 📥 Auf dem Startbildschirm installieren (Optional)
+                3. (Optional) 📥 Auf dem Startbildschirm installieren (Optional)
             </strong>
             <span style="font-size: 0.9rem; line-height: 1.4;">
                 Da die App als <em>Progressive Web App (PWA)</em> läuft, könnt ihr sie wie eine normale App auf dem Handy speichern:<br>

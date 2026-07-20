@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP-Link Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 95%;
+        }
+        .font-control {
+            margin-bottom: 25px;
+            font-size: 1rem;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .font-control input[type="range"] {
+            cursor: pointer;
+            width: 150px;
+        }
+        .url-container {
+            font-size: 2.1rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            transition: font-size 0.1s ease;
+        }
+        input[type="number"] {
+            font-size: inherit;
+            font-weight: bold;
+            width: 2.2em;
+            text-align: center;
+            border: none;
+            border-bottom: 3px solid #3498db;
+            background: transparent;
+            outline: none;
+            color: #e74c3c;
+            padding: 0;
+            margin: 0 2px;
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"]:focus {
+            border-bottom-color: #2ecc71;
+        }
+        button {
+            font-size: 1.4rem;
+            padding: 12px 35px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #27ae60;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="font-control">
+        <label for="sizeSlider">Schriftgröße:</label>
+        <input type="range" id="sizeSlider" min="1.1" max="4.5" step="0.1" value="2.1" oninput="updateFontSize(this.value)">
+        <span id="sizeValue">2.1rem</span>
+    </div>
+
+    <div class="url-container" id="urlContainer">
+        <span>http://</span>
+        <input type="number" id="octet1" value="10" min="0" max="255">
+        <span>.</span>
+        <input type="number" id="octet2" value="42" min="0" max="255">
+        <span>.</span>
+        <input type="number" id="octet3" value="0" min="0" max="255">
+        <span>.</span>
+        <input type="number" id="octet4" value="1" min="0" max="255">
+        <span>:3000/</span>
+    </div>
+    <br>
+    <button onclick="openLink()">Link öffnen</button>
+</div>
+
+<script>
+    function updateFontSize(value) {
+        document.getElementById('urlContainer').style.fontSize = value + 'rem';
+        document.getElementById('sizeValue').textContent = value + 'rem';
+    }
+
+    function openLink() {
+        const octet1 = document.getElementById('octet1').value || "0";
+        const octet2 = document.getElementById('octet2').value || "0";
+        const octet3 = document.getElementById('octet3').value || "0";
+        const octet4 = document.getElementById('octet4').value || "0";
+        const url = `http://${octet1}.${octet2}.${octet3}.${octet4}:3000/`;
+        window.open(url, '_blank');
+    }
+</script>
+
+</body>
+</html>
