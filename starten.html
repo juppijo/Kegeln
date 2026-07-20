@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotspot & Link Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #00cbc4; /* Blau-türkises Highlight */
+            --accent-hover: #00a8a2;
+            --success-color: #10b981;
+            --success-hover: #059669;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --border-color: #334155;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --accent-color: #0ea5e9;
+            --accent-hover: #0284c7;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+            .full-width {
+                grid-column: span 2;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .nav-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Hotspot Steuerung */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            color: white;
+        }
+
+        .action-btn:active {
+            transform: scale(0.99);
+        }
+
+        .btn-on { background-color: var(--success-color); }
+        .btn-on:hover { background-color: var(--success-hover); }
+        .btn-off { background-color: var(--danger-color); }
+        .btn-off:hover { background-color: var(--danger-hover); }
+
+        .btn-primary { background-color: var(--accent-color); color: #121824; font-weight: 600; }
+        [data-theme="light"] .btn-primary { color: white; }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+
+        #status {
+            margin-top: 20px;
+            font-style: italic;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 24px;
+        }
+
+        /* IP Generator */
+        .font-control {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .font-control input[type="range"] {
+            flex: 1;
+            cursor: pointer;
+            accent-color: var(--accent-color);
+        }
+
+        .url-container {
+            font-size: 2.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 25px 0;
+            color: var(--text-color);
+            transition: font-size 0.1s ease;
+        }
+
+        .url-container span {
+            user-select: none;
+        }
+
+        .octet-input {
+            font-size: inherit;
+            font-weight: 700;
+            width: 2.2em;
+            text-align: center;
+            border: none;
+            border-bottom: 3px solid var(--accent-color);
+            background: transparent;
+            outline: none;
+            color: var(--danger-color);
+            padding: 0;
+            margin: 0 2px;
+        }
+
+        .octet-input::-webkit-outer-spin-button,
+        .octet-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .octet-input {
+            -moz-appearance: textfield;
+        }
+
+        .octet-input:focus {
+            border-bottom-color: var(--success-color);
+        }
+
+        /* QR-Code Bereich */
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .qr-placeholder {
+            width: 180px;
+            height: 180px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.05);
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .qr-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls-header">
+    <button class="nav-btn" onclick="toggleStyle()" id="styleBtn">🌓 Style wechseln</button>
+    <button class="nav-btn" onclick="toggleFullscreen()">📺 Vollbild</button>
+</div>
+
+<div class="dashboard">
+    
+    <!-- Hotspot Steuerung -->
+    <div class="card">
+        <div>
+            <h2>🎳 Hotspot Steuerung</h2>
+            <div class="btn-group">
+                <button class="action-btn btn-on" onclick="toggleHotspot('on')">Hotspot EINschalten</button>
+                <button class="action-btn btn-off" onclick="toggleHotspot('off')">Hotspot AUSschalten</button>
+            </div>
+        </div>
+        <div id="status">Bereit.</div>
+    </div>
+
+    <!-- QR-Code Zugang -->
+    <div class="card qr-section">
+        <h2>📱 QR-Code Zugang</h2>
+        <div class="qr-placeholder">
+            <!-- Platzhalter für hotspot.png -->
+            <img src="Hotspot.png" alt="QR-Code Hotspot" onerror="this.style.display='none'; document.getElementById('qr-text').style.display='block';">
+            <div id="qr-text" style="display: none; color: var(--text-muted); padding: 10px; font-size: 0.85rem;">
+                [ Hotspot.png fehlt ]
+            </div>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Scannen, um direkt zu verbinden</span>
+    </div>
+
+    <!-- IP-Link Generator -->
+    <div class="card full-width">
+        <h2>🔗 IP-Link Generator</h2>
+        
+        <div class="font-control">
+            <label for="sizeSlider">Textgröße:</label>
+            <input type="range" id="sizeSlider" min="1.4" max="4.0" step="0.1" value="2.1" oninput="updateFontSize(this.value)">
+            <span id="sizeValue">2.1rem</span>
+        </div>
+
+        <div class="url-container" id="urlContainer">
+            <span>http://</span>
+            <input type="number" id="octet1" class="octet-input" value="10" min="0" max="255" oninput="autoMove(this, 'octet2')">
+            <span>.</span>
+            <input type="number" id="octet2" class="octet-input" value="42" min="0" max="255" oninput="autoMove(this, 'octet3')">
+            <span>.</span>
+            <input type="number" id="octet3" class="octet-input" value="0" min="0" max="255" oninput="autoMove(this, 'octet4')">
+            <span>.</span>
+            <input type="number" id="octet4" class="octet-input" value="1" min="0" max="255">
+            <span>:3000/</span>
+        </div>
+
+        <button class="action-btn btn-primary" onclick="openLink()">Link öffnen</button>
+    </div>
+</div>
+
+<script>
+    // Theme-Umschalter (Style-Button)
+    function toggleStyle() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            html.setAttribute('data-theme', 'light');
+        } else {
+            html.setAttribute('data-theme', 'dark');
+        }
+    }
+
+    // Vollbild-Funktion
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                alert(`Fehler beim Aktivieren des Vollbildmodus: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // Textgrößen-Slider
+    function updateFontSize(value) {
+        document.getElementById('urlContainer').style.fontSize = value + 'rem';
+        document.getElementById('sizeValue').textContent = value + 'rem';
+    }
+
+    // Automatischer Fokus-Sprung beim Tippen
+    function autoMove(current, nextId) {
+        if (current.value.length >= 3) {
+            document.getElementById(nextId).focus();
+        }
+    }
+
+    // Link öffnen
+    function openLink() {
+        const octet1 = document.getElementById('octet1').value || "0";
+        const octet2 = document.getElementById('octet2').value || "0";
+        const octet3 = document.getElementById('octet3').value || "0";
+        const octet4 = document.getElementById('octet4').value || "0";
+        const url = `http://${octet1}.${octet2}.${octet3}.${octet4}:3000/`;
+        window.open(url, '_blank');
+    }
+
+    // API-Call für die Hotspot-Steuerung
+    function toggleHotspot(action) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = `Führe Befehl aus... Bitte warten...`;
+        
+        fetch(`/api/hotspot/${action}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    statusDiv.innerHTML = `<span style="color: var(--success-color); font-weight: bold;">${data.message}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span style="color: var(--danger-color); font-weight: bold;">Fehler: ${data.error}</span>`;
+                }
+            })
+            .catch(err => {
+                statusDiv.innerHTML = `<span style="color: var(--danger-color);">Verbindungsfehler zum Server.</span>`;
+            });
+    }
+</script>
+
+</body>
+</html>

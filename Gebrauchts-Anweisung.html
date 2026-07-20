@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎳 KegelClub Master Pro 🏆</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F3B3;</text></svg>">
+
+    <meta name="theme-color" content="#0d9488">
+
+    <style>
+        /* --- BASIS-SETUP --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- FARB-THEMEN VARIABLE DEFINITIONEN --- */
+        .theme-turquoise {
+            --bg-main: #141b24;
+            --bg-card: #1f2a38;
+            --bg-input: #17202a;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #06b6d4;
+            --accent-hover: #22d3ee;
+            --border: #334155;
+            --header-gradient: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            padding-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* --- SPLASH / TITEL ELEMENTS --- */
+        .sico {
+            font-size: 4.5rem;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.4));
+            animation: floatIcon 3.5s ease-in-out infinite;
+            text-align: center;
+        }
+
+        .stitle {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin: 0;
+            line-height: 1.1;
+            color: var(--text-main);
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .stitle .g {
+            color: var(--accent);
+            text-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .ssub {
+            font-size: 1.1rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* --- CONTAINER & CARDS --- */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        /* --- KEYFRAMES --- */
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+
+        /* --- RESPONSIVE STYLING --- */
+        @media (max-width: 768px) {
+            body { font-size: 14px; padding: 10px; }
+            .card { padding: 12px; margin-top: 20px !important; }
+            .stitle { font-size: 2rem; }
+            .sico { font-size: 3.5rem; }
+        }
+
+        .qr-placeholder {
+            width: 290px;
+            height: 290px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.05);
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+<body class="theme-turquoise">
+
+    <div class="sico">🎳</div>
+    <div class="stitle">KEGELCLUB<span class="g"> MASTER PRO</span></div>
+    <div class="ssub">Digitale Kegeltafel 🏆</div>
+
+<section class="card" style="margin-top: 30px; border: 2px solid var(--accent);">
+    <h2 style="color: var(--accent); display: flex; align-items: center; gap: 10px; font-size: 1.3rem; margin-bottom: 10px;">
+        📲 Anleitung: App öffnen & Installieren
+    </h2>
+    <p style="margin-bottom: 15px; font-size: 0.95rem; opacity: 0.9; line-height: 1.4;">
+        Damit alle Clubmitglieder gleichzeitig live die Punkte eintragen und sehen können, folgt einfach diesen Schritten:
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #60a5fa;">
+            <strong style="display: block; font-size: 1.1rem; color: #60a5fa; margin-bottom: 4px;">
+                1. 📡 Im Vereins-WLAN anmelden
+            </strong>
+            <span style="font-size: 0.95rem; line-height: 1.4;">
+                Verbinde dein Smartphone mit dem WLAN:<br>
+                • <strong>Netzwerkname (SSID):</strong> Kegelklub_Gut_Holz<br>
+                • <strong>Passwort (PW):</strong> <code style="background: #111; padding: 2px 6px; border-radius: 4px; color: #fff;">1234:4321</code>
+            </span>
+            <div class="qr-placeholder">
+            <!-- Platzhalter für hotspot.png -->
+            <img src="Hotspot.png" alt="QR-Code Hotspot" onerror="this.style.display='none'; document.getElementById('qr-text').style.display='block';">
+            <div id="qr-text" style="display: none; color: var(--text-muted); padding: 10px; font-size: 0.85rem;">
+                [ Hotspot.png fehlt ]
+            </div>
+        </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #fbbf24;">
+            <strong style="display: block; font-size: 1.1rem; color: #fbbf24; margin-bottom: 4px;">
+                2. 🌐 App im Browser öffnen
+            </strong>
+            <span style="font-size: 0.95rem; line-height: 1.4;">
+                Öffne deinen Internet-Browser (Safari, Chrome, Firefox) und tippe folgende Adresse in die Adresszeile ein:<br>
+                👉 <a href="http://10.42.0.1:3000/" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: underline;">http://10.42.0.1:3000/</a>
+            </span>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #34d399;">
+            <strong style="display: block; font-size: 1.1rem; color: #34d399; margin-bottom: 4px;">
+                3. (Optional) 📥 Auf dem Startbildschirm installieren (Optional)
+            </strong>
+            <span style="font-size: 0.9rem; line-height: 1.4;">
+                Da die App als <em>Progressive Web App (PWA)</em> läuft, könnt ihr sie wie eine normale App auf dem Handy speichern:<br>
+                • <strong>Android / Chrome:</strong> Klicke oben rechts auf die 3 Punkte und wähle <span style="color: #34d399;">"Zum Startbildschirm hinzufügen"</span> oder <span style="color: #34d399;">"App installieren"</span>.<br>
+                • <strong>iPhone / Safari:</strong> Klicke unten auf das Teilen-Symbol (Viereck mit Pfeil nach oben) und wähle <span style="color: #34d399;">"Zum Home-Bildschirm"</span>.<br>
+                 Danach habt ihr ein eigenes 🎳-Symbol auf dem Handy und könnt die App im Vollbild nutzen!
+            </span>
+        </div>
+
+    </div>
+
+    <div style="margin-top: 15px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(239, 68, 68, 0.3); line-height: 1.4;">
+        ⚠️ <strong>Wichtig:</strong> Wenn ein neues Mitglied die App öffnet, lädt sie automatisch den aktuellen Spielstand vom Server. Es gehen keine Daten der bereits aktiven Spieler verloren!
+    </div>
+</section>
+
+</body>
+</html>
