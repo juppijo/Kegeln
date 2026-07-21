@@ -289,7 +289,7 @@ function aktualisiereSichtbareFelder() {
         // --- 17 UND 4 ---
         else if (currentGame === "siebzehn-vier" && activeGamesData["siebzehn-vier"] && activeGamesData["siebzehn-vier"][p]) {
             const d = activeGamesData["siebzehn-vier"][p];
-            for(let i = 1; i <= 9; i++) {
+            for(let i = 1; i <= 12; i++) {
                 const field = row.querySelector(`.sv-w${i}`);
                 if (document.activeElement !== field) updateVal(field, d[`w${i}`]);
             }
