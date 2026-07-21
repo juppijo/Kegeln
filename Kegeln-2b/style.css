@@ -564,7 +564,7 @@ footer {
    Großzügige Abstände, breite Felder, hohe Übersichtlichkeit
    ====================================================== */
 @media screen and (min-width: 769px) {
-    html { font-size: 20px; }
+    html { font-size: 18px; }
     body { padding-bottom: 70px; }
 
     header { padding: 20px; }
@@ -573,7 +573,7 @@ footer {
 
     .menu-tab { min-width: 130px; padding: 14px 18px; font-size: 1rem; }
 
-    .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+    .container { max-width: 1500px; margin: 0 auto; padding: 20px; }
     .card { padding: 20px; margin-bottom: 20px; border-radius: 10px; }
     .card-header h2 { font-size: 1.4rem; }
 
