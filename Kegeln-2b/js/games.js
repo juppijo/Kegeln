@@ -324,6 +324,9 @@ else if (currentGame === "tannenbaum") {
         // HIER GEÄNDERT: Das "#tannenbaum-setup" wurde in ein stylisches <details>-Element verwandelt
         tableResponsive.innerHTML = `
             <div class="tannenbaum-container" style="display: flex; flex-direction: column; gap: 20px; padding: 10px;">
+
+                <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
+                </div>
                 
                 <details open id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer;">
                     <summary style="font-weight: bold; color: var(--accent); font-size: 1.1rem; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none;">
@@ -340,8 +343,6 @@ else if (currentGame === "tannenbaum") {
                     </div>
                 </details>
 
-                <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
-                    </div>
             </div>
         `;
 
