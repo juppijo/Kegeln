@@ -564,7 +564,7 @@ footer {
    Großzügige Abstände, breite Felder, hohe Übersichtlichkeit
    ====================================================== */
 @media screen and (min-width: 769px) {
-    html { font-size: 18px; }
+    html { font-size: 17px; }
     body { padding-bottom: 70px; }
 
     header { padding: 17px; }
