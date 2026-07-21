@@ -1594,7 +1594,7 @@ function liveCalculateSiebzehnVier() {
         if (!row) return;
 
         let sum = 0;
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 1; i <= 9; i++) {
             sum += parseInt(row.querySelector(`.sv-w${i}`).value) || 0;
         }
 
