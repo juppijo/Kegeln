@@ -83,8 +83,8 @@ function renderMenschAergereDichNichtGame(tableResponsive) {
                         type="number"
                         class="madn-throw input-klein"
                         min="0"
-                        max="9"
-                        placeholder="0-9"
+                        max="12"
+                        placeholder="0-12"
                         onkeydown="handleMenschAergereThrowKey(event, ${index})"
                         ${data.meta.finished ? "disabled" : ""}
                     >
@@ -137,8 +137,8 @@ function addMenschAergereDichNichtThrow(playerIndex) {
     const input = row ? row.querySelector(".madn-throw") : null;
     const throwValue = input ? parseInt(input.value, 10) : NaN;
 
-    if (Number.isNaN(throwValue) || throwValue < 0 || throwValue > 9) {
-        alert("Bitte eine Holzzahl von 0 bis 9 eintragen.");
+    if (Number.isNaN(throwValue) || throwValue < 0 || throwValue > 12) {
+        alert("Bitte eine Holzzahl von 0 bis 12 eintragen.");
         if (input) input.value = "";
         return;
     }
