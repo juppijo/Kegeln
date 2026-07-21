@@ -494,6 +494,69 @@ footer {
     .tannenbaum-layout { grid-template-columns: 1fr; gap: 10px; }
     .trees-display-container { justify-content: center; padding: 10px; gap: 12px; }
     .tannenbaum-node { width: 22px; height: 22px; line-height: 22px; font-size: 0.75rem; }
+    .tannenbaum-input {
+        width: 50px;
+        padding: 6px;
+        text-align: center;
+        background: var(--bg-main);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    /* Leuchtende Blöcke bei Treffern */
+    .tannenbaum-node.node-active-t1 {
+        background-color: #2ecc71;
+        color: white;
+        box-shadow: 0 0 8px #2ecc71;
+    }
+
+    .tannenbaum-node.node-active-t2 {
+        background-color: #f1c40f;
+        color: #12181f;
+        box-shadow: 0 0 8px #f1c40f;
+    }
+
+    .tannenbaum-status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .trees-display-container {
+        display: flex;
+        gap: 20px;
+        background-color: #12181f;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .tree-wrapper {
+        text-align: center;
+    }
+
+    .tree-grid-visual {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 10px;
+        align-items: center;
+    }
+
+    .tannenbaum-node {
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        background-color: #2c3e50;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #95a5a6;
+        text-align: center;
+    }
 }
 
 /* ======================================================
@@ -545,6 +608,70 @@ footer {
     .tannenbaum-layout { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; }
     .trees-display-container { padding: 20px; gap: 24px; }
     .tannenbaum-node { width: 30px; height: 30px; line-height: 30px; font-size: 0.9rem; }
+
+    .tannenbaum-input {
+    width: 55px;
+    padding: 6px;
+    text-align: center;
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-weight: bold;
+    }
+    /* Leuchtende Blöcke bei Treffern */
+    .tannenbaum-node.node-active-t1 {
+        background-color: #2ecc71;
+        color: white;
+        box-shadow: 0 0 8px #2ecc71;
+    }
+
+    .tannenbaum-node.node-active-t2 {
+        background-color: #f1c40f;
+        color: #12181f;
+        box-shadow: 0 0 8px #f1c40f;
+    }
+
+    .tannenbaum-status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .trees-display-container {
+        display: flex;
+        gap: 20px;
+        background-color: #12181f;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .tree-wrapper {
+        text-align: center;
+    }
+
+    .tree-grid-visual {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 10px;
+        align-items: center;
+    }
+
+    .tannenbaum-node {
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        background-color: #2c3e50;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #95a5a6;
+        text-align: center;
+    }
 }
 
 /* --- VOLLBILD-MODUS & EINKLAPPBARER HEADER --- */
