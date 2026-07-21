@@ -108,14 +108,13 @@ function updateCurrentGameTable() {
         renderMenschAergereDichNichtGame(tableResponsive);
     }
 
-    else if (currentGame === "rennen") {
-        // Überschriften: Nur noch eine Spalte für das Team-Ergebnis und die Platzierung
+else if (currentGame === "rennen") {
+        // Überschriften
         thRow.innerHTML = "<th>Platz</th><th>Team / Spieler</th><th>Tag 1</th><th>Tag 2 (x2)</th><th>Tag 3 (x3)</th><th>Tag 4 (x4)</th><th>Tag 5 (x5)</th><th>Tag 6 (x6)</th><th>Team-Gesamt</th>";
         
-        // 1. Initialisiere Daten, falls noch gar nichts vorhanden ist
+        // Initialisierung der Spieldaten bei Bedarf
         if (!activeGamesData["rennen"] || Object.keys(activeGamesData["rennen"]).length === 0) {
             activeGamesData["rennen"] = {};
-            // Beim allerersten Start teilen wir fair auf Team A, B, C etc. auf (2 Spieler pro Team)
             players.forEach((p, index) => {
                 let initialTeamNum = Math.floor(index / 2) + 1;
                 let initialTeam = `Team ${String.fromCharCode(64 + initialTeamNum)}`;
@@ -123,31 +122,30 @@ function updateCurrentGameTable() {
             });
         }
 
-        // Wir ermitteln alle aktuell gewählten Teams im Spiel
+        // 1. Alle aktuell genutzten Teams ermitteln
         let alleTeams = [];
         players.forEach(p => {
             let t = activeGamesData["rennen"][p]?.team || "Team A";
             if (!alleTeams.includes(t)) alleTeams.push(t);
         });
-        alleTeams.sort(); // Sortiert nach Team A, Team B, Team C...
+
+        // 2. FESTE SORTIERUNG NACH TEAM-NAMEN (Team A, Team B, Team C, ...)
+        alleTeams.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
         tbody.innerHTML = "";
 
-        // 2. Wir loopen durch die Teams und bauen pro Team NUR EINE REIHE
+        // 3. Tabellenzeilen nach fester Team-Reihenfolge rendern
         alleTeams.forEach(teamName => {
-            // Finde alle echten Spieler, die diesem Team zugeordnet sind
             let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
-            if (teamMitglieder.length === 0) return; // Leere Teams überspringen
+            if (teamMitglieder.length === 0) return;
 
-            // Namen der Spieler nebeneinander darstellen
             let namensAnzeige = teamMitglieder.map(p => `<strong>${p}</strong>`).join(" &amp; ");
-            let teamKlasse = teamName.replace(' ', '');
+            let teamKlasse = teamName.replace(/\s+/g, '');
 
-            // Dropdowns für die Team-Zuweisung pro Spieler nebeneinander platzieren (für Flexibilität beim Wechseln)
             const maxTeamsCount = Math.ceil(players.length / 2) + 1;
             let teamWechslerHTML = `<div style="display:flex; flex-direction:column; gap:4px;">`;
             teamMitglieder.forEach(p => {
-                teamWechslerHTML += `<select class="ren-team-select" style="width:110px; padding:4px !important; font-size:0.8rem !important;" onchange="changeRennenTeam('${p}', this.value)">`;
+                teamWechslerHTML += `<select class="ren-team-select" style="width:170px; padding:4px !important; font-size:0.8rem !important;" onchange="changeRennenTeam('${p}', this.value)">`;
                 for (let i = 1; i <= maxTeamsCount; i++) {
                     let tOption = `Team ${String.fromCharCode(64 + i)}`;
                     let selected = (teamName === tOption) ? "selected" : "";
@@ -157,11 +155,9 @@ function updateCurrentGameTable() {
             });
             teamWechslerHTML += `</div>`;
 
-            // Inputs für die Punkte der 6 Tage. Wir nehmen das erste Mitglied als Referenz für die Eingabefelder im Speicher.
             let refPlayer = teamMitglieder[0];
             let d = activeGamesData["rennen"][refPlayer] || { t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
 
-            // Eine einzige kompakte Reihe pro Team erzeugen
             tbody.innerHTML += `
                 <tr id="row-team-${teamKlasse}" data-team="${teamName}">
                     <td class="team-rank-${teamKlasse}" style="text-align: center; font-weight: bold; font-size: 1.1rem;">-</td>
@@ -587,6 +583,12 @@ function calculateGame() {
         updateGrandTotalTable();
         alert("🎉 Beide Hausnummern erfolgreich ausgewertet! Alle Platzierungspunkte wurden gebucht.");
         
+    } else if (currentGame === "rennen") {
+                calculate6TageRennen();
+                //liveCalculate6TageRennen();
+                //const teamName = row.getAttribute("data-team");
+                //const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
+                //score = parseInt(teamCell.innerText) || 0; 
     } else if (currentGame === "aergere-dich-nicht") {
         calculateMenschAergereDichNichtGame();
 
@@ -633,7 +635,7 @@ function calculateGame() {
         updateGrandTotalTable();
         
     } else {
-        // Logik für die restlichen Spiele (17&4, Rennen, Idiot)
+        // Logik für die restlichen Spiele (17&4, Idiot)
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`); if(!row) return;
             let score = 0;
@@ -649,11 +651,6 @@ function calculateGame() {
                 } else {
                     score = pts;
                 }
-            } else if (currentGame === "rennen") {
-                liveCalculate6TageRennen();
-                const teamName = row.getAttribute("data-team");
-                const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
-                score = parseInt(teamCell.innerText) || 0; 
             } 
 
             // Innerhalb von calculateGame() im finalen else-Block:
@@ -1069,71 +1066,144 @@ function checkTannenbaumWinner(t1Counts, t2Counts) {
     }
 }
 // Rechnet die Live-Werte inklusive Multiplikatoren zusammen
+// --- 6-TAGE-RENNEN: LOGIK & BUNCH-BUCHUNG ---
+// 🔥 DIESE FUNKTION FEHLTE / WAR DEFEKT (Punkte buchen Button):
+// 🔥 KORRIGIERTE & VOLL FUNKTIONSFÄHIGE BILDUNG & BUCHUNG FÜR DAS 6-TAGE-RENNEN
+
+// --- 6-TAGE-RENNEN BERECHNUNG & PUNKTEBUCHUNG ---
+
+function calculate6TageRennen() {
+    if (!activeGamesData["rennen"]) return;
+
+    // 1. Teams und ihre Mitglieder erfassen
+    let teamMap = {};
+
+    players.forEach(p => {
+        let team = activeGamesData["rennen"][p]?.team || "Team A";
+        if (!teamMap[team]) {
+            teamMap[team] = { name: team, members: [], totalHolz: 0 };
+        }
+        teamMap[team].members.push(p);
+    });
+
+    // 2. Gesamtholz pro Team mit Gewichtung berechnen (Tag 1=x1, Tag 2=x2 ... Tag 6=x6)
+    Object.keys(teamMap).forEach(teamName => {
+        let refPlayer = teamMap[teamName].members[0];
+        let d = activeGamesData["rennen"][refPlayer] || { t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
+        
+        let total = (parseInt(d.t1) || 0) * 1 + 
+                    (parseInt(d.t2) || 0) * 2 + 
+                    (parseInt(d.t3) || 0) * 3 + 
+                    (parseInt(d.t4) || 0) * 4 + 
+                    (parseInt(d.t5) || 0) * 5 + 
+                    (parseInt(d.t6) || 0) * 6;
+
+        teamMap[teamName].totalHolz = total;
+    });
+
+    // 3. Teams nach Holz absteigend sortieren
+    let teamResults = Object.values(teamMap).sort((a, b) => b.totalHolz - a.totalHolz);
+    let totalTeams = teamResults.length;
+
+    if (totalTeams === 0) {
+        alert("Keine Teams für das 6-Tage-Rennen vorhanden!");
+        return;
+    }
+
+    // 4. Punkte buchen & Zusammenfassung erstellen
+    // Formel: (totalTeams - index) * 2
+    // Letzter Platz (index = totalTeams - 1): (1) * 2 = 2 Punkte
+    // Vorletzter Platz: 4 Punkte, usw.
+    let summaryText = "🏎️ 6-Tage-Rennen Auswertung:\n\n";
+
+    teamResults.forEach((teamObj, index) => {
+        const pointsForTeam = (totalTeams - index) * 2;
+
+        teamObj.members.forEach(player => {
+            grandTotalScores[player] = (grandTotalScores[player] || 0) + pointsForTeam;
+        });
+
+        summaryText += `${index + 1}. Platz: ${teamObj.name} (${teamObj.members.join(" & ")}) - ${teamObj.totalHolz} Holz ➔ +${pointsForTeam} Pkt.\n`;
+    });
+
+    // 5. Status speichern und UI aktualisieren
+    activeGamesData["rennen"].isBooked = true;
+
+    if (typeof saveCurrentGameFields === "function") saveCurrentGameFields();
+    if (typeof saveMenschAergereDichNichtFields === "function") saveMenschAergereDichNichtFields();
+    
+    localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
+    localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
+
+    if (typeof updateGrandTotalTable === "function") updateGrandTotalTable();
+    if (typeof updateBookedButtonStatus === "function") updateBookedButtonStatus();
+
+    alert(summaryText);
+    //alert("🎉 6-Tage-Rennen ausgewertet! Die Teampunkte wurden allen Teammitgliedern erfolgreich auf den Gesamtstand gutgeschrieben.");
+
+}
+
+// Synchronisierung & Live-Berechnung für das 6-Tage-Rennen
+function syncAndCalculateRennen(teamName, tagNum, value) {
+    let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+    
+    teamMitglieder.forEach(p => {
+        activeGamesData["rennen"][p] = activeGamesData["rennen"][p] || {};
+        activeGamesData["rennen"][p][`t${tagNum}`] = parseInt(value, 10) || 0;
+    });
+
+    saveCurrentGameFields();
+    liveCalculate6TageRennen();
+}
+
+function changeRennenTeam(playerName, newTeam) {
+    activeGamesData["rennen"][playerName] = activeGamesData["rennen"][playerName] || {};
+    activeGamesData["rennen"][playerName].team = newTeam;
+    
+    saveCurrentGameFields();
+    updateCurrentGameTable();
+}
 
 function liveCalculate6TageRennen() {
-    if (currentGame !== "rennen") return;
+    let teamMap = {};
 
-    // 1. Alle aktuell genutzten Teams ermitteln
-    let alleTeams = [];
     players.forEach(p => {
-        let t = activeGamesData["rennen"]?.[p]?.team || "Team A";
-        if (!alleTeams.includes(t)) alleTeams.push(t);
+        let team = activeGamesData["rennen"][p]?.team || "Team A";
+        if (!teamMap[team]) teamMap[team] = { name: team, totalHolz: 0 };
     });
 
-    let teamErgebnisse = [];
+    Object.keys(teamMap).forEach(teamName => {
+        let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+        if (teamMitglieder.length > 0) {
+            let refPlayer = teamMitglieder[0];
+            let d = activeGamesData["rennen"][refPlayer] || {};
+            
+            let total = (parseInt(d.t1) || 0) * 1 + 
+                        (parseInt(d.t2) || 0) * 2 + 
+                        (parseInt(d.t3) || 0) * 3 + 
+                        (parseInt(d.t4) || 0) * 4 + 
+                        (parseInt(d.t5) || 0) * 5 + 
+                        (parseInt(d.t6) || 0) * 6;
 
-    // 2. Punkte aus den Inputs auslesen und berechnen
-    alleTeams.forEach(teamName => {
-        let teamKlasse = teamName.replace(' ', '');
-        
-        let t1 = parseInt(document.querySelector(`.ren-${teamKlasse}-t1`)?.value, 10) || 0;
-        let t2 = parseInt(document.querySelector(`.ren-${teamKlasse}-t2`)?.value, 10) || 0;
-        let t3 = parseInt(document.querySelector(`.ren-${teamKlasse}-t3`)?.value, 10) || 0;
-        let t4 = parseInt(document.querySelector(`.ren-${teamKlasse}-t4`)?.value, 10) || 0;
-        let t5 = parseInt(document.querySelector(`.ren-${teamKlasse}-t5`)?.value, 10) || 0;
-        let t6 = parseInt(document.querySelector(`.ren-${teamKlasse}-t6`)?.value, 10) || 0;
+            teamMap[teamName].totalHolz = total;
 
-        // Gewichtete Berechnung pro Tag
-        let gesamt = t1 + (t2 * 2) + (t3 * 3) + (t4 * 4) + (t5 * 5) + (t6 * 6);
-
-        let resCell = document.querySelector(`.team-res-${teamKlasse}`);
-        if (resCell) {
-            resCell.textContent = `${gesamt} Holz`;
+            let teamKlasse = teamName.replace(' ', '');
+            let resCell = document.querySelector(`.team-res-${teamKlasse}`);
+            if (resCell) resCell.innerText = `${total} Holz`;
         }
-
-        teamErgebnisse.push({
-            teamName: teamName,
-            teamKlasse: teamKlasse,
-            gesamt: gesamt
-        });
     });
 
-    // 3. Nach Punkten absteigend sortieren
-    teamErgebnisse.sort((a, b) => b.gesamt - a.gesamt);
-
-    // 4. Medaillen vergeben und Zeilen im DOM live sortieren
-    let tbody = document.querySelector("#game-tbody");
-    teamErgebnisse.forEach((erg, index) => {
-        let rankCell = document.querySelector(`.team-rank-${erg.teamKlasse}`);
+    // Live-Ränge anzeigen (Medaillen)
+    let sortedTeams = Object.values(teamMap).sort((a, b) => b.totalHolz - a.totalHolz);
+    
+    sortedTeams.forEach((tObj, index) => {
+        let teamKlasse = tObj.name.replace(' ', '');
+        let rankCell = document.querySelector(`.team-rank-${teamKlasse}`);
         if (rankCell) {
-            let currentRank = index + 1;
-
-            if (erg.gesamt === 0) {
-                rankCell.textContent = "-"; // Noch keine Punkte erzielt
-            } else if (currentRank === 1) {
-                rankCell.innerHTML = "🥇";
-            } else if (currentRank === 2) {
-                rankCell.innerHTML = "🥈";
-            } else if (currentRank === 3) {
-                rankCell.innerHTML = "🥉";
-            } else {
-                rankCell.textContent = `${currentRank}.`;
-            }
-        }
-        
-        let row = document.getElementById(`row-team-${erg.teamKlasse}`);
-        if (row && tbody) {
-            tbody.appendChild(row); 
+            if (index === 0) rankCell.innerHTML = "🥇";
+            else if (index === 1) rankCell.innerHTML = "🥈";
+            else if (index === 2) rankCell.innerHTML = "🥉";
+            else rankCell.innerText = `${index + 1}.`;
         }
     });
 }
