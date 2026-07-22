@@ -563,7 +563,7 @@ footer {
    🖥️ STYLE 2: PC / DESKTOP AUTOMATIK (min-width: 769px)
    Großzügige Abstände, breite Felder, hohe Übersichtlichkeit
    ====================================================== */
-@media screen and (min-width: 769px) {
+@media screen and (min-width: 1101px) {
     html { font-size: 17px; }
     body { padding-bottom: 70px; }
 
@@ -599,6 +599,152 @@ footer {
         width: 110px !important;
         height: 36px;
         padding: 4px !important;
+        font-size: 1.05rem !important;
+    }
+
+    .rank-badge { padding: 3px 10px; font-size: 0.85rem; min-width: 30px; }
+    footer { padding: 10px; font-size: 0.85rem; }
+
+    .tannenbaum-layout { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; }
+    .trees-display-container { padding: 20px; gap: 24px; }
+    .tannenbaum-node { width: 30px; height: 30px; line-height: 30px; font-size: 0.9rem; }
+
+    .tannenbaum-input {
+    width: 55px;
+    padding: 6px;
+    text-align: center;
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-weight: bold;
+    }
+    /* Leuchtende Blöcke bei Treffern */
+    .tannenbaum-node.node-active-t1 {
+        background-color: #2ecc71;
+        color: white;
+        box-shadow: 0 0 8px #2ecc71;
+    }
+
+    .tannenbaum-node.node-active-t2 {
+        background-color: #f1c40f;
+        color: #12181f;
+        box-shadow: 0 0 8px #f1c40f;
+    }
+
+    .tannenbaum-status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .trees-display-container {
+        display: flex;
+        gap: 20px;
+        background-color: #12181f;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .tree-wrapper {
+        text-align: center;
+    }
+
+    .tree-grid-visual {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 10px;
+        align-items: center;
+    }
+
+    .tannenbaum-node {
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        background-color: #2c3e50;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: #95a5a6;
+        text-align: center;
+    }
+}
+
+
+/* ======================================================
+   🖥️ STYLE 3: Tablet AUTOMATIK (min-width: 769px)
+   Großzügige Abstände, breite Felder, hohe Übersichtlichkeit
+   ====================================================== */
+@media screen and (min-width: 769px) and (max-width: 1100px) {
+    html { font-size: 16px; }
+    body { padding-bottom: 50px; }
+
+    header { padding: 14px; }
+
+    /* 
+    .header-container h1 { font-size: 1.35rem; margin-bottom: 2px; }
+    .header-container p { font-size: 0.8rem; opacity: 0.9; }
+
+    .menu-tab { min-width: 80px; padding: 8px 6px; font-size: 0.82rem; }
+
+    .container { max-width: 100%; padding: 6px; }
+    .card { padding: 10px; margin-bottom: 10px; }
+    .card-header h2 { font-size: 1.05rem; }
+
+    .btn { padding: 6px 10px; font-size: 0.82rem; }
+    label { font-size: 0.8rem; }
+    select, input[type="text"] { padding: 6px 8px; font-size: 0.88rem; }
+
+    .badge { padding: 6px 10px; font-size: 0.88rem; }
+    .btn-order { font-size: 0.95rem; }
+
+    .game-nav-btn { padding: 6px 12px; font-size: 0.82rem; }
+    .game-header-row h2 { font-size: 1.1rem; }
+    .btn-help, .btn-reset { padding: 4px 8px; font-size: 0.78rem; }
+    .rules-card { padding: 8px 10px; font-size: 0.82rem; }
+
+    table { font-size: 0.82rem; }
+    th, td { padding: 5px 4px; }
+    th { font-size: 0.78rem; }
+    td:first-child, th:first-child { padding-left: 6px; }
+
+    */
+
+    .header-container h1 { font-size: 2rem; margin-bottom: 5px; }
+    .header-container p { font-size: 1rem; }
+
+    .menu-tab { min-width: 110px; padding: 12px 16px; font-size: 1rem; }
+
+    .container { max-width: 95%; margin: 0 auto; padding: 20px; }
+    .card { padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+    .card-header h2 { font-size: 1.2rem; }
+
+    .btn { padding: 8px 18px; font-size: 0.95rem; border-radius: 6px; }
+    label { font-size: 0.9rem; margin-bottom: 4px; }
+    select, input[type="text"] { padding: 8px 12px; font-size: 0.95rem; border-radius: 6px; }
+
+    .badge { padding: 8px 14px; font-size: 1rem; }
+    .btn-order { font-size: 1.1rem; padding: 4px 8px; }
+
+    .game-nav-btn { padding: 8px 18px; font-size: 0.95rem; }
+    .game-header-row h2 { font-size: 1.35rem; }
+    .btn-help, .btn-reset { padding: 8px 14px; font-size: 0.88rem; }
+    .rules-card { padding: 12px 16px; font-size: 0.95rem; }
+
+    table { font-size: 1rem; }
+    th, td { padding: 12px 8px; }
+    th { font-size: 0.95rem; }
+    td:first-child, th:first-child { padding-left: 14px; }
+
+    /* Eingabefelder schön groß und komfortabel auf PC */
+    table input[type="number"], table select, .madn-throw, .input-klein {
+        width: 100 !important;
+        height: 36px;
+        padding: 3px !important;
         font-size: 1.05rem !important;
     }
 
