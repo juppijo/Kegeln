@@ -145,7 +145,7 @@ else if (currentGame === "rennen") {
             const maxTeamsCount = Math.ceil(players.length / 2) + 1;
             let teamWechslerHTML = `<div style="display:flex; flex-direction:column; gap:4px;">`;
             teamMitglieder.forEach(p => {
-                teamWechslerHTML += `<select class="ren-team-select" style="width:170px; padding:4px !important; font-size:0.8rem !important;" onchange="changeRennenTeam('${p}', this.value)">`;
+                teamWechslerHTML += `<select class="ren-team-select" style="width:99%; min-width: 85px; padding:4px !important; font-size:0.8rem !important;" onchange="changeRennenTeam('${p}', this.value)">`;
                 for (let i = 1; i <= maxTeamsCount; i++) {
                     let tOption = `Team ${String.fromCharCode(64 + i)}`;
                     let selected = (teamName === tOption) ? "selected" : "";
