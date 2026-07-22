@@ -712,6 +712,16 @@ footer {
     th { font-size: 0.78rem; }
     td:first-child, th:first-child { padding-left: 6px; }
 
+    table input[type="number"], table select, .madn-throw, .input-klein {
+        width: 38px !important;
+        height: 28px;
+        padding: 2px !important;
+        font-size: 0.88rem !important;
+    }
+
+    .rank-badge { padding: 1px 6px; font-size: 0.75rem; min-width: 22px; }
+    footer { padding: 6px; font-size: 0.72rem; }
+
     */
 
     .header-container h1 { font-size: 2rem; margin-bottom: 5px; }
@@ -736,20 +746,20 @@ footer {
     .rules-card { padding: 12px 16px; font-size: 0.95rem; }
 
     table { font-size: 1rem; }
-    th, td { padding: 12px 8px; }
-    th { font-size: 0.95rem; }
+    th, td { padding: 10px 6px; }
+    th { font-size: 0.90rem; }
     td:first-child, th:first-child { padding-left: 14px; }
 
     /* Eingabefelder schön groß und komfortabel auf PC */
     table input[type="number"], table select, .madn-throw, .input-klein {
-        width: 100 !important;
-        height: 36px;
-        padding: 3px !important;
-        font-size: 1.05rem !important;
+        width: 80 !important;
+        height: 32px;
+        padding: 2px !important;
+        font-size: 0.95rem !important;
     }
 
-    .rank-badge { padding: 3px 10px; font-size: 0.85rem; min-width: 30px; }
-    footer { padding: 10px; font-size: 0.85rem; }
+    .rank-badge { padding: 2px 8px; font-size: 0.85rem; min-width: 26px; }
+    footer { padding: 8px; font-size: 0.80rem; }
 
     .tannenbaum-layout { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; }
     .trees-display-container { padding: 20px; gap: 24px; }
