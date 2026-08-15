@@ -92,6 +92,34 @@
             width: 100%;
         }
 
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 15px 0 10px 0;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .qr-image {
+            width: 220px;
+            height: 220px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .qr-caption {
+            color: #334155;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 6px;
+            text-align: center;
+        }
+
         /* --- KEYFRAMES --- */
         @keyframes floatIcon {
             0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -104,18 +132,7 @@
             .card { padding: 12px; margin-top: 20px !important; }
             .stitle { font-size: 2rem; }
             .sico { font-size: 3.5rem; }
-        }
-
-        .qr-placeholder {
-            width: 290px;
-            height: 290px;
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.05);
-            margin: 15px 0;
-            overflow: hidden;
+            .qr-image { width: 180px; height: 180px; }
         }
 
     </style>
@@ -141,17 +158,27 @@
                 1. 📡 Im Vereins-WLAN anmelden
             </strong>
             <span style="font-size: 0.95rem; line-height: 1.4;">
-                Verbinde dein Smartphone mit dem WLAN:<br>
+                Scanne einfach den QR-Code mit deiner Smartphone-Kamera oder verbinde dich manuell:<br>
                 • <strong>Netzwerkname (SSID):</strong> Kegelklub_Gut_Holz<br>
                 • <strong>Passwort (PW):</strong> <code style="background: #111; padding: 2px 6px; border-radius: 4px; color: #fff;">1234:4321</code>
             </span>
-            <div class="qr-placeholder">
-            <!-- Platzhalter für hotspot.png -->
-            <img src="Hotspot.png" alt="QR-Code Hotspot" onerror="this.style.display='none'; document.getElementById('qr-text').style.display='block';">
-            <div id="qr-text" style="display: none; color: var(--text-muted); padding: 10px; font-size: 0.85rem;">
-                [ Hotspot.png fehlt ]
+
+            <!-- QR-Code Einbindung -->
+            <div class="qr-container">
+                <img src="Hotspot.png" alt="WLAN QR-Code Hotspot" class="qr-image" onerror="this.style.display='none'; document.getElementById('qr-text').style.display='block';">
+                <div id="qr-text" style="display: none; color: #ef4444; padding: 10px; font-size: 0.85rem;">
+                    ⚠️ Bild Hotspot.png konnte nicht geladen werden.
+                </div>
+                <div class="qr-caption">📷 Mit Kamera-App scannen zum Verbinden</div>
             </div>
-        </div>
+
+            <!-- Optionaler Direkt-Link für Android -->
+            <div style="text-align: center; margin-top: 8px;">
+                <a href="intent://#Intent;action=android.settings.WIFI_SETTINGS;end;" 
+                   style="display: inline-block; background: #0284c7; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: bold;">
+                    ⚙️ WLAN-Einstellungen öffnen (Android)
+                </a>
+            </div>
         </div>
 
         <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #fbbf24;">
@@ -166,7 +193,7 @@
 
         <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #34d399;">
             <strong style="display: block; font-size: 1.1rem; color: #34d399; margin-bottom: 4px;">
-                3. (Optional) 📥 Auf dem Startbildschirm installieren (Optional)
+                3. 📥 Auf dem Startbildschirm installieren (Optional)
             </strong>
             <span style="font-size: 0.9rem; line-height: 1.4;">
                 Da die App als <em>Progressive Web App (PWA)</em> läuft, könnt ihr sie wie eine normale App auf dem Handy speichern:<br>
