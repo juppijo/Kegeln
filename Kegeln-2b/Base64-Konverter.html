@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bild &leftrightarrow; Base64 Konverter</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #06b6d4;
+      --accent-hover: #0891b2;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      padding: 32px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-color: rgba(30, 41, 59, 0.5);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background-color: rgba(6, 182, 212, 0.05);
+    }
+
+    .preview-box {
+      width: 100%;
+      height: 200px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: #0b0f19;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .preview-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .placeholder {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      background-color: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button, .btn-label {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--accent);
+      color: #000;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    button:hover, .btn-label:hover {
+      background-color: var(--accent-hover);
+      color: #fff;
+    }
+
+    button.secondary, .btn-label.secondary {
+      background-color: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    button.secondary:hover, .btn-label.secondary:hover {
+      background-color: var(--border);
+      color: var(--text);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--success);
+      color: #000;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Bild &leftrightarrow; Base64 Konverter</h1>
+      <p>Konvertiere Bilder direkt lokal im Browser in Base64 und umgekehrt.</p>
+    </header>
+
+    <div class="grid">
+      <!-- Bild zu Base64 -->
+      <div class="panel">
+        <div class="panel-title">Bild zu Base64</div>
+        
+        <div class="dropzone" id="dropzone">
+          <p>Bild hierher ziehen oder</p>
+          <label class="btn-label secondary" style="margin-top: 10px; display: inline-block;">
+            Datei auswählen
+            <input type="file" id="fileInput" accept="image/*">
+          </label>
+        </div>
+
+        <div class="preview-box">
+          <img id="imgPreview" style="display: none;" alt="Vorschau">
+          <span class="placeholder" id="imgPlaceholder">Kein Bild geladen</span>
+        </div>
+
+        <div class="btn-group">
+          <button id="copyBase64Btn" class="secondary" disabled>Kopieren</button>
+          <a id="downloadTxtBtn" class="secondary" style="display: none;">Als .txt speichern</a>
+        </div>
+      </div>
+
+      <!-- Base64 zu Bild -->
+      <div class="panel">
+        <div class="panel-title">Base64 zu Bild</div>
+
+        <textarea id="base64Input" placeholder="Füge hier deinen Base64-Code ein (z. B. data:image/png;base64,iVBORw...)"></textarea>
+
+        <div class="btn-group">
+          <button id="pasteBase64Btn" class="secondary">Einfügen</button>
+          <button id="convertBase64Btn">Konvertieren</button>
+        </div>
+
+        <div class="preview-box">
+          <img id="base64ImgPreview" style="display: none;" alt="Base64 Vorschau">
+          <span class="placeholder" id="base64Placeholder">Warte auf Konvertierung</span>
+        </div>
+
+        <div class="btn-group">
+          <a id="downloadImgBtn" class="secondary" style="display: none;" download="bild.png">Bild herunterladen</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Erfolgreich kopiert!</div>
+
+  <script>
+    // Toast Benachrichtigung
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // --- Panel 1: Bild zu Base64 ---
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+    const imgPreview = document.getElementById('imgPreview');
+    const imgPlaceholder = document.getElementById('imgPlaceholder');
+    const copyBase64Btn = document.getElementById('copyBase64Btn');
+    const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+
+    let currentBase64 = '';
+
+    function processFile(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        showToast('Bitte eine gültige Bilddatei wählen.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentBase64 = e.target.result;
+        imgPreview.src = currentBase64;
+        imgPreview.style.display = 'block';
+        imgPlaceholder.style.display = 'none';
+
+        copyBase64Btn.disabled = false;
+
+        // Download TXT vorbereiten
+        const blob = new Blob([currentBase64], { type: 'text/plain' });
+        downloadTxtBtn.href = URL.createObjectURL(blob);
+        downloadTxtBtn.download = file.name.split('.')[0] + '_base64.txt';
+        downloadTxtBtn.style.display = 'inline-flex';
+
+        showToast('Bild erfolgreich konvertiert!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    fileInput.addEventListener('change', (e) => processFile(e.target.files[0]));
+
+    // Drag & Drop
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        processFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    copyBase64Btn.addEventListener('click', () => {
+      if (currentBase64) {
+        navigator.clipboard.writeText(currentBase64).then(() => {
+          showToast('Base64 in Zwischenablage kopiert!');
+        });
+      }
+    });
+
+    // --- Panel 2: Base64 zu Bild ---
+    const base64Input = document.getElementById('base64Input');
+    const convertBase64Btn = document.getElementById('convertBase64Btn');
+    const pasteBase64Btn = document.getElementById('pasteBase64Btn');
+    const base64ImgPreview = document.getElementById('base64ImgPreview');
+    const base64Placeholder = document.getElementById('base64Placeholder');
+    const downloadImgBtn = document.getElementById('downloadImgBtn');
+
+    function renderBase64Image() {
+      let str = base64Input.value.trim();
+      if (!str) return;
+
+      // Ergänze Data-URL Prefix falls vergessen
+      if (!str.startsWith('data:image/')) {
+        str = 'data:image/png;base64,' + str;
+      }
+
+      base64ImgPreview.src = str;
+      base64ImgPreview.style.display = 'block';
+      base64Placeholder.style.display = 'none';
+
+      downloadImgBtn.href = str;
+      downloadImgBtn.style.display = 'inline-flex';
+      showToast('Bild erfolgreich gerendert!');
+    }
+
+    convertBase64Btn.addEventListener('click', renderBase64Image);
+
+    pasteBase64Btn.addEventListener('click', () => {
+      navigator.clipboard.readText().then((text) => {
+        base64Input.value = text;
+        renderBase64Image();
+      });
+    });
+  </script>
+</body>
+</html>

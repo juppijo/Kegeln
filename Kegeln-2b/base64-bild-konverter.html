@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Bild-Konverter</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f0f10;
+    --bg2:#17171a;
+    --panel:#1c1c1f;
+    --panel-border:#2c2b26;
+    --gold:#d4af37;
+    --gold-bright:#f2cf5b;
+    --gold-dim:#8a7325;
+    --text:#eae7df;
+    --text-dim:#a8a49a;
+    --danger:#c65b4e;
+    --success:#5bb887;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at top left, rgba(212,175,55,0.08), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(212,175,55,0.05), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Barlow', sans-serif;
+    padding:32px 16px 60px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:36px;
+  }
+  h1{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:clamp(2.2rem, 6vw, 3.2rem);
+    letter-spacing:2px;
+    color:var(--gold-bright);
+    margin:0 0 6px;
+    text-shadow:0 0 24px rgba(212,175,55,0.25);
+  }
+  header p{
+    color:var(--text-dim);
+    margin:0;
+    font-size:0.95rem;
+  }
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+  }
+  @media (max-width:820px){
+    .wrap{grid-template-columns:1fr;}
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius);
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .panel h2{
+    font-family:'Bebas Neue', sans-serif;
+    letter-spacing:1.5px;
+    font-size:1.4rem;
+    color:var(--gold);
+    margin:0 0 4px;
+    border-bottom:1px solid var(--panel-border);
+    padding-bottom:10px;
+  }
+  .dropzone{
+    border:2px dashed var(--gold-dim);
+    border-radius:var(--radius);
+    padding:34px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s, background .2s;
+    background:var(--bg2);
+  }
+  .dropzone.dragover{
+    border-color:var(--gold-bright);
+    background:rgba(212,175,55,0.08);
+  }
+  .dropzone svg{
+    width:38px;height:38px;
+    stroke:var(--gold);
+    margin-bottom:10px;
+  }
+  .dropzone p{margin:4px 0;color:var(--text-dim);font-size:0.9rem;}
+  .dropzone strong{color:var(--gold-bright);}
+  input[type=file]{display:none;}
+
+  img.preview{
+    max-width:100%;
+    max-height:260px;
+    border-radius:8px;
+    border:1px solid var(--panel-border);
+    display:block;
+    margin:0 auto;
+    object-fit:contain;
+    background:
+      linear-gradient(45deg, #222 25%, transparent 25%),
+      linear-gradient(-45deg, #222 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #222 75%),
+      linear-gradient(-45deg, transparent 75%, #222 75%);
+    background-size:16px 16px;
+    background-position:0 0,0 8px,8px -8px,-8px 0;
+    background-color:#161616;
+  }
+
+  .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 16px;
+    font-size:0.82rem;
+    color:var(--text-dim);
+  }
+  .meta span b{color:var(--gold);}
+
+  textarea{
+    width:100%;
+    min-height:180px;
+    resize:vertical;
+    background:var(--bg2);
+    color:var(--text);
+    border:1px solid var(--panel-border);
+    border-radius:8px;
+    padding:12px;
+    font-family:'Courier New', monospace;
+    font-size:0.78rem;
+    line-height:1.4;
+    word-break:break-all;
+  }
+  textarea:focus{outline:1px solid var(--gold-dim);}
+
+  .btn-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  button{
+    font-family:'Barlow', sans-serif;
+    font-weight:600;
+    font-size:0.88rem;
+    letter-spacing:0.3px;
+    border:1px solid var(--gold-dim);
+    background:transparent;
+    color:var(--gold-bright);
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s, transform .05s;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  button svg{width:15px;height:15px;stroke:currentColor;fill:none;}
+  button:hover{
+    background:var(--gold);
+    color:#1a1408;
+    border-color:var(--gold);
+  }
+  button:active{transform:scale(0.97);}
+  button:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+    background:transparent;
+    color:var(--gold-bright);
+  }
+  button.primary{
+    background:var(--gold);
+    color:#1a1408;
+  }
+  button.primary:hover{
+    background:var(--gold-bright);
+    border-color:var(--gold-bright);
+  }
+
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--panel);
+    border:1px solid var(--gold);
+    color:var(--gold-bright);
+    padding:10px 20px;
+    border-radius:8px;
+    font-size:0.85rem;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s, transform .25s;
+    z-index:99;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  .divider-text{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:0.8rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin:4px 0 -2px;
+  }
+
+  select{
+    background:var(--bg2);
+    color:var(--text);
+    border:1px solid var(--panel-border);
+    border-radius:6px;
+    padding:6px 8px;
+    font-family:'Barlow', sans-serif;
+    font-size:0.82rem;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:0.75rem;
+    margin-top:40px;
+    opacity:0.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Base64 Bild-Konverter</h1>
+  <p>Bild ⇄ Base64 · lokal im Browser, ohne Upload</p>
+</header>
+
+<div class="wrap">
+
+  <!-- BILD -> BASE64 -->
+  <div class="panel">
+    <h2>Bild → Base64</h2>
+
+    <div class="dropzone" id="dropzone">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 16V4M12 4l-4 4M12 4l4 4"/>
+        <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+      </svg>
+      <p><strong>Bild hierher ziehen</strong> oder klicken zum Auswählen</p>
+      <p>PNG, JPG, GIF, WEBP, SVG …</p>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <img id="previewImg" class="preview" style="display:none;">
+
+    <div class="meta" id="metaInfo" style="display:none;">
+      <span>Datei: <b id="metaName">–</b></span>
+      <span>Größe: <b id="metaSize">–</b></span>
+      <span>Typ: <b id="metaType">–</b></span>
+      <span>Base64-Länge: <b id="metaB64Len">–</b></span>
+    </div>
+
+    <textarea id="base64Output" placeholder="Base64-String erscheint hier …" readonly></textarea>
+
+    <div class="btn-row">
+      <button id="copyBtn" disabled>
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        In Zwischenablage kopieren
+      </button>
+      <button id="copyTagBtn" disabled>
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+        Als &lt;img&gt;-Tag kopieren
+      </button>
+      <button id="saveTxtBtn" disabled>
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 15V3"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+        Als .txt speichern
+      </button>
+      <button id="clearBtn" disabled>
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        Zurücksetzen
+      </button>
+    </div>
+  </div>
+
+  <!-- BASE64 -> BILD -->
+  <div class="panel">
+    <h2>Base64 → Bild</h2>
+
+    <textarea id="base64Input" placeholder="Base64-String (mit oder ohne data:image/...;base64, Prefix) hier einfügen …"></textarea>
+
+    <div class="btn-row">
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-dim);">
+        Format falls kein Prefix:
+        <select id="formatSelect">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="gif">GIF</option>
+          <option value="webp">WEBP</option>
+          <option value="svg+xml">SVG</option>
+        </select>
+      </label>
+      <button id="decodeBtn" class="primary">
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4 4l16 16"/><path d="M4 20L20 4" opacity="0"/><circle cx="12" cy="12" r="9"/></svg>
+        Decodieren
+      </button>
+      <button id="pasteBtn">
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        Aus Zwischenablage einfügen
+      </button>
+    </div>
+
+    <div class="divider-text">Vorschau</div>
+
+    <img id="decodedImg" class="preview" style="display:none;">
+
+    <div class="btn-row">
+      <button id="downloadImgBtn" disabled>
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 15V3"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+        Bild herunterladen
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<footer>Alles läuft lokal im Browser – keine Datei verlässt dein Gerät.</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const previewImg = document.getElementById('previewImg');
+  const metaInfo = document.getElementById('metaInfo');
+  const metaName = document.getElementById('metaName');
+  const metaSize = document.getElementById('metaSize');
+  const metaType = document.getElementById('metaType');
+  const metaB64Len = document.getElementById('metaB64Len');
+  const base64Output = document.getElementById('base64Output');
+  const copyBtn = document.getElementById('copyBtn');
+  const copyTagBtn = document.getElementById('copyTagBtn');
+  const saveTxtBtn = document.getElementById('saveTxtBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const toast = document.getElementById('toast');
+
+  const base64Input = document.getElementById('base64Input');
+  const decodeBtn = document.getElementById('decodeBtn');
+  const pasteBtn = document.getElementById('pasteBtn');
+  const decodedImg = document.getElementById('decodedImg');
+  const downloadImgBtn = document.getElementById('downloadImgBtn');
+  const formatSelect = document.getElementById('formatSelect');
+
+  let currentFileName = 'bild';
+  let currentDataUrl = '';
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toast.classList.remove('show'), 2200);
+  }
+
+  function humanSize(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1024/1024).toFixed(2) + ' MB';
+  }
+
+  function handleFile(file){
+    if(!file || !file.type.startsWith('image/')){
+      showToast('Bitte eine Bilddatei auswählen.');
+      return;
+    }
+    currentFileName = file.name.replace(/\.[^.]+$/, '') || 'bild';
+    const reader = new FileReader();
+    reader.onload = function(e){
+      currentDataUrl = e.target.result;
+      previewImg.src = currentDataUrl;
+      previewImg.style.display = 'block';
+
+      base64Output.value = currentDataUrl;
+
+      metaName.textContent = file.name;
+      metaSize.textContent = humanSize(file.size);
+      metaType.textContent = file.type || '–';
+      metaB64Len.textContent = currentDataUrl.length.toLocaleString('de-DE') + ' Zeichen';
+      metaInfo.style.display = 'flex';
+
+      [copyBtn, copyTagBtn, saveTxtBtn, clearBtn].forEach(b => b.disabled = false);
+      showToast('Bild konvertiert.');
+    };
+    reader.onerror = () => showToast('Fehler beim Lesen der Datei.');
+    reader.readAsDataURL(file);
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+    })
+  );
+  dropzone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    handleFile(file);
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try{
+      await navigator.clipboard.writeText(base64Output.value);
+      showToast('Base64 kopiert.');
+    }catch(err){
+      base64Output.select();
+      document.execCommand('copy');
+      showToast('Base64 kopiert.');
+    }
+  });
+
+  copyTagBtn.addEventListener('click', async () => {
+    const tag = `<img src="${base64Output.value}" alt="${currentFileName}">`;
+    try{
+      await navigator.clipboard.writeText(tag);
+      showToast('<img>-Tag kopiert.');
+    }catch(err){
+      showToast('Kopieren fehlgeschlagen.');
+    }
+  });
+
+  saveTxtBtn.addEventListener('click', () => {
+    const blob = new Blob([base64Output.value], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentFileName + '_base64.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Als .txt gespeichert.');
+  });
+
+  clearBtn.addEventListener('click', () => {
+    previewImg.style.display = 'none';
+    previewImg.src = '';
+    metaInfo.style.display = 'none';
+    base64Output.value = '';
+    fileInput.value = '';
+    currentDataUrl = '';
+    [copyBtn, copyTagBtn, saveTxtBtn, clearBtn].forEach(b => b.disabled = true);
+  });
+
+  // BASE64 -> BILD
+  function decodeBase64(){
+    let val = base64Input.value.trim();
+    if(!val){
+      showToast('Bitte zuerst einen Base64-String einfügen.');
+      return;
+    }
+    if(!val.startsWith('data:')){
+      const fmt = formatSelect.value;
+      const mime = fmt === 'svg+xml' ? 'image/svg+xml' : 'image/' + fmt;
+      val = `data:${mime};base64,${val}`;
+    }
+    decodedImg.onerror = () => {
+      showToast('Ungültiger Base64-String oder falsches Format.');
+      decodedImg.style.display = 'none';
+      downloadImgBtn.disabled = true;
+    };
+    decodedImg.onload = () => {
+      showToast('Bild decodiert.');
+    };
+    decodedImg.src = val;
+    decodedImg.style.display = 'block';
+    downloadImgBtn.disabled = false;
+    downloadImgBtn.dataset.url = val;
+  }
+
+  decodeBtn.addEventListener('click', decodeBase64);
+
+  pasteBtn.addEventListener('click', async () => {
+    try{
+      const text = await navigator.clipboard.readText();
+      base64Input.value = text;
+      showToast('Aus Zwischenablage eingefügt.');
+    }catch(err){
+      showToast('Zwischenablage nicht zugänglich.');
+    }
+  });
+
+  downloadImgBtn.addEventListener('click', () => {
+    const url = downloadImgBtn.dataset.url;
+    if(!url) return;
+    const mimeMatch = url.match(/^data:image\/([a-zA-Z0-9+.-]+);/);
+    let ext = mimeMatch ? mimeMatch[1] : 'png';
+    if(ext === 'svg+xml') ext = 'svg';
+    if(ext === 'jpeg') ext = 'jpg';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'decodiertes_bild.' + ext;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('Bild heruntergeladen.');
+  });
+
+})();
+</script>
+
+</body>
+</html>
