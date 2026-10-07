@@ -902,7 +902,7 @@ function createTannenbaumPlayerRow(name, teamNum) {
     const data = activeGamesData["tannenbaum"];
     
     const verlauf = (data.historie && data.historie[name]) ? data.historie[name] : [];
-    const letzteWuerfe = verlauf.slice(-3).join(", ") || "-";
+    const letzteWuerfe = verlauf.slice(-9).join(", ") || "-";
 
     // Wir fügen ein schickes, kompaktes Layout mit einem "↩️" Button hinzu
     div.innerHTML = `
