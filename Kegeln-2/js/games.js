@@ -107,111 +107,79 @@ function updateCurrentGameTable() {
     else if (currentGame === "aergere-dich-nicht") {
         renderMenschAergereDichNichtGame(tableResponsive);
     }
-    else if (currentGame === "rennen") {
-        // HIER NEU: Spalte für den Platz (Medaillen) ganz links hinzugefügt
-        thRow.innerHTML = "<th>Platz</th><th>Team wählen</th><th>Name</th><th>Tag 1</th><th>Tag 2 (x2)</th><th>Tag 3 (x3)</th><th>Tag 4 (x4)</th><th>Tag 5 (x5)</th><th>Tag 6 (x6)</th><th>Einzel</th><th>Team-Gesamt</th>";
+
+else if (currentGame === "rennen") {
+        // Überschriften
+        thRow.innerHTML = "<th>Platz</th><th>Team / Spieler</th><th>Tag 1</th><th>Tag 2 (x2)</th><th>Tag 3 (x3)</th><th>Tag 4 (x4)</th><th>Tag 5 (x5)</th><th>Tag 6 (x6)</th><th>Team-Gesamt</th>";
         
-        // 1. Initialisiere Daten, falls noch gar nichts vorhanden ist
+        // Initialisierung der Spieldaten bei Bedarf
         if (!activeGamesData["rennen"] || Object.keys(activeGamesData["rennen"]).length === 0) {
             activeGamesData["rennen"] = {};
-            // Beim allerersten Start teilen wir fair auf Team A, B, C etc. auf
             players.forEach((p, index) => {
                 let initialTeamNum = Math.floor(index / 2) + 1;
-                let initialTeam = `Team ${String.fromCharCode(64 + initialTeamNum)}`; // Team A, Team B...
+                let initialTeam = `Team ${String.fromCharCode(64 + initialTeamNum)}`;
                 activeGamesData["rennen"][p] = { team: initialTeam, t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
             });
-            // Gast-Eintrag standardmäßig leer bereithalten
-            activeGamesData["rennen"]["Gast"] = { team: "Keins", t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
         }
 
-        // Wir holen uns eine Liste aller möglichen Teams für das Dropdown (z.B. Team A bis Team H)
-        const maxTeamsCount = Math.ceil(players.length / 2) + 1;
-        let teamOptionsHTML = "";
-        for (let i = 1; i <= maxTeamsCount; i++) {
-            let tName = `Team ${String.fromCharCode(64 + i)}`;
-            teamOptionsHTML += `<option value="${tName}">${tName}</option>`;
-        }
-
-        // 2. Erstelle eine Übersicht aller echten Spieler, sortiert nach ihrem aktuell gewählten Team
-        let sortedPlayers = [...players].sort((a, b) => {
-            let tA = activeGamesData["rennen"][a]?.team || "Team A";
-            let tB = activeGamesData["rennen"][b]?.team || "Team A";
-            return tA.localeCompare(tB);
+        // 1. Alle aktuell genutzten Teams ermitteln
+        let alleTeams = [];
+        players.forEach(p => {
+            let t = activeGamesData["rennen"][p]?.team || "Team A";
+            if (!alleTeams.includes(t)) alleTeams.push(t);
         });
+
+        // 2. FESTE SORTIERUNG NACH TEAM-NAMEN (Team A, Team B, Team C, ...)
+        alleTeams.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
         tbody.innerHTML = "";
 
-        // Render-Funktion für eine Tabellenzeile mit Klassen-Zuweisung
-        function generateRennenRowHTML(name, data, isGast = false) {
-            const rowId = isGast ? "row-rennen-Gast" : `row-${name}`;
-            const inputClass = isGast ? "ren-g" : "ren";
-            
-            // Dropdown für das Team
-            let selectHTML = `<select class="ren-team-select" onchange="changeRennenTeam('${name}', this.value)">`;
-            for (let i = 1; i <= maxTeamsCount; i++) {
-                let tName = `Team ${String.fromCharCode(64 + i)}`;
-                let selected = (data.team === tName) ? "selected" : "";
-                selectHTML += `<option value="${tName}" ${selected}>👥 ${tName}</option>`;
-            }
-            selectHTML += `</select>`;
+        // 3. Tabellenzeilen nach fester Team-Reihenfolge rendern
+        alleTeams.forEach(teamName => {
+            let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+            if (teamMitglieder.length === 0) return;
 
-            // Optischer Hinweis für den automatischen Gast-Partner
-            if (isGast) {
-                selectHTML = `<span style="color:#94a3b8; font-size:0.85rem; font-style:italic; padding-left:5px;">🤖 Autom. Partner</span>`;
-            }
+            let namensAnzeige = teamMitglieder.map(p => `<strong>${p}</strong>`).join(" &amp; ");
+            let teamKlasse = teamName.replace(/\s+/g, '');
 
-            // HIER NEU: Eine Tabellenzelle mit der Klasse "team-rank-..." ganz vorne eingefügt
-            return `
-                <tr id="${rowId}" data-team="${data.team}">
-                    <td class="team-rank-${data.team.replace(' ', '')}" style="text-align: center; font-weight: bold; font-size: 1.1rem;">-</td>
-                    <td style="padding: 10px 6px;">${selectHTML}</td>
-                    <td><strong>${name}</strong></td>
-                    <td><input type="number" class="${inputClass}-t1" min="0" max="9" value="${data.t1}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="${inputClass}-t2" min="0" max="9" value="${data.t2}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="${inputClass}-t3" min="0" max="9" value="${data.t3}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="${inputClass}-t4" min="0" max="9" value="${data.t4}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="${inputClass}-t5" min="0" max="9" value="${data.t5}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
-                    <td><input type="number" class="${inputClass}-t6" min="0" max="9" value="${data.t6}" oninput="liveCalculate6TageRennen(); saveCurrentGameFields();"></td>
-                    <td class="${inputClass}-res" style="font-weight:bold; color:var(--text-muted);">0</td>
-                    <td class="team-res-${data.team.replace(' ', '')}" style="font-weight:bold; color:var(--accent); font-size:1.05rem;">0 Holz</td>
-                </tr>`;
-        }
-
-        // 3. Zeilen ausgeben und prüfen, ob ein Team unvollständig ist (Gast-Bedarf)
-        let teamCounts = {};
-        sortedPlayers.forEach(p => {
-            let t = activeGamesData["rennen"][p].team;
-            teamCounts[t] = (teamCounts[t] || 0) + 1;
-        });
-
-        let currentRenderedTeam = "";
-        sortedPlayers.forEach(p => {
-            let pData = activeGamesData["rennen"][p];
-            
-            // Wenn wir zu einem neuen Team wechseln und das alte Team ungerade (1 Spieler) war, schieben wir dort den Gast rein!
-            if (currentRenderedTeam !== "" && currentRenderedTeam !== pData.team) {
-                if (teamCounts[currentRenderedTeam] === 1) {
-                    let gData = activeGamesData["rennen"]["Gast"] || { t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
-                    gData.team = currentRenderedTeam;
-                    activeGamesData["rennen"]["Gast"] = gData;
-                    tbody.innerHTML += generateRennenRowHTML("Gast (Partner)", gData, true);
+            const maxTeamsCount = Math.ceil(players.length / 2) + 1;
+            let teamWechslerHTML = `<div style="display:flex; flex-direction:column; gap:4px;">`;
+            teamMitglieder.forEach(p => {
+                teamWechslerHTML += `<select class="ren-team-select" style="width:99%; min-width: 85px; padding:4px !important; font-size:0.8rem !important;" onchange="changeRennenTeam('${p}', this.value)">`;
+                for (let i = 1; i <= maxTeamsCount; i++) {
+                    let tOption = `Team ${String.fromCharCode(64 + i)}`;
+                    let selected = (teamName === tOption) ? "selected" : "";
+                    teamWechslerHTML += `<option value="${tOption}" ${selected}>👥 ${tOption}</option>`;
                 }
-            }
-            
-            currentRenderedTeam = pData.team;
-            tbody.innerHTML += generateRennenRowHTML(p, pData, false);
+                teamWechslerHTML += `</select>`;
+            });
+            teamWechslerHTML += `</div>`;
+
+            let refPlayer = teamMitglieder[0];
+            let d = activeGamesData["rennen"][refPlayer] || { t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
+
+            tbody.innerHTML += `
+                <tr id="row-team-${teamKlasse}" data-team="${teamName}">
+                    <td class="team-rank-${teamKlasse}" style="text-align: center; font-weight: bold; font-size: 1.1rem;">-</td>
+                    <td style="padding: 10px 6px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${teamWechslerHTML}
+                            <div style="font-size: 0.95rem;">${namensAnzeige}</div>
+                        </div>
+                    </td>
+                    <td><input type="number" class="ren-${teamKlasse}-t1" min="0" max="9" value="${d.t1 || 0}" oninput="syncAndCalculateRennen('${teamName}', 1, this.value)"></td>
+                    <td><input type="number" class="ren-${teamKlasse}-t2" min="0" max="9" value="${d.t2 || 0}" oninput="syncAndCalculateRennen('${teamName}', 2, this.value)"></td>
+                    <td><input type="number" class="ren-${teamKlasse}-t3" min="0" max="9" value="${d.t3 || 0}" oninput="syncAndCalculateRennen('${teamName}', 3, this.value)"></td>
+                    <td><input type="number" class="ren-${teamKlasse}-t4" min="0" max="9" value="${d.t4 || 0}" oninput="syncAndCalculateRennen('${teamName}', 4, this.value)"></td>
+                    <td><input type="number" class="ren-${teamKlasse}-t5" min="0" max="9" value="${d.t5 || 0}" oninput="syncAndCalculateRennen('${teamName}', 5, this.value)"></td>
+                    <td><input type="number" class="ren-${teamKlasse}-t6" min="0" max="9" value="${d.t6 || 0}" oninput="syncAndCalculateRennen('${teamName}', 6, this.value)"></td>
+                    <td class="team-res-${teamKlasse}" style="font-weight:bold; color:var(--accent); font-size:1.05rem;">0 Holz</td>
+                </tr>`;
         });
 
-        // Letztes Team in der Liste auf Gast-Bedarf prüfen
-        if (teamCounts[currentRenderedTeam] === 1) {
-            let gData = activeGamesData["rennen"]["Gast"] || { t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
-            gData.team = currentRenderedTeam;
-            activeGamesData["rennen"]["Gast"] = gData;
-            tbody.innerHTML += generateRennenRowHTML("Gast (Partner)", gData, true);
-        }
-
-        liveCalculate6TageRennen(); // Direkt schick durchrechnen
+        liveCalculate6TageRennen(); 
     }
+
     else if (currentGame === "idiot") {
         thRow.innerHTML = "<th>Platz</th><th>Name</th><th>Links</th><th>Rückw.</th><th>Rechts</th><th>Gesamt</th>";
         tbody.innerHTML = ""; // Tabelle leeren vor dem Aufbau
@@ -356,11 +324,14 @@ else if (currentGame === "tannenbaum") {
         // HIER GEÄNDERT: Das "#tannenbaum-setup" wurde in ein stylisches <details>-Element verwandelt
         tableResponsive.innerHTML = `
             <div class="tannenbaum-container" style="display: flex; flex-direction: column; gap: 20px; padding: 10px;">
+
+                <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
+                </div>
                 
                 <details open id="tannenbaum-setup" style="background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer;">
                     <summary style="font-weight: bold; color: var(--accent); font-size: 1.1rem; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none;">
                         <span>👥 Teams für den Tannenbaum aufteilen</span>
-                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">(Klicken zum Ein-/Ausklappen)</span>
+                        <span style="font-size: 1.85rem; color: var(--text-muted); font-weight: normal;">▶️</span>
                     </summary>
                     
                     <div style="margin-top: 15px; cursor: default;" onclick="event.stopPropagation();">
@@ -372,8 +343,6 @@ else if (currentGame === "tannenbaum") {
                     </div>
                 </details>
 
-                <div id="tannenbaum-game-board" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 600px;">
-                    </div>
             </div>
         `;
 
@@ -495,6 +464,7 @@ function liveCalculateHausnummer() {
         grossScores.push({ player: p, score: grossNum, isDone: (g1 !== null && g2 !== null && g3 !== null) });
 
 
+
         // --- HAUSNUMMER KLEIN ---
         let k1 = getWurfString(row.querySelector(".hn-k1"));
         let k2 = getWurfString(row.querySelector(".hn-k2"));
@@ -521,7 +491,19 @@ function liveCalculateHausnummer() {
     grossScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            row.querySelector(".rank-col-gross").innerText = !item.isDone ? "-" : (index + 1) + ".";
+            if (!item.isDone) {
+                row.querySelector(".rank-col-gross").innerText = "-";
+            } else {
+                let platz = index + 1;
+                let rankDisplay = "";
+                if (platz === 1) rankDisplay = "🥇";
+                else if (platz === 2) rankDisplay = "🥈";
+                else if (platz === 3) rankDisplay = "🥉";
+                else rankDisplay = platz + ".";
+                
+                // .innerHTML nutzen, falls du Formatierungen/Klassen übergeben willst
+                row.querySelector(".rank-col-gross").innerHTML = rankDisplay;
+            }
         }
     });
 
@@ -530,7 +512,18 @@ function liveCalculateHausnummer() {
     kleinScores.forEach((item, index) => {
         const row = document.getElementById(`row-${item.player}`);
         if(row) {
-            row.querySelector(".rank-col-klein").innerText = !item.isDone ? "-" : (index + 1) + ".";
+            if (!item.isDone) {
+                row.querySelector(".rank-col-klein").innerText = "-";
+            } else {
+                let platz = index + 1;
+                let rankDisplay = "";
+                if (platz === 1) rankDisplay = "🥇";
+                else if (platz === 2) rankDisplay = "🥈";
+                else if (platz === 3) rankDisplay = "🥉";
+                else rankDisplay = platz + ".";
+                
+                row.querySelector(".rank-col-klein").innerHTML = rankDisplay;
+            }
         }
     });
 }
@@ -591,6 +584,12 @@ function calculateGame() {
         updateGrandTotalTable();
         alert("🎉 Beide Hausnummern erfolgreich ausgewertet! Alle Platzierungspunkte wurden gebucht.");
         
+    } else if (currentGame === "rennen") {
+                calculate6TageRennen();
+                //liveCalculate6TageRennen();
+                //const teamName = row.getAttribute("data-team");
+                //const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
+                //score = parseInt(teamCell.innerText) || 0; 
     } else if (currentGame === "aergere-dich-nicht") {
         calculateMenschAergereDichNichtGame();
 
@@ -637,7 +636,7 @@ function calculateGame() {
         updateGrandTotalTable();
         
     } else {
-        // Logik für die restlichen Spiele (17&4, Rennen, Idiot)
+        // Logik für die restlichen Spiele (17&4, Idiot)
         players.forEach(p => {
             const row = document.getElementById(`row-${p}`); if(!row) return;
             let score = 0;
@@ -653,11 +652,6 @@ function calculateGame() {
                 } else {
                     score = pts;
                 }
-            } else if (currentGame === "rennen") {
-                liveCalculate6TageRennen();
-                const teamName = row.getAttribute("data-team");
-                const teamCell = row.querySelector(`.team-res-${teamName.replace(' ', '')}`);
-                score = parseInt(teamCell.innerText) || 0; 
             } 
 
             // Innerhalb von calculateGame() im finalen else-Block:
@@ -908,7 +902,7 @@ function createTannenbaumPlayerRow(name, teamNum) {
     const data = activeGamesData["tannenbaum"];
     
     const verlauf = (data.historie && data.historie[name]) ? data.historie[name] : [];
-    const letzteWuerfe = verlauf.slice(-3).join(", ") || "-";
+    const letzteWuerfe = verlauf.slice(-9).join(", ") || "-";
 
     // Wir fügen ein schickes, kompaktes Layout mit einem "↩️" Button hinzu
     div.innerHTML = `
@@ -1073,99 +1067,145 @@ function checkTannenbaumWinner(t1Counts, t2Counts) {
     }
 }
 // Rechnet die Live-Werte inklusive Multiplikatoren zusammen
-function liveCalculate6TageRennen() {
-    if (currentGame !== "rennen") return;
+// --- 6-TAGE-RENNEN: LOGIK & BUNCH-BUCHUNG ---
+// 🔥 DIESE FUNKTION FEHLTE / WAR DEFEKT (Punkte buchen Button):
+// 🔥 KORRIGIERTE & VOLL FUNKTIONSFÄHIGE BILDUNG & BUCHUNG FÜR DAS 6-TAGE-RENNEN
 
-    let teamTotals = {};
-    let activeTeams = new Set();
+// --- 6-TAGE-RENNEN BERECHNUNG & PUNKTEBUCHUNG ---
 
-    // 1. Berechne die Einzelergebnisse aller echten Spieler
+function calculate6TageRennen() {
+    if (!activeGamesData["rennen"]) return;
+
+    // 1. Teams und ihre Mitglieder erfassen
+    let teamMap = {};
+
     players.forEach(p => {
-        const row = document.getElementById(`row-${p}`);
-        if (!row) return;
+        let team = activeGamesData["rennen"][p]?.team || "Team A";
+        if (!teamMap[team]) {
+            teamMap[team] = { name: team, members: [], totalHolz: 0 };
+        }
+        teamMap[team].members.push(p);
+    });
 
-        const t1 = parseInt(row.querySelector(".ren-t1").value) || 0;
-        const t2 = parseInt(row.querySelector(".ren-t2").value) || 0;
-        const t3 = parseInt(row.querySelector(".ren-t3").value) || 0;
-        const t4 = parseInt(row.querySelector(".ren-t4").value) || 0;
-        const t5 = parseInt(row.querySelector(".ren-t5").value) || 0;
-        const t6 = parseInt(row.querySelector(".ren-t6").value) || 0;
+    // 2. Gesamtholz pro Team mit Gewichtung berechnen (Tag 1=x1, Tag 2=x2 ... Tag 6=x6)
+    Object.keys(teamMap).forEach(teamName => {
+        let refPlayer = teamMap[teamName].members[0];
+        let d = activeGamesData["rennen"][refPlayer] || { t1:0, t2:0, t3:0, t4:0, t5:0, t6:0 };
+        
+        let total = (parseInt(d.t1) || 0) * 1 + 
+                    (parseInt(d.t2) || 0) * 2 + 
+                    (parseInt(d.t3) || 0) * 3 + 
+                    (parseInt(d.t4) || 0) * 4 + 
+                    (parseInt(d.t5) || 0) * 5 + 
+                    (parseInt(d.t6) || 0) * 6;
 
-        const total = t1 + (t2 * 2) + (t3 * 3) + (t4 * 4) + (t5 * 5) + (t6 * 6);
-        row.querySelector(".ren-res").innerText = total;
+        teamMap[teamName].totalHolz = total;
+    });
 
-        const team = row.getAttribute("data-team");
-        if (team) {
-            teamTotals[team] = (teamTotals[team] || 0) + total;
-            activeTeams.add(team);
+    // 3. Teams nach Holz absteigend sortieren
+    let teamResults = Object.values(teamMap).sort((a, b) => b.totalHolz - a.totalHolz);
+    let totalTeams = teamResults.length;
+
+    if (totalTeams === 0) {
+        alert("Keine Teams für das 6-Tage-Rennen vorhanden!");
+        return;
+    }
+
+    // 4. Punkte buchen & Zusammenfassung erstellen
+    // Formel: (totalTeams - index) * 2
+    // Letzter Platz (index = totalTeams - 1): (1) * 2 = 2 Punkte
+    // Vorletzter Platz: 4 Punkte, usw.
+    let summaryText = "🏎️ 6-Tage-Rennen Auswertung:\n\n";
+
+    teamResults.forEach((teamObj, index) => {
+        const pointsForTeam = (totalTeams - index) * 2;
+
+        teamObj.members.forEach(player => {
+            grandTotalScores[player] = (grandTotalScores[player] || 0) + pointsForTeam;
+        });
+
+        summaryText += `${index + 1}. Platz: ${teamObj.name} (${teamObj.members.join(" & ")}) - ${teamObj.totalHolz} Holz ➔ +${pointsForTeam} Pkt.\n`;
+    });
+
+    // 5. Status speichern und UI aktualisieren
+    activeGamesData["rennen"].isBooked = true;
+
+    if (typeof saveCurrentGameFields === "function") saveCurrentGameFields();
+    if (typeof saveMenschAergereDichNichtFields === "function") saveMenschAergereDichNichtFields();
+    
+    localStorage.setItem("kegel_grand_total_scores", JSON.stringify(grandTotalScores));
+    localStorage.setItem("kegel_active_games_data", JSON.stringify(activeGamesData));
+
+    if (typeof updateGrandTotalTable === "function") updateGrandTotalTable();
+    if (typeof updateBookedButtonStatus === "function") updateBookedButtonStatus();
+
+    alert(summaryText);
+    //alert("🎉 6-Tage-Rennen ausgewertet! Die Teampunkte wurden allen Teammitgliedern erfolgreich auf den Gesamtstand gutgeschrieben.");
+
+}
+
+// Synchronisierung & Live-Berechnung für das 6-Tage-Rennen
+function syncAndCalculateRennen(teamName, tagNum, value) {
+    let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+    
+    teamMitglieder.forEach(p => {
+        activeGamesData["rennen"][p] = activeGamesData["rennen"][p] || {};
+        activeGamesData["rennen"][p][`t${tagNum}`] = parseInt(value, 10) || 0;
+    });
+
+    saveCurrentGameFields();
+    liveCalculate6TageRennen();
+}
+
+function changeRennenTeam(playerName, newTeam) {
+    activeGamesData["rennen"][playerName] = activeGamesData["rennen"][playerName] || {};
+    activeGamesData["rennen"][playerName].team = newTeam;
+    
+    saveCurrentGameFields();
+    updateCurrentGameTable();
+}
+
+function liveCalculate6TageRennen() {
+    let teamMap = {};
+
+    players.forEach(p => {
+        let team = activeGamesData["rennen"][p]?.team || "Team A";
+        if (!teamMap[team]) teamMap[team] = { name: team, totalHolz: 0 };
+    });
+
+    Object.keys(teamMap).forEach(teamName => {
+        let teamMitglieder = players.filter(p => (activeGamesData["rennen"][p]?.team || "Team A") === teamName);
+        if (teamMitglieder.length > 0) {
+            let refPlayer = teamMitglieder[0];
+            let d = activeGamesData["rennen"][refPlayer] || {};
+            
+            let total = (parseInt(d.t1) || 0) * 1 + 
+                        (parseInt(d.t2) || 0) * 2 + 
+                        (parseInt(d.t3) || 0) * 3 + 
+                        (parseInt(d.t4) || 0) * 4 + 
+                        (parseInt(d.t5) || 0) * 5 + 
+                        (parseInt(d.t6) || 0) * 6;
+
+            teamMap[teamName].totalHolz = total;
+
+            let teamKlasse = teamName.replace(' ', '');
+            let resCell = document.querySelector(`.team-res-${teamKlasse}`);
+            if (resCell) resCell.innerText = `${total} Holz`;
         }
     });
 
-    // 2. Berechne das Einzelergebnis des Gastes (falls er auf der Bahn gerendert wurde)
-    const gastRow = document.getElementById("row-rennen-Gast");
-    if (gastRow) {
-        const gt1 = parseInt(gastRow.querySelector(".ren-g-t1").value) || 0;
-        const gt2 = parseInt(gastRow.querySelector(".ren-g-t2").value) || 0;
-        const gt3 = parseInt(gastRow.querySelector(".ren-g-t3").value) || 0;
-        const gt4 = parseInt(gastRow.querySelector(".ren-g-t4").value) || 0;
-        const gt5 = parseInt(gastRow.querySelector(".ren-g-t5").value) || 0;
-        const gt6 = parseInt(gastRow.querySelector(".ren-g-t6").value) || 0;
-
-        const gTotal = gt1 + (gt2 * 2) + (gt3 * 3) + (gt4 * 4) + (gt5 * 5) + (gt6 * 6);
-        gastRow.querySelector(".ren-g-res").innerText = gTotal;
-
-        const gTeam = gastRow.getAttribute("data-team");
-        if (gTeam) {
-            teamTotals[gTeam] = (teamTotals[gTeam] || 0) + gTotal;
-            activeTeams.add(gTeam);
+    // Live-Ränge anzeigen (Medaillen)
+    let sortedTeams = Object.values(teamMap).sort((a, b) => b.totalHolz - a.totalHolz);
+    
+    sortedTeams.forEach((tObj, index) => {
+        let teamKlasse = tObj.name.replace(' ', '');
+        let rankCell = document.querySelector(`.team-rank-${teamKlasse}`);
+        if (rankCell) {
+            if (index === 0) rankCell.innerHTML = "🥇";
+            else if (index === 1) rankCell.innerHTML = "🥈";
+            else if (index === 2) rankCell.innerHTML = "🥉";
+            else rankCell.innerText = `${index + 1}.`;
         }
-    }
-
-    // 3. Schreibe die Team-Summen in alle Zeilen
-    for (let team in teamTotals) {
-        const cells = document.querySelectorAll(`.team-res-${team.replace(' ', '')}`);
-        cells.forEach(cell => {
-            cell.innerText = `${teamTotals[team]} Holz`;
-        });
-    }
-
-    // 4. MEDAILLEN-BERECHNUNG: Erstelle eine sortierte Rangliste der Teams
-    let rankList = [];
-    activeTeams.forEach(teamName => {
-        rankList.push({
-            name: teamName,
-            score: teamTotals[teamName]
-        });
-    });
-
-    // Sortiere Teams nach Holz (höchste Punktzahl zuerst)
-    rankList.sort((a, b) => b.score - a.score);
-
-    // Medaillen an die betroffenen Tabellenzellen verteilen
-    let currentRank = 1;
-    rankList.forEach((teamObj, index) => {
-        // Bei Punktegleichstand bekommen Teams dieselbe Platzierung
-        if (index > 0 && teamObj.score === rankList[index - 1].score) {
-            // Rang bleibt gleich
-        } else {
-            currentRank = index + 1;
-        }
-
-        // Suche alle Rangfelder dieses Teams (da es 2 Zeilen pro Team gibt)
-        const rankCells = document.querySelectorAll(`.team-rank-${teamObj.name.replace(' ', '')}`);
-        rankCells.forEach(cell => {
-            if (teamObj.score === 0) {
-                cell.innerText = "-"; // Noch keine Punkte erzielt
-            } else if (currentRank === 1) {
-                cell.innerHTML = "🥇";
-            } else if (currentRank === 2) {
-                cell.innerHTML = "🥈";
-            } else if (currentRank === 3) {
-                cell.innerHTML = "🥉";
-            } else {
-                cell.innerText = currentRank;
-            }
-        });
     });
 }
 
