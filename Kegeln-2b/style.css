@@ -561,7 +561,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     background-color: var(--bg-input);
-    font-size: 0.95rem;
+    font-size: 1.1rem;
 }
 
 th, td {
@@ -585,6 +585,7 @@ table input[type="number"], table select {
     padding: 6px;
     text-align: center;
     font-weight: bold;
+		font-size: 1.1rem;
     background-color: var(--bg-card);
     color: var(--text-main);
     border: 1px solid var(--border);
