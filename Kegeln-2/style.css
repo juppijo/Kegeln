@@ -306,7 +306,7 @@
 }
 
 .theme-light {
-    --bg-main: #f8fafc;
+    --bg-main: #b8bafc;
     --bg-card: #ffffff;
     --bg-input: #f1f5f9;
     --text-main: #0f172a;
@@ -327,7 +327,7 @@ body {
 header {
     background: var(--header-gradient);
     color: white;
-    padding: 20px 15px;
+    padding: 2px 2px;
     text-align: center;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
 }
@@ -380,7 +380,7 @@ header {
 
 /* --- CONTAINER & CARDS --- */
 .container {
-    max-width: 1200px;
+    max-width: 1650px;
     margin: 0 auto;
     padding: 15px;
 }
@@ -411,7 +411,7 @@ header {
 
 /* --- BUTTONS & SELECTION --- */
 .btn {
-    padding: 10px 16px;
+    padding: 3px 3px;
     border: none;
     border-radius: 6px;
     font-weight: bold;
@@ -444,7 +444,7 @@ select, input[type="text"] {
     background-color: var(--bg-input);
     color: var(--text-main);
     border: 1px solid var(--border);
-    padding: 10px;
+    padding: 2px;
     border-radius: 6px;
     font-size: 1rem;
     width: 100%;
@@ -561,7 +561,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     background-color: var(--bg-input);
-    font-size: 0.95rem;
+    font-size: 1.1rem;
 }
 
 th, td {
@@ -584,6 +584,8 @@ table input[type="number"], table select {
     width: 65px;
     padding: 6px;
     text-align: center;
+    font-weight: bold;
+		font-size: 1.1rem;
     background-color: var(--bg-card);
     color: var(--text-main);
     border: 1px solid var(--border);
@@ -849,4 +851,81 @@ body.fullscreen-active .header-collapsible.menu-forced-open {
     opacity: 1;
     pointer-events: auto;
     margin-bottom: 15px;
+}
+
+/* ======================================================
+   GEBRAUCHSANWEISUNG (DETAILS / SUMMARY) STYLING
+   ====================================================== */
+summary {
+    list-style: none; /* Versteckt das Standard-Dreieck in modernen Browsern */
+}
+
+summary::-webkit-details-marker {
+    display: none; /* Versteckt das Standard-Dreieck in Safari / älteren Browsern */
+}
+
+/* Steuert die Drehung des kleinen Custom-Dreiecks (▶) beim Aufklappen */
+details[open] summary span {
+    transform: rotate(90deg);
+}
+
+/* Optional: Verhindert unschöne blaue Rahmen beim Anklicken auf Smartphones */
+summary:focus {
+    outline: none;
+}
+
+/* --- MEDAILLEN-UPGRADE --- 
+.madn-rank, .sv-rank, .rank-col-gross, .rank-col-klein {
+    font-size: 1.8rem !important;
+    line-height: 2;
+    vertical-align: middle;
+    display: inline-block;
+    animation: medalPop 0.2s ease-out;
+}
+
+@keyframes medalPop {
+    0% { transform: scale(0.5); }
+    100% { transform: scale(1); }
+}
+*/
+
+.madn-rank, 
+.sv-rank, 
+.id-rank,
+.rank-col-gross, 
+.rank-col-klein , 
+.team-rank-TeamA, 
+.team-rank-TeamB, 
+.team-rank-TeamC, 
+.team-rank-TeamD, 
+.team-rank-TeamE, 
+.team-rank-TeamF, 
+.team-rank-TeamG, 
+.team-rank-TeamH,
+.team-rank-TeamI, 
+.team-rank-TeamJ{
+    font-size: 1.6rem !important;
+}    
+
+/* Erwirkt, dass in jeder geraden Tabellenzeile die Zellen leicht abgedunkelt werden */
+.table-responsive table tbody tr:nth-child(even) td {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Optional: In jeder ungeraden Zeile die Zellen leicht aufhellen, um den Kontrast zu stärken */
+.table-responsive table tbody tr:nth-child(odd) td {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* 1. Der Text-Span bleibt stabil und dreht sich NICHT */
+details[open]#tannenbaum-setup summary span:not(:last-child) {
+    transform: none !important;
+    display: inline-block;
+}
+
+/* 2. Nur der letzte Span (das rote Dreieck) dreht sich um 90 Grad (oder 180°, je nach Wunsch) */
+details[open]#tannenbaum-setup summary span:last-child {
+    transform: rotate(270deg) !important; /* Dreht das Dreieck auf den Kopf */
+    display: inline-block;
+    transition: transform 0.2s ease; /* Macht die Drehung geschmeidig */
 }
